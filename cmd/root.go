@@ -16,9 +16,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pf92/testimonium-cli/testimonium"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,6 +41,9 @@ to quickly create a Cobra application.`,
 	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
+var testimoniumClient *testimonium.Client
+
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -55,7 +59,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.testimonium-cli.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/testimonium.yml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -75,15 +79,22 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".testimonium-cli" (without extension).
+		// Search config in home directory with name ".testimonium" (without extension).
+		viper.AddConfigPath(".")
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".testimonium-cli")
+		viper.SetConfigName("testimonium")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("Can't read config file:", err)
 	}
+
+	chainsConfig := viper.Get("chains").(map[string]interface{})
+	privateKey := viper.Get("privateKey").(string)
+
+	testimoniumClient = testimonium.NewClient(privateKey, chainsConfig)
+
 }
