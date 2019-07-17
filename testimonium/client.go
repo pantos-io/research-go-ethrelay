@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const abiFile = "Testimonium.abi"
@@ -45,10 +46,10 @@ type SubmitBlockHeaderEvent struct {//    event SubmitBlockHeader( bytes32 hash,
 
 func (t SubmitBlockHeaderEvent) String() string {
 	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Parent: %s }",
-		common.BytesToHash(t.Hash[:]),
-		common.BytesToHash(t.HashWithoutNonce[:]),
+		common.BytesToHash(t.Hash[:]).String(),
+		common.BytesToHash(t.HashWithoutNonce[:]).String(),
 		t.Nonce.String(),
-		common.BytesToHash(t.Parent[:]))
+		common.BytesToHash(t.Parent[:]).String())
 }
 
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
@@ -181,14 +182,44 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Tx sent: %s\n", tx.Hash().Hex()) // tx sent: 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex()) // tx sent: 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
 
-	// todo: optionally wait for SubmitHeader event
-	event, err := awaitTx(c.chains[chain], tx.Hash())
+	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Received " + event.String())// pointer to event l
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return
+	}
+
+	// Transaction is successful
+	event, err := parseEvent(*receipt.Logs[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Tx successful: %s\n", event.String())
+}
+
+func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
+	code, err := client.CallContract(context.Background(), createCallMsgFromTransaction(from, tx), blockNumber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf(string(code[67:]))
+}
+
+func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) ethereum.CallMsg {
+	return ethereum.CallMsg{
+		From: from,
+		To: tx.To(),
+		Gas: tx.Gas(),
+		GasPrice: tx.GasPrice(),
+		Value: tx.Value(),
+		Data: tx.Data(),
+	}
 }
 
 func (c Client) SubmitHeader(blockNumber *big.Int, srcChain uint8, destChain uint8) {
@@ -261,31 +292,51 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	return auth
 }
 
-func awaitTx(chain *Chain, txHash common.Hash) (fmt.Stringer, error) {
-	query := ethereum.FilterQuery{
-		Addresses: []common.Address{chain.contractAddress},
-	}
+func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
+	const TimeoutLength = 2
+	receipts := make(chan *types.Receipt)
 
-	logs := make(chan types.Log)
+	go func(chan *types.Receipt) {
+		for ;; {
+			receipt, _ := client.TransactionReceipt(context.Background(), txHash)
 
-	sub, err := chain.client.SubscribeFilterLogs(context.Background(), query, logs)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for {
-		select {
-		case err := <-sub.Err():
-			return nil, err
-		case vLog := <-logs:
-			// if the transaction hash of the event does not equal the passed
-			// transaction hash we continue listening
-			if vLog.TxHash.Hex() != txHash.Hex() {
-				break
+			if receipt != nil {
+				receipts <- receipt
 			}
-			return parseEvent(vLog)
 		}
+	}(receipts)
+
+	select {
+		case receipt := <- receipts:
+			return receipt, nil
+		case <- time.After(TimeoutLength * time.Minute):
+			return nil, fmt.Errorf("timeout: did not receive receipt after %d minutes", TimeoutLength)
 	}
+
+	//query := ethereum.FilterQuery{
+	//	Addresses: []common.Address{chain.contractAddress},
+	//}
+	//
+	//logs := make(chan types.Log)
+	//
+	//sub, err := chain.client.SubscribeFilterLogs(context.Background(), query, logs)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//for {
+	//	select {
+	//	case err := <-sub.Err():
+	//		return nil, err
+	//	case vLog := <-logs:
+	//		// if the transaction hash of the event does not equal the passed
+	//		// transaction hash we continue listening
+	//		if vLog.TxHash.Hex() != txHash.Hex() {
+	//			break
+	//		}
+	//		return parseEvent(vLog)
+	//	}
+	//}
 }
 
 
@@ -333,7 +384,7 @@ func readContractAbi(filename string) (abi.ABI, error)  {
 }
 
 func parseEvent(vLog types.Log) (fmt.Stringer, error) {
-	submitEventSignature := []byte("SubmitBlockHeader(bytes32,bytes32,uint,bytes32)") // SubmitBlockHeader( bytes32 hash, bytes32 hashWithoutNonce, uint nonce, bytes32 parent );
+	submitEventSignature := []byte("SubmitBlockHeader(bytes32,bytes32,uint256,bytes32)") // SubmitBlockHeader( bytes32 hash, bytes32 hashWithoutNonce, uint nonce, bytes32 parent );
 
 	submitHash := crypto.Keccak256Hash(submitEventSignature)
 

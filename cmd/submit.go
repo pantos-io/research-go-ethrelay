@@ -31,7 +31,7 @@ var submitCmd = &cobra.Command{
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var blockNumber *big.Int = nil
-		if args[0] != "" {
+		if len(args) > 0 {
 			var ok bool
 			blockNumber = new(big.Int)
 			blockNumber, ok = blockNumber.SetString(args[0], 10)
