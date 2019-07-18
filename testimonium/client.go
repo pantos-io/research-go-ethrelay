@@ -262,11 +262,32 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	fmt.Printf("Tx successful: %s\n", event.String())
 }
 
+func (c Client) Block(blockHash common.Hash, chain uint8) (*types.Block, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].client.BlockByHash(context.Background(), blockHash)
+}
+
 func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 	return c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
+}
+
+func (c Client) HeaderByHash(blockHash common.Hash, chain uint8) (*types.Header, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].client.HeaderByHash(context.Background(), blockHash)
+}
+
+func (c Client) Transaction(txHash common.Hash, chain uint8) (*types.Transaction, bool, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].client.TransactionByHash(context.Background(), txHash)
 }
 
 func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header {
@@ -305,8 +326,27 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	fmt.Printf("Tx successful: %s\n", event)
 }
 
-func (c Client) VerifyTransaction(txHash [32]byte, noOfConfirmations uint8, chain uint8) {
+func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, [32]byte, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
+	if err != nil {
+		return [32]byte{}, [32]byte{}, err
+	}
+	return txHash, txReceipt.BlockHash, nil
+}
 
+func (c Client) VerifyTransaction(txHash [32]byte, blockHash [32]byte, noOfConfirmations uint8, chain uint8) bool {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+
+	isValid, err := c.chains[chain].contract.VerifyTransaction(nil, txHash, blockHash, noOfConfirmations)
+	if err != nil {
+		log.Fatal("Failed to verify transaction: " + err.Error())
+	}
+	return isValid
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
