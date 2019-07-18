@@ -26,6 +26,7 @@ var submitFlagSrcChain uint8
 var submitFlagDestChain uint8
 var submitFlagRandomize bool
 var submitFlagParent string
+var submitFlagLiveMode bool
 
 // submitCmd represents the submit command
 var submitCmd = &cobra.Command{
@@ -43,6 +44,10 @@ var submitCmd = &cobra.Command{
 				log.Fatalf("Illegal block number '%s'", args[0])
 			}
 		}
+		if submitFlagLiveMode {
+			log.Fatal("Live mode not implemented yet")
+		}
+
 		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain);
 		if err != nil {
 			log.Fatal("Failed to retrieve header: " + err.Error())
