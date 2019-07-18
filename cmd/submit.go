@@ -20,8 +20,9 @@ import (
 	"math/big"
 )
 
-var srcChain uint8
-var destChain uint8
+var submitFlagSrcChain uint8
+var submitFlagDestChain uint8
+var submitFlagRandomize bool
 
 // submitCmd represents the submit command
 var submitCmd = &cobra.Command{
@@ -39,7 +40,15 @@ var submitCmd = &cobra.Command{
 				log.Fatalf("Illegal block number '%s'", args[0])
 			}
 		}
-		testimoniumClient.SubmitHeader(blockNumber, srcChain, destChain)
+		if submitFlagRandomize {
+			randomizedRlpHeader, err := testimoniumClient.RandomizeHeader(blockNumber, submitFlagSrcChain)
+			if err != nil {
+				log.Fatal("Failed to randomize block: " + err.Error())
+			}
+			testimoniumClient.SubmitRLPHeader(randomizedRlpHeader, submitFlagDestChain)
+			return
+		}
+		testimoniumClient.SubmitHeader(blockNumber, submitFlagSrcChain, submitFlagDestChain)
 	},
 }
 
@@ -55,6 +64,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	submitCmd.Flags().BoolP("live", "l", false, "live mode (continuously submits most recent block headers)")
-	submitCmd.Flags().Uint8Var(&srcChain, "source", 2, "source chain (default: 2)")
-	submitCmd.Flags().Uint8Var(&destChain, "destination", 1, "destination chain (default: 1)")
+	submitCmd.Flags().Uint8Var(&submitFlagSrcChain, "source", 2, "source chain (default: 2)")
+	submitCmd.Flags().Uint8Var(&submitFlagDestChain, "destination", 1, "destination chain (default: 1)")
+	submitCmd.Flags().BoolVar(&submitFlagRandomize, "randomize", false, "randomize block (default: false)")
 }
