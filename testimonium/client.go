@@ -290,6 +290,13 @@ func (c Client) Transaction(txHash common.Hash, chain uint8) (*types.Transaction
 	return c.chains[chain].client.TransactionByHash(context.Background(), txHash)
 }
 
+func (c Client) TransactionReceipt(txHash common.Hash, chain uint8) (*types.Receipt, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
+}
+
 func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header {
 	temp := header.TxHash
 	header.TxHash = header.ReceiptHash
