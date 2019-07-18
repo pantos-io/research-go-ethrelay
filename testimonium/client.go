@@ -215,26 +215,17 @@ func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Blo
 	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
-func (c Client) SubmitHeader(blockNumber *big.Int, srcChain uint8, destChain uint8) {
-	// Check preconditions
-	if _, exists := c.chains[srcChain]; !exists {
-		log.Fatalf("Source chain '%d' does not exist", srcChain)
-	}
-	if _, exists := c.chains[destChain]; !exists {
-		log.Fatalf("Destination chain '%d' does not exist", destChain)
+func (c Client) SubmitHeader(header *types.Header, chain uint8) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	// todo: maybe also check that source and destination chain are different
-
-	header, err := c.chains[srcChain].client.HeaderByNumber(context.Background(), blockNumber)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), srcChain, destChain)
 	rlpHeader, err := encodeHeaderToRLP(header)
+	if err != nil {
+		log.Fatal("Failed to encode header to RLP: " + err.Error())
+	}
 	//fmt.Printf("RLP: 0x%s\n", hex.EncodeToString(rlpHeader))
-	c.SubmitRLPHeader(rlpHeader, destChain)
+	c.SubmitRLPHeader(rlpHeader, chain)
 }
 
 func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
@@ -271,16 +262,19 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	fmt.Printf("Tx successful: %s\n", event.String())
 }
 
-func (c Client) RandomizeHeader(blockNumber *big.Int, chain uint8) ([]byte, error) {
+func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
-	header, err := c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
-	if err != nil {
-		log.Fatal("Failed to get block: " + err.Error())
-	}
-	randomizedHeader := randomizeHeader(header)
-	return encodeHeaderToRLP(randomizedHeader)
+	return c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
+}
+
+func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header {
+	temp := header.TxHash
+	header.TxHash = header.ReceiptHash
+	header.ReceiptHash = header.Root
+	header.Root = temp
+	return header
 }
 
 func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
@@ -313,14 +307,6 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 
 func (c Client) VerifyTransaction(txHash [32]byte, noOfConfirmations uint8, chain uint8) {
 
-}
-
-func randomizeHeader(header *types.Header) *types.Header {
-	temp := header.TxHash
-	header.TxHash = header.ReceiptHash
-	header.ReceiptHash = header.Root
-	header.Root = temp
-	return header
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {

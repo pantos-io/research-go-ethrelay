@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"log"
 	"math/big"
@@ -23,6 +25,7 @@ import (
 var submitFlagSrcChain uint8
 var submitFlagDestChain uint8
 var submitFlagRandomize bool
+var submitFlagParent string
 
 // submitCmd represents the submit command
 var submitCmd = &cobra.Command{
@@ -40,15 +43,20 @@ var submitCmd = &cobra.Command{
 				log.Fatalf("Illegal block number '%s'", args[0])
 			}
 		}
-		if submitFlagRandomize {
-			randomizedRlpHeader, err := testimoniumClient.RandomizeHeader(blockNumber, submitFlagSrcChain)
-			if err != nil {
-				log.Fatal("Failed to randomize block: " + err.Error())
-			}
-			testimoniumClient.SubmitRLPHeader(randomizedRlpHeader, submitFlagDestChain)
-			return
+		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain);
+		if err != nil {
+			log.Fatal("Failed to retrieve header: " + err.Error())
 		}
-		testimoniumClient.SubmitHeader(blockNumber, submitFlagSrcChain, submitFlagDestChain)
+		if len(submitFlagParent) > 0 {
+			fmt.Printf("Modifying parent...\n")
+			header.ParentHash = common.HexToHash(submitFlagParent)
+		}
+		if submitFlagRandomize {
+			fmt.Printf("Randomizing header...\n")
+			header = testimoniumClient.RandomizeHeader(header, submitFlagSrcChain)
+		}
+		fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
+		testimoniumClient.SubmitHeader(header, submitFlagDestChain)
 	},
 }
 
@@ -66,5 +74,6 @@ func init() {
 	submitCmd.Flags().BoolP("live", "l", false, "live mode (continuously submits most recent block headers)")
 	submitCmd.Flags().Uint8Var(&submitFlagSrcChain, "source", 2, "source chain (default: 2)")
 	submitCmd.Flags().Uint8Var(&submitFlagDestChain, "destination", 1, "destination chain (default: 1)")
-	submitCmd.Flags().BoolVar(&submitFlagRandomize, "randomize", false, "randomize block (default: false)")
+	submitCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block (default: false)")
+	submitCmd.Flags().StringVarP(&submitFlagParent, "parent", "p", "", "set parent explicitly (default: )")
 }
