@@ -15,23 +15,17 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
+var verifyFlagSrcChain uint8
+var verifyFlagDestChain uint8
+
 // verifyCmd represents the verify command
 var verifyCmd = &cobra.Command{
-	Use:   "verify [txHash]",
-	Short: "Verifies a transaction from the source chain on the destination chain",
-	Long: `Verifies a transaction from the source chain on the destination chain
-
-Behind the scene, the command queries the transaction with the specified hash ('txHash') from the source chain.
-It then generates a Merkle Proof contesting the existence of the transaction within a specific block.
-This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("verify called")
-	},
+	Use:   "verify",
+	Short: "Verifies a transaction or a block from the source chain on the destination chain",
+	Long: `Verifies a transaction or a block from the source chain on the destination chain`,
 }
 
 func init() {
@@ -42,6 +36,9 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagSrcChain, "source", 2, "source chain (default: 2)")
+	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagDestChain, "destination", 1, "destination chain (default: 1)")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
