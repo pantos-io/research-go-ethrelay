@@ -46,5 +46,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// disputeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	disputeCmd.Flags().Uint8VarP(&disputeFlagChain, "chain", "c", 1, "the disputed chain ID (default: 1)")
+	disputeCmd.Flags().Uint8VarP(&disputeFlagChain, "chain", "c", 1, "the disputed chain ID")
 }

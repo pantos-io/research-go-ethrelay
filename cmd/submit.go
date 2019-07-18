@@ -71,9 +71,9 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	submitCmd.Flags().BoolP("live", "l", false, "live mode (continuously submits most recent block headers)")
-	submitCmd.Flags().Uint8Var(&submitFlagSrcChain, "source", 2, "source chain (default: 2)")
-	submitCmd.Flags().Uint8Var(&submitFlagDestChain, "destination", 1, "destination chain (default: 1)")
-	submitCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block (default: false)")
-	submitCmd.Flags().StringVarP(&submitFlagParent, "parent", "p", "", "set parent explicitly (default: )")
+	submitCmd.Flags().BoolVarP(&submitFlagLiveMode, "live", "l", false, "live mode (continuously submits most recent block headers)")
+	submitCmd.Flags().Uint8Var(&submitFlagSrcChain, "source", 2, "source chain")
+	submitCmd.Flags().Uint8Var(&submitFlagDestChain, "destination", 1, "destination chain")
+	submitCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block")
+	submitCmd.Flags().StringVarP(&submitFlagParent, "parent", "p", "", "set parent explicitly")
 }
