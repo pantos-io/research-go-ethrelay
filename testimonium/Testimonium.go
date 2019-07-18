@@ -28,7 +28,7 @@ var (
 )
 
 // TestimoniumABI is the input ABI used to generate the binding from.
-const TestimoniumABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"getBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"txHash\",\"type\":\"bytes32\"},{\"name\":\"requested\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"}]"
+const TestimoniumABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"getBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"txHash\",\"type\":\"bytes32\"},{\"name\":\"requested\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"}]"
 
 // Testimonium is an auto generated Go binding around an Ethereum contract.
 type Testimonium struct {
@@ -458,6 +458,139 @@ func (_Testimonium *TestimoniumSession) SubmitHeader(_rlpHeader []byte) (*types.
 // Solidity: function submitHeader(bytes _rlpHeader) returns()
 func (_Testimonium *TestimoniumTransactorSession) SubmitHeader(_rlpHeader []byte) (*types.Transaction, error) {
 	return _Testimonium.Contract.SubmitHeader(&_Testimonium.TransactOpts, _rlpHeader)
+}
+
+// TestimoniumRemoveBranchIterator is returned from FilterRemoveBranch and is used to iterate over the raw logs and unpacked data for RemoveBranch events raised by the Testimonium contract.
+type TestimoniumRemoveBranchIterator struct {
+	Event *TestimoniumRemoveBranch // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *TestimoniumRemoveBranchIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(TestimoniumRemoveBranch)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(TestimoniumRemoveBranch)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *TestimoniumRemoveBranchIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *TestimoniumRemoveBranchIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// TestimoniumRemoveBranch represents a RemoveBranch event raised by the Testimonium contract.
+type TestimoniumRemoveBranch struct {
+	Root [32]byte
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterRemoveBranch is a free log retrieval operation binding the contract event 0xf96ae1a1e71431cfb86761b9cab725aeddab2afdaf76d40d43fc005bdc6555d4.
+//
+// Solidity: event RemoveBranch(bytes32 root)
+func (_Testimonium *TestimoniumFilterer) FilterRemoveBranch(opts *bind.FilterOpts) (*TestimoniumRemoveBranchIterator, error) {
+
+	logs, sub, err := _Testimonium.contract.FilterLogs(opts, "RemoveBranch")
+	if err != nil {
+		return nil, err
+	}
+	return &TestimoniumRemoveBranchIterator{contract: _Testimonium.contract, event: "RemoveBranch", logs: logs, sub: sub}, nil
+}
+
+// WatchRemoveBranch is a free log subscription operation binding the contract event 0xf96ae1a1e71431cfb86761b9cab725aeddab2afdaf76d40d43fc005bdc6555d4.
+//
+// Solidity: event RemoveBranch(bytes32 root)
+func (_Testimonium *TestimoniumFilterer) WatchRemoveBranch(opts *bind.WatchOpts, sink chan<- *TestimoniumRemoveBranch) (event.Subscription, error) {
+
+	logs, sub, err := _Testimonium.contract.WatchLogs(opts, "RemoveBranch")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(TestimoniumRemoveBranch)
+				if err := _Testimonium.contract.UnpackLog(event, "RemoveBranch", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseRemoveBranch is a log parse operation binding the contract event 0xf96ae1a1e71431cfb86761b9cab725aeddab2afdaf76d40d43fc005bdc6555d4.
+//
+// Solidity: event RemoveBranch(bytes32 root)
+func (_Testimonium *TestimoniumFilterer) ParseRemoveBranch(log types.Log) (*TestimoniumRemoveBranch, error) {
+	event := new(TestimoniumRemoveBranch)
+	if err := _Testimonium.contract.UnpackLog(event, "RemoveBranch", log); err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
 // TestimoniumSubmitBlockHeaderIterator is returned from FilterSubmitBlockHeader and is used to iterate over the raw logs and unpacked data for SubmitBlockHeader events raised by the Testimonium contract.
