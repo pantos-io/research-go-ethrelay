@@ -33,7 +33,7 @@ destination blockchain and verifies if the information is correct by comparing i
 on the source chain.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		blockHash := BytesToBytes32(common.Hex2Bytes(args[0][2:]))	// omit the first two chars "0x"
+		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
 		headerExists, err := testimoniumClient.BlockHeaderExists(blockHash, verifyFlagDestChain)
 		if err != nil {
 			log.Fatal("Could not verify block header on destination chain: " + err.Error())
@@ -62,14 +62,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// blockCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func BytesToBytes32(bytes []byte) [32]byte {
-	var bytes32 [32]byte
-	for i := 0; i<32; i++ {
-		bytes32[i] = bytes[i]
-	}
-	return bytes32
 }
 
 func ShortHexString(hex string) string {

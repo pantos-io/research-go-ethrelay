@@ -29,7 +29,7 @@ var disputeCmd = &cobra.Command{
 	Long: `Disputes the submitted block header with the specified hash ('blockHash')`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		blockHash := BytesToBytes32(common.Hex2Bytes(args[0][2:]))	// omit the first two chars "0x"
+		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
 		testimoniumClient.DisputeBlock(blockHash, disputeFlagChain)
 	},
 }
