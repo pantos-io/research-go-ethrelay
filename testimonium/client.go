@@ -6,7 +6,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -14,16 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
-	"io/ioutil"
 	"log"
 	"math/big"
-	"reflect"
 	"strconv"
-	"strings"
 	"time"
 )
-
-const abiFile = "Testimonium.abi"
 
 type Chain struct {
 	client *ethclient.Client
@@ -37,19 +31,59 @@ type Client struct {
 	privateKey *ecdsa.PrivateKey
 }
 
-type SubmitBlockHeaderEvent struct {//    event SubmitBlockHeader( bytes32 hash, bytes32 hashWithoutNonce, uint nonce, bytes32 parent );
-	Hash [32]byte
-	HashWithoutNonce [32]byte
-	Nonce *big.Int
-	Parent [32]byte
+type BlockHeader struct {
+	Parent                    [32]byte
+	StateRoot                 [32]byte
+	TransactionsRoot          [32]byte
+	ReceiptsRoot              [32]byte
+	BlockNumber               *big.Int
+	RlpHeaderHashWithoutNonce [32]byte
+	Nonce                     *big.Int
+	LockedUntil               *big.Int
+	TotalDifficulty           *big.Int
+	OrderedIndex              *big.Int
+	IterableIndex             *big.Int
+	LatestFork                [32]byte
 }
 
-func (t SubmitBlockHeaderEvent) String() string {
+func (header BlockHeader) String() string {
+	return fmt.Sprintf(`BlockHeader: {
+Parent: %s,
+StateRoot: %s,
+TransactionsRoot: %s,
+ReceiptsRoot: %s,
+BlockNumber: %s,
+RlpHeaderHashWithoutNonce: %s,
+Nonce: %s,
+LockedUntil: %s,
+TotalDifficulty: %s,
+OrderedIndex: %s,
+IterableIndex: %s,
+LatestFork: %s }`,
+common.Bytes2Hex(header.Parent[:]),
+common.Bytes2Hex(header.StateRoot[:]),
+common.Bytes2Hex(header.TransactionsRoot[:]),
+common.Bytes2Hex(header.ReceiptsRoot[:]),
+header.BlockNumber.String(),
+common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
+header.Nonce.String(),
+header.LockedUntil.String(),
+header.TotalDifficulty.String(),
+header.OrderedIndex.String(),
+header.IterableIndex.String(),
+common.Bytes2Hex(header.LatestFork[:]))
+}
+
+func (t TestimoniumSubmitBlockHeader) String() string {
 	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Parent: %s }",
 		common.BytesToHash(t.Hash[:]).String(),
 		common.BytesToHash(t.HashWithoutNonce[:]).String(),
 		t.Nonce.String(),
 		common.BytesToHash(t.Parent[:]).String())
+}
+
+func (event TestimoniumRemoveBranch) String() string {
+	return fmt.Sprintf("RemoveBranchEvent: { Root: %s }", common.BytesToHash(event.Root[:]).String())
 }
 
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
@@ -169,6 +203,40 @@ func (c Client) Balance(chainId uint8) (*big.Int, error) {
 	return totalBalance, nil
 }
 
+func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error) {
+	return c.chains[chain].contract.IsBlock(nil, blockHash)
+}
+
+func (c Client) BlockHeader(blockHash [32]byte, chain uint8) (BlockHeader, error) {
+	return c.chains[chain].contract.Headers(nil, blockHash)
+}
+
+func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
+	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
+}
+
+func (c Client) SubmitHeader(blockNumber *big.Int, srcChain uint8, destChain uint8) {
+	// Check preconditions
+	if _, exists := c.chains[srcChain]; !exists {
+		log.Fatalf("Source chain '%d' does not exist", srcChain)
+	}
+	if _, exists := c.chains[destChain]; !exists {
+		log.Fatalf("Destination chain '%d' does not exist", destChain)
+	}
+
+	// todo: maybe also check that source and destination chain are different
+
+	header, err := c.chains[srcChain].client.HeaderByNumber(context.Background(), blockNumber)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), srcChain, destChain)
+	rlpHeader, err := encodeHeaderToRLP(header)
+	//fmt.Printf("RLP: 0x%s\n", hex.EncodeToString(rlpHeader))
+	c.SubmitRLPHeader(rlpHeader, destChain)
+}
+
 func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	// Check preconditions
 	if _, exists := c.chains[chain]; !exists {
@@ -196,11 +264,63 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Transaction is successful
-	event, err := parseEvent(*receipt.Logs[0])
+	event, err := c.chains[chain].contract.TestimoniumFilterer.ParseSubmitBlockHeader(*receipt.Logs[0])
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Tx successful: %s\n", event.String())
+}
+
+func (c Client) RandomizeHeader(blockNumber *big.Int, chain uint8) ([]byte, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	header, err := c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
+	if err != nil {
+		log.Fatal("Failed to get block: " + err.Error())
+	}
+	randomizedHeader := randomizeHeader(header)
+	return encodeHeaderToRLP(randomizedHeader)
+}
+
+func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
+	tx, err := c.chains[chain].contract.DisputeBlock(auth, blockHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex()) // tx sent: 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
+
+	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return
+	}
+
+	// Transaction is successful
+	event, err := c.chains[chain].contract.TestimoniumFilterer.ParseRemoveBranch(*receipt.Logs[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Tx successful: %s\n", event)
+}
+
+func (c Client) VerifyTransaction(txHash [32]byte, noOfConfirmations uint8, chain uint8) {
+
+}
+
+func randomizeHeader(header *types.Header) *types.Header {
+	temp := header.TxHash
+	header.TxHash = header.ReceiptHash
+	header.ReceiptHash = header.Root
+	header.Root = temp
+	return header
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
@@ -220,28 +340,6 @@ func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) et
 		Value: tx.Value(),
 		Data: tx.Data(),
 	}
-}
-
-func (c Client) SubmitHeader(blockNumber *big.Int, srcChain uint8, destChain uint8) {
-	// Check preconditions
-	if _, exists := c.chains[srcChain]; !exists {
-		log.Fatalf("Source chain '%d' does not exist", srcChain)
-	}
-	if _, exists := c.chains[destChain]; !exists {
-		log.Fatalf("Destination chain '%d' does not exist", destChain)
-	}
-
-	// todo: maybe also check that source and destination chain are different
-
-	header, err := c.chains[srcChain].client.HeaderByNumber(context.Background(), blockNumber)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), srcChain, destChain)
-	rlpHeader, err := encodeHeaderToRLP(header)
-	//fmt.Printf("RLP: 0x%s\n", hex.EncodeToString(rlpHeader))
-	c.SubmitRLPHeader(rlpHeader, destChain)
 }
 
 func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
@@ -267,10 +365,6 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 	return buffer.Bytes(), err
 }
 
-func (c Client) Watch() {
-
-}
-
 
 func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain *Chain) *bind.TransactOpts {
 	nonce, err := chain.client.PendingNonceAt(context.Background(), from)
@@ -287,8 +381,9 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	auth.From = from
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)     // in wei
-	auth.GasLimit = uint64(500000) // in units
 	auth.GasPrice = gasPrice
+	// one could also set the gas limit, however it seems that the right gas limit is only estimated
+	// if the gas limit is not set specifically
 	return auth
 }
 
@@ -337,74 +432,5 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	//		return parseEvent(vLog)
 	//	}
 	//}
-}
-
-
-func awaitSubmitBlockHeaderEvent(chain *Chain) (SubmitBlockHeaderEvent, error) {
-	event, err := awaitEvent(chain, reflect.TypeOf(SubmitBlockHeaderEvent{}))
-	return event.(SubmitBlockHeaderEvent), err
-}
-
-func awaitEvent(chain *Chain, desiredType reflect.Type) (fmt.Stringer, error) {
-	query := ethereum.FilterQuery{
-		Addresses: []common.Address{chain.contractAddress},
-	}
-
-	logs := make(chan types.Log)
-
-	sub, err := chain.client.SubscribeFilterLogs(context.Background(), query, logs)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for {
-		select {
-		case err := <-sub.Err():
-			return nil, err
-		case vLog := <-logs:
-			//var event interface{}
-			event, err := parseEvent(vLog)
-			if err != nil {
-				return nil, err
-			}
-			if reflect.TypeOf(event) == desiredType {
-				return event, nil
-			}
-			break
-		}
-	}
-}
-
-func readContractAbi(filename string) (abi.ABI, error)  {
-	b, err := ioutil.ReadFile(filename) // just pass the file name
-	if err != nil {
-		return abi.ABI{}, err
-	}
-	return abi.JSON(strings.NewReader(string(b)))
-}
-
-func parseEvent(vLog types.Log) (fmt.Stringer, error) {
-	submitEventSignature := []byte("SubmitBlockHeader(bytes32,bytes32,uint256,bytes32)") // SubmitBlockHeader( bytes32 hash, bytes32 hashWithoutNonce, uint nonce, bytes32 parent );
-
-	submitHash := crypto.Keccak256Hash(submitEventSignature)
-
-	// read the contract abi from json file
-	contractAbi, err := readContractAbi(abiFile)
-	if err != nil {
-		return nil, err
-	}
-	if vLog.Topics[0].Hex() == submitHash.Hex() {
-		return parseSubmitEvent(contractAbi, vLog)
-	}
-	return nil, fmt.Errorf("retrieved unknown event")
-}
-
-func parseSubmitEvent(contractAbi abi.ABI, vLog types.Log) (SubmitBlockHeaderEvent, error) {
-	event := SubmitBlockHeaderEvent{}
-	err := contractAbi.Unpack(&event, "SubmitBlockHeader", vLog.Data)
-	if err != nil {
-		return event, err
-	}
-	return event, nil
 }
 
