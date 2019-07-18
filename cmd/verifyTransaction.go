@@ -15,15 +15,16 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/spf13/cobra"
+	"log"
 )
 
 var noOfConfirmations uint8
 
-// transactionCmd represents the transaction command
-var transactionCmd = &cobra.Command{
+// verifyTransactionCmd represents the transaction command
+var verifyTransactionCmd = &cobra.Command{
 	Use:   "transaction [txHash]",
 	Short: "Verify a transaction",
 	Long: `Verify a transaction from the source chain on the destination chain
@@ -32,21 +33,26 @@ Behind the scene, the command queries the transaction with the specified hash ('
 It then generates a Merkle Proof contesting the existence of the transaction within a specific block.
 This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified`,
 	Run: func(cmd *cobra.Command, args []string) {
-		txHash := BytesToBytes32(common.Hex2Bytes(args[0]))
-		testimoniumClient.VerifyTransaction(txHash, noOfConfirmations, verifyFlagDestChain)
+		txHash := common.HexToHash(args[0])
+		txHash, blockHash, err := testimoniumClient.GenerateMerkleProof(txHash, verifyFlagSrcChain)
+		if err != nil {
+			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
+		}
+		isValid := testimoniumClient.VerifyTransaction(txHash, blockHash, noOfConfirmations, verifyFlagDestChain)
+		fmt.Println(isValid)
 	},
 }
 
 func init() {
-	verifyCmd.AddCommand(transactionCmd)
+	verifyCmd.AddCommand(verifyTransactionCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// transactionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// verifyTransactionCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	transactionCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations (default: 4)")
+	verifyTransactionCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
 }

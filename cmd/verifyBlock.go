@@ -22,8 +22,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// blockCmd represents the block command
-var blockCmd = &cobra.Command{
+// verifyBlockCmd represents the block command
+var verifyBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
 	Short: "Verify a block",
 	Long: `Verify a block from the source chain on the destination chain
@@ -51,19 +51,22 @@ on the source chain.`,
 }
 
 func init() {
-	verifyCmd.AddCommand(blockCmd)
+	verifyCmd.AddCommand(verifyBlockCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// blockCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// verifyBlockCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// blockCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// verifyBlockCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func ShortHexString(hex string) string {
+	if len(hex) <= 12 {
+		return hex
+	}
 	return fmt.Sprintf("%s...%s", hex[:6], hex[len(hex)-4:])
 }
