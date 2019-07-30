@@ -23,13 +23,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flagChain uint8
-
-// setEpochCmd represents the command for setting epoch data (Ethash contract)
-var setEpochCmd = &cobra.Command{
-	Use:   "set-epoch [epoch]",
-	Short: "Sets the epoch data for the specified epoch",
-	Long: `Sets the epoch data for the specified epoch`,
+// submitEpochCmd represents the command for setting epoch data (Ethash contract)
+var submitEpochCmd = &cobra.Command{
+	Use:   "epoch [epoch]",
+	Short: "Sets the epoch data for the specified epoch on the destination chain",
+	Long: `Sets the epoch data for the specified epoch on the destination chain`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var epoch *big.Int = nil
@@ -41,12 +39,12 @@ var setEpochCmd = &cobra.Command{
 		}
 
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
-		testimoniumClient.SetEpochData(epochData, flagChain)
+		testimoniumClient.SetEpochData(epochData, submitFlagDestChain)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(setEpochCmd)
+	submitCmd.AddCommand(submitEpochCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -57,5 +55,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// disputeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	setEpochCmd.Flags().Uint8VarP(&flagChain, "chain", "c", 1, "the chain ID")
 }
