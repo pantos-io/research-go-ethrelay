@@ -48,7 +48,7 @@ var submitCmd = &cobra.Command{
 			log.Fatal("Live mode not implemented yet")
 		}
 
-		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain);
+		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to retrieve header: " + err.Error())
 		}
@@ -61,6 +61,7 @@ var submitCmd = &cobra.Command{
 			header = testimoniumClient.RandomizeHeader(header, submitFlagSrcChain)
 		}
 		fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
+		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 		testimoniumClient.SubmitHeader(header, submitFlagDestChain)
 	},
 }

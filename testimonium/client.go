@@ -40,6 +40,7 @@ type BlockHeader struct {
 	RlpHeaderHashWithoutNonce [32]byte
 	Nonce                     *big.Int
 	LockedUntil               *big.Int
+	Difficulty           	  *big.Int
 	TotalDifficulty           *big.Int
 	OrderedIndex              *big.Int
 	IterableIndex             *big.Int
@@ -75,15 +76,20 @@ common.Bytes2Hex(header.LatestFork[:]))
 }
 
 func (t TestimoniumSubmitBlockHeader) String() string {
-	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Parent: %s }",
+	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Difficulty: %s, Parent: %s }",
 		common.BytesToHash(t.Hash[:]).String(),
 		common.BytesToHash(t.HashWithoutNonce[:]).String(),
 		t.Nonce.String(),
+		t.Difficulty.String(),
 		common.BytesToHash(t.Parent[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
 	return fmt.Sprintf("RemoveBranchEvent: { Root: %s }", common.BytesToHash(event.Root[:]).String())
+}
+
+func (event TestimoniumPoWValidationResult) String() string {
+	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
 }
 
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
@@ -124,7 +130,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 	}
 
 	// get public address
-	privateKeyBytes, err := hexutil.Decode(privateKey);
+	privateKeyBytes, err := hexutil.Decode(privateKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -255,11 +261,18 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Transaction is successful
-	event, err := c.chains[chain].contract.TestimoniumFilterer.ParseSubmitBlockHeader(*receipt.Logs[0])
+	eventIterator, err := c.chains[chain].contract.TestimoniumFilterer.FilterSubmitBlockHeader(&bind.FilterOpts{
+		Start: receipt.BlockNumber.Uint64(),
+		End: nil,
+		Context:nil,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Tx successful: %s\n", event.String())
+
+	if eventIterator.Next() {
+		fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+	}
 }
 
 func (c Client) Block(blockHash common.Hash, chain uint8) (*types.Block, error) {
@@ -305,9 +318,10 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 	return header
 }
 
-func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
+func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witnessForLookup []*big.Int, chain uint8) {
+	fmt.Println("Dispute block ...")
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].contract.DisputeBlock(auth, blockHash)
+	tx, err := c.chains[chain].contract.DisputeBlock(auth, blockHash, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -325,12 +339,31 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 		return
 	}
 
-	// Transaction is successful
-	event, err := c.chains[chain].contract.TestimoniumFilterer.ParseRemoveBranch(*receipt.Logs[0])
+	// get RemoveBranch event
+	eventIteratorRemoveBranch, err := c.chains[chain].contract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
+		Start: receipt.BlockNumber.Uint64(),
+		End: nil,
+		Context:nil,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Tx successful: %s\n", event)
+	if eventIteratorRemoveBranch.Next() {
+		fmt.Printf("Tx successful: %s\n", eventIteratorRemoveBranch.Event.String())
+	}
+
+	// get PoW Verification event
+	eventIteratorPoWResult, err := c.chains[chain].contract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
+		Start: receipt.BlockNumber.Uint64(),
+		End: nil,
+		Context:nil,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if eventIteratorPoWResult.Next() {
+		fmt.Printf("Tx successful: %s\n", eventIteratorPoWResult.Event.String())
+	}
 }
 
 func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, [32]byte, error) {
@@ -404,7 +437,6 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	gasPrice, err := chain.client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatal(err)

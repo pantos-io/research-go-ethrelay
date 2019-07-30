@@ -15,7 +15,11 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pf92/testimonium-cli/ethereum"
+
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -30,7 +34,32 @@ var disputeCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
-		testimoniumClient.DisputeBlock(blockHash, disputeFlagChain)
+		blockHashBytes := blockHash.Bytes()
+		var blockHashBytes32 [32]byte
+		copy(blockHashBytes32[:], blockHashBytes)
+
+		// get blockNumber, nonce and RlpHeaderHashWithoutNonce and generate dataSetLookup and witnessForLookup
+		header, err := testimoniumClient.BlockHeader(blockHashBytes32, disputeFlagChain)
+		if err != nil {
+			log.Fatal("Failed to retrieve header from contract: " + err.Error())
+		}
+
+		fmt.Println("create DAG, compute dataSetLookup and witnessForLookup")
+		// get DAG and compute dataSetLookup and witnessForLookup
+		blockMetaData := ethereum.NewBlockMetaData(&header)
+		dataSetLookup := blockMetaData.DAGElementArray()
+		witnessForLookup := blockMetaData.DAGProofArray()
+		//time.Sleep(20 * time.Second)
+		//var dataSetLookup []*big.Int
+		//var witnessForLookup []*big.Int
+		//fmt.Println("call disputeBlock(...)")
+		fmt.Println(disputeFlagChain)
+		testimoniumClient.DisputeBlock(blockHash, dataSetLookup, witnessForLookup, disputeFlagChain)
+		//fmt.Println(header)
+		//fmt.Println(dataSetLookup)
+		//fmt.Println(witnessForLookup)
+
+		//fmt.Println(blockHash)
 	},
 }
 

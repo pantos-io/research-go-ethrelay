@@ -28,7 +28,7 @@ var (
 )
 
 // TestimoniumABI is the input ABI used to generate the binding from.
-const TestimoniumABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"getBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"txHash\",\"type\":\"bytes32\"},{\"name\":\"requested\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"}]"
+const TestimoniumABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"longestChainEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"difficulty\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"_ethashContractAddr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"isPoWValid\",\"type\":\"bool\"},{\"indexed\":false,\"name\":\"errorCode\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"errorInfo\",\"type\":\"uint256\"}],\"name\":\"PoWValidationResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"difficulty\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getSuccessors\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"dataSetLookup\",\"type\":\"uint256[]\"},{\"name\":\"witnessForLookup\",\"type\":\"uint256[]\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"txHash\",\"type\":\"bytes32\"},{\"name\":\"requested\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Testimonium is an auto generated Go binding around an Ethereum contract.
 type Testimonium struct {
@@ -172,46 +172,6 @@ func (_Testimonium *TestimoniumTransactorRaw) Transact(opts *bind.TransactOpts, 
 	return _Testimonium.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetBlock is a free data retrieval call binding the contract method 0x664a4a05.
-//
-// Solidity: function getBlock(bytes32 hash) constant returns(bytes32, uint256, uint256, uint256, uint256, uint256, bytes32)
-func (_Testimonium *TestimoniumCaller) GetBlock(opts *bind.CallOpts, hash [32]byte) ([32]byte, *big.Int, *big.Int, *big.Int, *big.Int, *big.Int, [32]byte, error) {
-	var (
-		ret0 = new([32]byte)
-		ret1 = new(*big.Int)
-		ret2 = new(*big.Int)
-		ret3 = new(*big.Int)
-		ret4 = new(*big.Int)
-		ret5 = new(*big.Int)
-		ret6 = new([32]byte)
-	)
-	out := &[]interface{}{
-		ret0,
-		ret1,
-		ret2,
-		ret3,
-		ret4,
-		ret5,
-		ret6,
-	}
-	err := _Testimonium.contract.Call(opts, out, "getBlock", hash)
-	return *ret0, *ret1, *ret2, *ret3, *ret4, *ret5, *ret6, err
-}
-
-// GetBlock is a free data retrieval call binding the contract method 0x664a4a05.
-//
-// Solidity: function getBlock(bytes32 hash) constant returns(bytes32, uint256, uint256, uint256, uint256, uint256, bytes32)
-func (_Testimonium *TestimoniumSession) GetBlock(hash [32]byte) ([32]byte, *big.Int, *big.Int, *big.Int, *big.Int, *big.Int, [32]byte, error) {
-	return _Testimonium.Contract.GetBlock(&_Testimonium.CallOpts, hash)
-}
-
-// GetBlock is a free data retrieval call binding the contract method 0x664a4a05.
-//
-// Solidity: function getBlock(bytes32 hash) constant returns(bytes32, uint256, uint256, uint256, uint256, uint256, bytes32)
-func (_Testimonium *TestimoniumCallerSession) GetBlock(hash [32]byte) ([32]byte, *big.Int, *big.Int, *big.Int, *big.Int, *big.Int, [32]byte, error) {
-	return _Testimonium.Contract.GetBlock(&_Testimonium.CallOpts, hash)
-}
-
 // GetBlockHashOfEndpoint is a free data retrieval call binding the contract method 0x84bc44b3.
 //
 // Solidity: function getBlockHashOfEndpoint(uint256 index) constant returns(bytes32)
@@ -264,9 +224,35 @@ func (_Testimonium *TestimoniumCallerSession) GetNoOfForks() (*big.Int, error) {
 	return _Testimonium.Contract.GetNoOfForks(&_Testimonium.CallOpts)
 }
 
+// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
+//
+// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
+func (_Testimonium *TestimoniumCaller) GetSuccessors(opts *bind.CallOpts, blockHash [32]byte) ([][32]byte, error) {
+	var (
+		ret0 = new([][32]byte)
+	)
+	out := ret0
+	err := _Testimonium.contract.Call(opts, out, "getSuccessors", blockHash)
+	return *ret0, err
+}
+
+// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
+//
+// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
+func (_Testimonium *TestimoniumSession) GetSuccessors(blockHash [32]byte) ([][32]byte, error) {
+	return _Testimonium.Contract.GetSuccessors(&_Testimonium.CallOpts, blockHash)
+}
+
+// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
+//
+// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
+func (_Testimonium *TestimoniumCallerSession) GetSuccessors(blockHash [32]byte) ([][32]byte, error) {
+	return _Testimonium.Contract.GetSuccessors(&_Testimonium.CallOpts, blockHash)
+}
+
 // Headers is a free data retrieval call binding the contract method 0x9e7f2700.
 //
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
+// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
 func (_Testimonium *TestimoniumCaller) Headers(opts *bind.CallOpts, arg0 [32]byte) (struct {
 	Parent                    [32]byte
 	StateRoot                 [32]byte
@@ -276,6 +262,7 @@ func (_Testimonium *TestimoniumCaller) Headers(opts *bind.CallOpts, arg0 [32]byt
 	RlpHeaderHashWithoutNonce [32]byte
 	Nonce                     *big.Int
 	LockedUntil               *big.Int
+	Difficulty                *big.Int
 	TotalDifficulty           *big.Int
 	OrderedIndex              *big.Int
 	IterableIndex             *big.Int
@@ -290,6 +277,7 @@ func (_Testimonium *TestimoniumCaller) Headers(opts *bind.CallOpts, arg0 [32]byt
 		RlpHeaderHashWithoutNonce [32]byte
 		Nonce                     *big.Int
 		LockedUntil               *big.Int
+		Difficulty                *big.Int
 		TotalDifficulty           *big.Int
 		OrderedIndex              *big.Int
 		IterableIndex             *big.Int
@@ -302,7 +290,7 @@ func (_Testimonium *TestimoniumCaller) Headers(opts *bind.CallOpts, arg0 [32]byt
 
 // Headers is a free data retrieval call binding the contract method 0x9e7f2700.
 //
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
+// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
 func (_Testimonium *TestimoniumSession) Headers(arg0 [32]byte) (struct {
 	Parent                    [32]byte
 	StateRoot                 [32]byte
@@ -312,6 +300,7 @@ func (_Testimonium *TestimoniumSession) Headers(arg0 [32]byte) (struct {
 	RlpHeaderHashWithoutNonce [32]byte
 	Nonce                     *big.Int
 	LockedUntil               *big.Int
+	Difficulty                *big.Int
 	TotalDifficulty           *big.Int
 	OrderedIndex              *big.Int
 	IterableIndex             *big.Int
@@ -322,7 +311,7 @@ func (_Testimonium *TestimoniumSession) Headers(arg0 [32]byte) (struct {
 
 // Headers is a free data retrieval call binding the contract method 0x9e7f2700.
 //
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
+// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
 func (_Testimonium *TestimoniumCallerSession) Headers(arg0 [32]byte) (struct {
 	Parent                    [32]byte
 	StateRoot                 [32]byte
@@ -332,6 +321,7 @@ func (_Testimonium *TestimoniumCallerSession) Headers(arg0 [32]byte) (struct {
 	RlpHeaderHashWithoutNonce [32]byte
 	Nonce                     *big.Int
 	LockedUntil               *big.Int
+	Difficulty                *big.Int
 	TotalDifficulty           *big.Int
 	OrderedIndex              *big.Int
 	IterableIndex             *big.Int
@@ -392,6 +382,32 @@ func (_Testimonium *TestimoniumCallerSession) IsUnlocked(blockHash [32]byte) (bo
 	return _Testimonium.Contract.IsUnlocked(&_Testimonium.CallOpts, blockHash)
 }
 
+// LongestChainEndpoint is a free data retrieval call binding the contract method 0x0aa7fc0f.
+//
+// Solidity: function longestChainEndpoint() constant returns(bytes32)
+func (_Testimonium *TestimoniumCaller) LongestChainEndpoint(opts *bind.CallOpts) ([32]byte, error) {
+	var (
+		ret0 = new([32]byte)
+	)
+	out := ret0
+	err := _Testimonium.contract.Call(opts, out, "longestChainEndpoint")
+	return *ret0, err
+}
+
+// LongestChainEndpoint is a free data retrieval call binding the contract method 0x0aa7fc0f.
+//
+// Solidity: function longestChainEndpoint() constant returns(bytes32)
+func (_Testimonium *TestimoniumSession) LongestChainEndpoint() ([32]byte, error) {
+	return _Testimonium.Contract.LongestChainEndpoint(&_Testimonium.CallOpts)
+}
+
+// LongestChainEndpoint is a free data retrieval call binding the contract method 0x0aa7fc0f.
+//
+// Solidity: function longestChainEndpoint() constant returns(bytes32)
+func (_Testimonium *TestimoniumCallerSession) LongestChainEndpoint() ([32]byte, error) {
+	return _Testimonium.Contract.LongestChainEndpoint(&_Testimonium.CallOpts)
+}
+
 // VerifyTransaction is a free data retrieval call binding the contract method 0x8474491f.
 //
 // Solidity: function verifyTransaction(bytes32 txHash, bytes32 requested, uint8 noOfConfirmations) constant returns(bool)
@@ -418,25 +434,25 @@ func (_Testimonium *TestimoniumCallerSession) VerifyTransaction(txHash [32]byte,
 	return _Testimonium.Contract.VerifyTransaction(&_Testimonium.CallOpts, txHash, requested, noOfConfirmations)
 }
 
-// DisputeBlock is a paid mutator transaction binding the contract method 0x5b3f8a98.
+// DisputeBlock is a paid mutator transaction binding the contract method 0x66962b26.
 //
-// Solidity: function disputeBlock(bytes32 blockHash) returns()
-func (_Testimonium *TestimoniumTransactor) DisputeBlock(opts *bind.TransactOpts, blockHash [32]byte) (*types.Transaction, error) {
-	return _Testimonium.contract.Transact(opts, "disputeBlock", blockHash)
+// Solidity: function disputeBlock(bytes32 blockHash, uint256[] dataSetLookup, uint256[] witnessForLookup) returns()
+func (_Testimonium *TestimoniumTransactor) DisputeBlock(opts *bind.TransactOpts, blockHash [32]byte, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*types.Transaction, error) {
+	return _Testimonium.contract.Transact(opts, "disputeBlock", blockHash, dataSetLookup, witnessForLookup)
 }
 
-// DisputeBlock is a paid mutator transaction binding the contract method 0x5b3f8a98.
+// DisputeBlock is a paid mutator transaction binding the contract method 0x66962b26.
 //
-// Solidity: function disputeBlock(bytes32 blockHash) returns()
-func (_Testimonium *TestimoniumSession) DisputeBlock(blockHash [32]byte) (*types.Transaction, error) {
-	return _Testimonium.Contract.DisputeBlock(&_Testimonium.TransactOpts, blockHash)
+// Solidity: function disputeBlock(bytes32 blockHash, uint256[] dataSetLookup, uint256[] witnessForLookup) returns()
+func (_Testimonium *TestimoniumSession) DisputeBlock(blockHash [32]byte, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*types.Transaction, error) {
+	return _Testimonium.Contract.DisputeBlock(&_Testimonium.TransactOpts, blockHash, dataSetLookup, witnessForLookup)
 }
 
-// DisputeBlock is a paid mutator transaction binding the contract method 0x5b3f8a98.
+// DisputeBlock is a paid mutator transaction binding the contract method 0x66962b26.
 //
-// Solidity: function disputeBlock(bytes32 blockHash) returns()
-func (_Testimonium *TestimoniumTransactorSession) DisputeBlock(blockHash [32]byte) (*types.Transaction, error) {
-	return _Testimonium.Contract.DisputeBlock(&_Testimonium.TransactOpts, blockHash)
+// Solidity: function disputeBlock(bytes32 blockHash, uint256[] dataSetLookup, uint256[] witnessForLookup) returns()
+func (_Testimonium *TestimoniumTransactorSession) DisputeBlock(blockHash [32]byte, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*types.Transaction, error) {
+	return _Testimonium.Contract.DisputeBlock(&_Testimonium.TransactOpts, blockHash, dataSetLookup, witnessForLookup)
 }
 
 // SubmitHeader is a paid mutator transaction binding the contract method 0xc565ba10.
@@ -458,6 +474,130 @@ func (_Testimonium *TestimoniumSession) SubmitHeader(_rlpHeader []byte) (*types.
 // Solidity: function submitHeader(bytes _rlpHeader) returns()
 func (_Testimonium *TestimoniumTransactorSession) SubmitHeader(_rlpHeader []byte) (*types.Transaction, error) {
 	return _Testimonium.Contract.SubmitHeader(&_Testimonium.TransactOpts, _rlpHeader)
+}
+
+// TestimoniumPoWValidationResultIterator is returned from FilterPoWValidationResult and is used to iterate over the raw logs and unpacked data for PoWValidationResult events raised by the Testimonium contract.
+type TestimoniumPoWValidationResultIterator struct {
+	Event *TestimoniumPoWValidationResult // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *TestimoniumPoWValidationResultIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(TestimoniumPoWValidationResult)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(TestimoniumPoWValidationResult)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *TestimoniumPoWValidationResultIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *TestimoniumPoWValidationResultIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// TestimoniumPoWValidationResult represents a PoWValidationResult event raised by the Testimonium contract.
+type TestimoniumPoWValidationResult struct {
+	IsPoWValid bool
+	ErrorCode  *big.Int
+	ErrorInfo  *big.Int
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterPoWValidationResult is a free log retrieval operation binding the contract event 0x808f84bd298b89733055f3b8294b385ed860b67438b792ff9e312c897a2fcd9f.
+//
+// Solidity: event PoWValidationResult(bool isPoWValid, uint256 errorCode, uint256 errorInfo)
+func (_Testimonium *TestimoniumFilterer) FilterPoWValidationResult(opts *bind.FilterOpts) (*TestimoniumPoWValidationResultIterator, error) {
+
+	logs, sub, err := _Testimonium.contract.FilterLogs(opts, "PoWValidationResult")
+	if err != nil {
+		return nil, err
+	}
+	return &TestimoniumPoWValidationResultIterator{contract: _Testimonium.contract, event: "PoWValidationResult", logs: logs, sub: sub}, nil
+}
+
+// WatchPoWValidationResult is a free log subscription operation binding the contract event 0x808f84bd298b89733055f3b8294b385ed860b67438b792ff9e312c897a2fcd9f.
+//
+// Solidity: event PoWValidationResult(bool isPoWValid, uint256 errorCode, uint256 errorInfo)
+func (_Testimonium *TestimoniumFilterer) WatchPoWValidationResult(opts *bind.WatchOpts, sink chan<- *TestimoniumPoWValidationResult) (event.Subscription, error) {
+
+	logs, sub, err := _Testimonium.contract.WatchLogs(opts, "PoWValidationResult")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(TestimoniumPoWValidationResult)
+				if err := _Testimonium.contract.UnpackLog(event, "PoWValidationResult", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
 }
 
 // TestimoniumRemoveBranchIterator is returned from FilterRemoveBranch and is used to iterate over the raw logs and unpacked data for RemoveBranch events raised by the Testimonium contract.
@@ -582,17 +722,6 @@ func (_Testimonium *TestimoniumFilterer) WatchRemoveBranch(opts *bind.WatchOpts,
 	}), nil
 }
 
-// ParseRemoveBranch is a log parse operation binding the contract event 0xf96ae1a1e71431cfb86761b9cab725aeddab2afdaf76d40d43fc005bdc6555d4.
-//
-// Solidity: event RemoveBranch(bytes32 root)
-func (_Testimonium *TestimoniumFilterer) ParseRemoveBranch(log types.Log) (*TestimoniumRemoveBranch, error) {
-	event := new(TestimoniumRemoveBranch)
-	if err := _Testimonium.contract.UnpackLog(event, "RemoveBranch", log); err != nil {
-		return nil, err
-	}
-	return event, nil
-}
-
 // TestimoniumSubmitBlockHeaderIterator is returned from FilterSubmitBlockHeader and is used to iterate over the raw logs and unpacked data for SubmitBlockHeader events raised by the Testimonium contract.
 type TestimoniumSubmitBlockHeaderIterator struct {
 	Event *TestimoniumSubmitBlockHeader // Event containing the contract specifics and raw log
@@ -665,13 +794,14 @@ type TestimoniumSubmitBlockHeader struct {
 	Hash             [32]byte
 	HashWithoutNonce [32]byte
 	Nonce            *big.Int
+	Difficulty       *big.Int
 	Parent           [32]byte
 	Raw              types.Log // Blockchain specific contextual infos
 }
 
-// FilterSubmitBlockHeader is a free log retrieval operation binding the contract event 0x7583fb6e9684405668d44c92639440a022838246fba8f0e36374203764be2cb2.
+// FilterSubmitBlockHeader is a free log retrieval operation binding the contract event 0x467769113799b9d4db2fbbf8632f8a37fc9f4482713e5d8ce3c72bfc65a27207.
 //
-// Solidity: event SubmitBlockHeader(bytes32 hash, bytes32 hashWithoutNonce, uint256 nonce, bytes32 parent)
+// Solidity: event SubmitBlockHeader(bytes32 hash, bytes32 hashWithoutNonce, uint256 nonce, uint256 difficulty, bytes32 parent)
 func (_Testimonium *TestimoniumFilterer) FilterSubmitBlockHeader(opts *bind.FilterOpts) (*TestimoniumSubmitBlockHeaderIterator, error) {
 
 	logs, sub, err := _Testimonium.contract.FilterLogs(opts, "SubmitBlockHeader")
@@ -681,9 +811,9 @@ func (_Testimonium *TestimoniumFilterer) FilterSubmitBlockHeader(opts *bind.Filt
 	return &TestimoniumSubmitBlockHeaderIterator{contract: _Testimonium.contract, event: "SubmitBlockHeader", logs: logs, sub: sub}, nil
 }
 
-// WatchSubmitBlockHeader is a free log subscription operation binding the contract event 0x7583fb6e9684405668d44c92639440a022838246fba8f0e36374203764be2cb2.
+// WatchSubmitBlockHeader is a free log subscription operation binding the contract event 0x467769113799b9d4db2fbbf8632f8a37fc9f4482713e5d8ce3c72bfc65a27207.
 //
-// Solidity: event SubmitBlockHeader(bytes32 hash, bytes32 hashWithoutNonce, uint256 nonce, bytes32 parent)
+// Solidity: event SubmitBlockHeader(bytes32 hash, bytes32 hashWithoutNonce, uint256 nonce, uint256 difficulty, bytes32 parent)
 func (_Testimonium *TestimoniumFilterer) WatchSubmitBlockHeader(opts *bind.WatchOpts, sink chan<- *TestimoniumSubmitBlockHeader) (event.Subscription, error) {
 
 	logs, sub, err := _Testimonium.contract.WatchLogs(opts, "SubmitBlockHeader")
@@ -716,15 +846,4 @@ func (_Testimonium *TestimoniumFilterer) WatchSubmitBlockHeader(opts *bind.Watch
 			}
 		}
 	}), nil
-}
-
-// ParseSubmitBlockHeader is a log parse operation binding the contract event 0x7583fb6e9684405668d44c92639440a022838246fba8f0e36374203764be2cb2.
-//
-// Solidity: event SubmitBlockHeader(bytes32 hash, bytes32 hashWithoutNonce, uint256 nonce, bytes32 parent)
-func (_Testimonium *TestimoniumFilterer) ParseSubmitBlockHeader(log types.Log) (*TestimoniumSubmitBlockHeader, error) {
-	event := new(TestimoniumSubmitBlockHeader)
-	if err := _Testimonium.contract.UnpackLog(event, "SubmitBlockHeader", log); err != nil {
-		return nil, err
-	}
-	return event, nil
 }
