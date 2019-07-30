@@ -1,7 +1,7 @@
 package mtree
 
 import (
-	"github.com/probatio-client/typedefs"
+	"github.com/pf92/testimonium-cli/typedefs"
 )
 
 func conventionalWord(data typedefs.Word) ([]byte, []byte) {

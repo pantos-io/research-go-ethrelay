@@ -20,6 +20,8 @@ package ethash
 import (
 	"errors"
 	"fmt"
+	"github.com/pf92/testimonium-cli/mtree"
+	"github.com/pf92/testimonium-cli/typedefs"
 	"math"
 	"math/big"
 	"math/rand"
@@ -31,11 +33,11 @@ import (
 	"time"
 	"unsafe"
 
-	mmap "github.com/edsrzf/mmap-go"
+	"github.com/edsrzf/mmap-go"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-metrics"
 )
 
 var ErrInvalidDumpMagic = errors.New("invalid dump magic")
@@ -329,7 +331,7 @@ func MakeDataset(block uint64, dir string) {
 
 // Ethash is a consensus engine based on proot-of-work implementing the ethash
 // algorithm.
-type Ethash struct {
+type EthashMetaData struct {
 	cachedir     string // Data directory to store the verification caches
 	cachesinmem  int    // Number of caches to keep in memory
 	cachesondisk int    // Number of caches to keep on disk
@@ -349,18 +351,18 @@ type Ethash struct {
 	hashrate metrics.Meter // Meter tracking the average hashrate
 
 	// The fields below are hooks for testing
-	tester    bool          // Flag whether to use a smaller test dataset
-	shared    *Ethash       // Shared PoW verifier to avoid cache regeneration
-	fakeMode  bool          // Flag whether to disable PoW checking
-	fakeFull  bool          // Flag whether to disable all consensus rules
-	fakeFail  uint64        // Block number which fails PoW check even in fake mode
-	fakeDelay time.Duration // Time delay to sleep for before returning from verify
+	tester    bool            // Flag whether to use a smaller test dataset
+	shared    *EthashMetaData // Shared PoW verifier to avoid cache regeneration
+	fakeMode  bool            // Flag whether to disable PoW checking
+	fakeFull  bool            // Flag whether to disable all consensus rules
+	fakeFail  uint64          // Block number which fails PoW check even in fake mode
+	fakeDelay time.Duration   // Time delay to sleep for before returning from verify
 
 	lock sync.Mutex // Ensures thread safety for the in-memory caches and mining fields
 }
 
 // New creates a full sized ethash PoW scheme.
-func New(cachedir string, cachesinmem, cachesondisk int, dagdir string, dagsinmem, dagsondisk int) *Ethash {
+func New(cachedir string, cachesinmem, cachesondisk int, dagdir string, dagsinmem, dagsondisk int) *EthashMetaData {
 	if cachesinmem <= 0 {
 		log.Warn("One ethash cache must alwast be in memory", "requested", cachesinmem)
 		cachesinmem = 1
@@ -371,7 +373,7 @@ func New(cachedir string, cachesinmem, cachesondisk int, dagdir string, dagsinme
 	if dagdir != "" && dagsondisk > 0 {
 		log.Info("Disk storage enabled for ethash DAGs", "dir", dagdir, "count", dagsondisk)
 	}
-	return &Ethash{
+	return &EthashMetaData{
 		cachedir:     cachedir,
 		cachesinmem:  cachesinmem,
 		cachesondisk: cachesondisk,
@@ -387,8 +389,8 @@ func New(cachedir string, cachesinmem, cachesondisk int, dagdir string, dagsinme
 
 // NewTester creates a small sized ethash PoW scheme useful only for testing
 // purposes.
-func NewTester() *Ethash {
-	return &Ethash{
+func NewTester() *EthashMetaData {
+	return &EthashMetaData{
 		cachesinmem: 1,
 		caches:      make(map[uint64]*cache),
 		datasets:    make(map[uint64]*dataset),
@@ -401,40 +403,40 @@ func NewTester() *Ethash {
 // NewFaker creates a ethash consensus engine with a fake PoW scheme that accepts
 // all blocks' seal as valid, though they still have to conform to the Ethereum
 // consensus rules.
-func NewFaker() *Ethash {
-	return &Ethash{fakeMode: true}
+func NewFaker() *EthashMetaData {
+	return &EthashMetaData{fakeMode: true}
 }
 
 // NewFakeFailer creates a ethash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid apart from the single one specified, though they
 // still have to conform to the Ethereum consensus rules.
-func NewFakeFailer(fail uint64) *Ethash {
-	return &Ethash{fakeMode: true, fakeFail: fail}
+func NewFakeFailer(fail uint64) *EthashMetaData {
+	return &EthashMetaData{fakeMode: true, fakeFail: fail}
 }
 
 // NewFakeDelayer creates a ethash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid, but delays verifications by some time, though
 // they still have to conform to the Ethereum consensus rules.
-func NewFakeDelayer(delay time.Duration) *Ethash {
-	return &Ethash{fakeMode: true, fakeDelay: delay}
+func NewFakeDelayer(delay time.Duration) *EthashMetaData {
+	return &EthashMetaData{fakeMode: true, fakeDelay: delay}
 }
 
 // NewFullFaker creates a ethash consensus engine with a full fake scheme that
 // accepts all blocks as valid, without checking any consensus rules whatsoever.
-func NewFullFaker() *Ethash {
-	return &Ethash{fakeMode: true, fakeFull: true}
+func NewFullFaker() *EthashMetaData {
+	return &EthashMetaData{fakeMode: true, fakeFull: true}
 }
 
 // NewShared creates a full sized ethash PoW shared between all requesters running
 // in the same process.
-func NewShared() *Ethash {
-	return &Ethash{shared: sharedEthash}
+func NewShared() *EthashMetaData {
+	return &EthashMetaData{shared: sharedEthash}
 }
 
 // cache tries to retrieve a verification cache for the specified block number
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) cache(block uint64) []uint32 {
+func (ethash *EthashMetaData) cache(block uint64) []uint32 {
 	epoch := block / epochLength
 
 	// If we have a PoW for that epoch, use that
@@ -496,7 +498,7 @@ func (ethash *Ethash) cache(block uint64) []uint32 {
 // dataset tries to retrieve a mining dataset for the specified block number
 // by first checking against a list of in-memory datasets, then against DAGs
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) dataset(block uint64) []uint32 {
+func (ethash *EthashMetaData) dataset(block uint64) []uint32 {
 	epoch := block / epochLength
 
 	// If we have a PoW for that epoch, use that
@@ -558,7 +560,7 @@ func (ethash *Ethash) dataset(block uint64) []uint32 {
 
 // Threads returns the number of mining threads currently enabled. This doesn't
 // necessarily mean that mining is running!
-func (ethash *Ethash) Threads() int {
+func (ethash *EthashMetaData) Threads() int {
 	ethash.lock.Lock()
 	defer ethash.lock.Unlock()
 
@@ -570,7 +572,7 @@ func (ethash *Ethash) Threads() int {
 // specified, the miner will use all cores of the machine. Setting a thread
 // count below zero is allowed and will cause the miner to idle, without any
 // work being done.
-func (ethash *Ethash) SetThreads(threads int) {
+func (ethash *EthashMetaData) SetThreads(threads int) {
 	ethash.lock.Lock()
 	defer ethash.lock.Unlock()
 
@@ -589,13 +591,13 @@ func (ethash *Ethash) SetThreads(threads int) {
 
 // Hashrate implements PoW, returning the measured rate of the search invocations
 // per second over the last minute.
-func (ethash *Ethash) Hashrate() float64 {
+func (ethash *EthashMetaData) Hashrate() float64 {
 	return ethash.hashrate.Rate1()
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs. Currently
 // that is empty.
-func (ethash *Ethash) APIs(chain consensus.ChainReader) []rpc.API {
+func (ethash *EthashMetaData) APIs(chain consensus.ChainReader) []rpc.API {
 	return nil
 }
 
@@ -603,4 +605,25 @@ func (ethash *Ethash) APIs(chain consensus.ChainReader) []rpc.API {
 // dataset.
 func SeedHash(block uint64) []byte {
 	return seedHash(block)
+}
+
+func GenerateEpochData(epoch uint64) typedefs.EpochData {
+	fmt.Println("Checking DAG file. Generate if needed...\n")
+	MakeDAG(uint64(epoch*30000), DefaultDir)
+	fullSize := DAGSize(uint64(epoch * 30000))
+	fullSizeIn128Resolution := fullSize / 128
+	path := PathToDAG(uint64(epoch), DefaultDir)
+	branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
+	mt := mtree.NewDagTree()
+	// TODO: 10 is just an experimental level
+	mt.RegisterStoredLevel(uint32(branchDepth), 10)
+	ProcessDuringRead(path, mt)
+	mt.Finalize()
+
+	fmt.Printf("Done.\n")
+	return typedefs.EpochData {
+		Epoch:                   big.NewInt(int64(epoch)),
+		FullSizeIn128Resolution: big.NewInt(int64(fullSizeIn128Resolution)),
+		BranchDepth: big.NewInt(int64(branchDepth-10)),
+		MerkleNodes: mt.MerkleNodes() }
 }

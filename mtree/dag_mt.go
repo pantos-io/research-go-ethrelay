@@ -3,7 +3,7 @@ package mtree
 import (
 	"container/list"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/probatio-client/typedefs"
+	"github.com/pf92/testimonium-cli/typedefs"
 	"math/big"
 )
 

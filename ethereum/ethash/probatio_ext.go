@@ -33,7 +33,7 @@ func DAGSize(blockNum uint64) uint64 {
 	return datasetSizes[blockNum/epochLength]
 }
 
-func (ethash *Ethash) GetVerificationIndices(blockNumber uint64, hash common.Hash, nonce uint64) []uint32 {
+func (ethash *EthashMetaData) GetVerificationIndices(blockNumber uint64, hash common.Hash, nonce uint64) []uint32 {
 	// Recompute the digest and PoW value and verify against the header
 	cache := ethash.cache(blockNumber)
 

@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pf92/testimonium-cli/ethereum"
+	"github.com/pf92/testimonium-cli/ethereum/ethash"
 
 	"log"
 
@@ -46,20 +46,11 @@ var disputeCmd = &cobra.Command{
 
 		fmt.Println("create DAG, compute dataSetLookup and witnessForLookup")
 		// get DAG and compute dataSetLookup and witnessForLookup
-		blockMetaData := ethereum.NewBlockMetaData(&header)
+		blockMetaData := ethash.NewBlockMetaData(header.BlockNumber.Uint64(), header.Nonce.Uint64(), header.RlpHeaderHashWithoutNonce)
 		dataSetLookup := blockMetaData.DAGElementArray()
 		witnessForLookup := blockMetaData.DAGProofArray()
-		//time.Sleep(20 * time.Second)
-		//var dataSetLookup []*big.Int
-		//var witnessForLookup []*big.Int
-		//fmt.Println("call disputeBlock(...)")
-		fmt.Println(disputeFlagChain)
-		testimoniumClient.DisputeBlock(blockHash, dataSetLookup, witnessForLookup, disputeFlagChain)
-		//fmt.Println(header)
-		//fmt.Println(dataSetLookup)
-		//fmt.Println(witnessForLookup)
 
-		//fmt.Println(blockHash)
+		testimoniumClient.DisputeBlock(blockHash, dataSetLookup, witnessForLookup, disputeFlagChain)
 	},
 }
 

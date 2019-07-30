@@ -13,6 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pf92/testimonium-cli/ethereum/ethash"
+	"github.com/pf92/testimonium-cli/typedefs"
 	"log"
 	"math/big"
 	"strconv"
@@ -20,9 +22,11 @@ import (
 )
 
 type Chain struct {
-	client *ethclient.Client
-	contractAddress common.Address
-	contract *Testimonium
+	client                     *ethclient.Client
+	testimoniumContractAddress common.Address
+	testimoniumContract        *Testimonium
+	ethashContractAddress common.Address
+	ethashContract        *ethash.Ethash
 }
 
 type Client struct {
@@ -118,15 +122,30 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 			continue	// --> even if we cannot connect to this chain, we still try to connect to the other ones
 		}
 
-		// create contract instance
-		addressHex := chainConfig["address"].(string)
-		address := common.HexToAddress(addressHex)
-		var contract *Testimonium
-		contract, err = NewTestimonium(address, ethClient)
+		// create testimonium contract instance
+		addressHex := chainConfig["testimonium-address"].(string)
+		testimoniumAddress := common.HexToAddress(addressHex)
+		var testimoniumContract *Testimonium
+		testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
 		if err != nil {
-			fmt.Printf("WARNING: No Testimonium contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			fmt.Printf("WARNING: No Testimonium Contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
 		}
-		client.chains[uint8(chainId)] = &Chain{ethClient, address, contract}
+
+		// create ethash contract instance
+		addressHex = chainConfig["ethash-address"].(string)
+		ethashAddress := common.HexToAddress(addressHex)
+		var ethashContract *ethash.Ethash
+		ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
+		if err != nil {
+			fmt.Printf("WARNING: No Ethash Contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+		}
+		client.chains[uint8(chainId)] = &Chain{
+			ethClient,
+			testimoniumAddress,
+			testimoniumContract,
+			 ethashAddress,
+			ethashContract,
+		}
 	}
 
 	// get public address
@@ -210,11 +229,11 @@ func (c Client) Balance(chainId uint8) (*big.Int, error) {
 }
 
 func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error) {
-	return c.chains[chain].contract.IsBlock(nil, blockHash)
+	return c.chains[chain].testimoniumContract.IsBlock(nil, blockHash)
 }
 
 func (c Client) BlockHeader(blockHash [32]byte, chain uint8) (BlockHeader, error) {
-	return c.chains[chain].contract.Headers(nil, blockHash)
+	return c.chains[chain].testimoniumContract.Headers(nil, blockHash)
 }
 
 func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
@@ -242,7 +261,7 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 
 	// Submit Transfer Transaction
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].contract.SubmitHeader(auth, rlpHeader)
+	tx, err := c.chains[chain].testimoniumContract.SubmitHeader(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -261,7 +280,7 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].contract.TestimoniumFilterer.FilterSubmitBlockHeader(&bind.FilterOpts{
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlockHeader(&bind.FilterOpts{
 		Start: receipt.BlockNumber.Uint64(),
 		End: nil,
 		Context:nil,
@@ -321,7 +340,7 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witnessForLookup []*big.Int, chain uint8) {
 	fmt.Println("Dispute block ...")
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].contract.DisputeBlock(auth, blockHash, dataSetLookUp, witnessForLookup)
+	tx, err := c.chains[chain].testimoniumContract.DisputeBlock(auth, blockHash, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -340,7 +359,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	}
 
 	// get RemoveBranch event
-	eventIteratorRemoveBranch, err := c.chains[chain].contract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
+	eventIteratorRemoveBranch, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
 		Start: receipt.BlockNumber.Uint64(),
 		End: nil,
 		Context:nil,
@@ -353,7 +372,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	}
 
 	// get PoW Verification event
-	eventIteratorPoWResult, err := c.chains[chain].contract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
+	eventIteratorPoWResult, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
 		Start: receipt.BlockNumber.Uint64(),
 		End: nil,
 		Context:nil,
@@ -382,11 +401,57 @@ func (c Client) VerifyTransaction(txHash [32]byte, blockHash [32]byte, noOfConfi
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	isValid, err := c.chains[chain].contract.VerifyTransaction(nil, txHash, blockHash, noOfConfirmations)
+	isValid, err := c.chains[chain].testimoniumContract.VerifyTransaction(nil, txHash, blockHash, noOfConfirmations)
 	if err != nil {
 		log.Fatal("Failed to verify transaction: " + err.Error())
 	}
 	return isValid
+}
+
+func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+
+	nodes := []*big.Int{}
+	start := big.NewInt(0)
+	//fmt.Printf("No meaningful nodes: %d\n", len(epochData.MerkleNodes))
+	for k, n := range epochData.MerkleNodes {
+		nodes = append(nodes, n)
+		if len(nodes) == 40 || k == len(epochData.MerkleNodes)-1 {
+			mnlen := big.NewInt(int64(len(nodes)))
+			fmt.Printf("Going to do tx\n")
+
+			if k < 440 && epochData.Epoch.Uint64() == 128 {
+				start.Add(start, mnlen)
+				nodes = []*big.Int{}
+				continue
+			}
+
+			auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
+
+			tx, err := c.chains[chain].ethashContract.SetEpochData(auth, epochData.Epoch, epochData.FullSizeIn128Resolution,
+				epochData.BranchDepth, nodes, start, mnlen)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+			receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+			if err != nil {
+				log.Fatal(err)
+			}
+			if receipt.Status == 0 {
+				// Transaction failed
+				reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+				fmt.Printf("Tx failed: %s\n", reason)
+				return
+			}
+
+			start.Add(start, mnlen)
+			nodes = []*big.Int{}
+		}
+	}
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
@@ -474,7 +539,7 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	}
 
 	//query := ethereum.FilterQuery{
-	//	Addresses: []common.Address{chain.contractAddress},
+	//	Addresses: []common.Address{chain.testimoniumContractAddress},
 	//}
 	//
 	//logs := make(chan types.Log)
