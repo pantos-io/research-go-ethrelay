@@ -28,7 +28,7 @@ var (
 )
 
 // TestimoniumABI is the input ABI used to generate the binding from.
-const TestimoniumABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"longestChainEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"difficulty\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"_ethashContractAddr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"isPoWValid\",\"type\":\"bool\"},{\"indexed\":false,\"name\":\"errorCode\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"errorInfo\",\"type\":\"uint256\"}],\"name\":\"PoWValidationResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"returnCode\",\"type\":\"uint256\"}],\"name\":\"VerifyMerkleProofForTx\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"difficulty\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"transactionsRoot\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getSuccessors\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"dataSetLookup\",\"type\":\"uint256[]\"},{\"name\":\"witnessForLookup\",\"type\":\"uint256[]\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"txHash\",\"type\":\"bytes32\"},{\"name\":\"requested\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyMerkleProofForTx\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const TestimoniumABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"longestChainEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"difficulty\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"_ethashContractAddr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"isPoWValid\",\"type\":\"bool\"},{\"indexed\":false,\"name\":\"errorCode\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"errorInfo\",\"type\":\"uint256\"}],\"name\":\"PoWValidationResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"difficulty\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"transactionsRoot\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getSuccessors\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"dataSetLookup\",\"type\":\"uint256[]\"},{\"name\":\"witnessForLookup\",\"type\":\"uint256[]\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Testimonium is an auto generated Go binding around an Ethereum contract.
 type Testimonium struct {
@@ -408,30 +408,30 @@ func (_Testimonium *TestimoniumCallerSession) LongestChainEndpoint() ([32]byte, 
 	return _Testimonium.Contract.LongestChainEndpoint(&_Testimonium.CallOpts)
 }
 
-// VerifyTransaction is a free data retrieval call binding the contract method 0x8474491f.
+// VerifyTransaction is a free data retrieval call binding the contract method 0xa90a51f4.
 //
-// Solidity: function verifyTransaction(bytes32 txHash, bytes32 requested, uint8 noOfConfirmations) constant returns(bool)
-func (_Testimonium *TestimoniumCaller) VerifyTransaction(opts *bind.CallOpts, txHash [32]byte, requested [32]byte, noOfConfirmations uint8) (bool, error) {
+// Solidity: function verifyTransaction(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCaller) VerifyTransaction(opts *bind.CallOpts, blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
 	var (
-		ret0 = new(bool)
+		ret0 = new(uint8)
 	)
 	out := ret0
-	err := _Testimonium.contract.Call(opts, out, "verifyTransaction", txHash, requested, noOfConfirmations)
+	err := _Testimonium.contract.Call(opts, out, "verifyTransaction", blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
 	return *ret0, err
 }
 
-// VerifyTransaction is a free data retrieval call binding the contract method 0x8474491f.
+// VerifyTransaction is a free data retrieval call binding the contract method 0xa90a51f4.
 //
-// Solidity: function verifyTransaction(bytes32 txHash, bytes32 requested, uint8 noOfConfirmations) constant returns(bool)
-func (_Testimonium *TestimoniumSession) VerifyTransaction(txHash [32]byte, requested [32]byte, noOfConfirmations uint8) (bool, error) {
-	return _Testimonium.Contract.VerifyTransaction(&_Testimonium.CallOpts, txHash, requested, noOfConfirmations)
+// Solidity: function verifyTransaction(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumSession) VerifyTransaction(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyTransaction(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
 }
 
-// VerifyTransaction is a free data retrieval call binding the contract method 0x8474491f.
+// VerifyTransaction is a free data retrieval call binding the contract method 0xa90a51f4.
 //
-// Solidity: function verifyTransaction(bytes32 txHash, bytes32 requested, uint8 noOfConfirmations) constant returns(bool)
-func (_Testimonium *TestimoniumCallerSession) VerifyTransaction(txHash [32]byte, requested [32]byte, noOfConfirmations uint8) (bool, error) {
-	return _Testimonium.Contract.VerifyTransaction(&_Testimonium.CallOpts, txHash, requested, noOfConfirmations)
+// Solidity: function verifyTransaction(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCallerSession) VerifyTransaction(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyTransaction(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
 }
 
 // DisputeBlock is a paid mutator transaction binding the contract method 0x66962b26.
@@ -474,27 +474,6 @@ func (_Testimonium *TestimoniumSession) SubmitHeader(_rlpHeader []byte) (*types.
 // Solidity: function submitHeader(bytes _rlpHeader) returns()
 func (_Testimonium *TestimoniumTransactorSession) SubmitHeader(_rlpHeader []byte) (*types.Transaction, error) {
 	return _Testimonium.Contract.SubmitHeader(&_Testimonium.TransactOpts, _rlpHeader)
-}
-
-// VerifyMerkleProofForTx is a paid mutator transaction binding the contract method 0x625df79b.
-//
-// Solidity: function verifyMerkleProofForTx(bytes32 blockHash, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) returns(bool)
-func (_Testimonium *TestimoniumTransactor) VerifyMerkleProofForTx(opts *bind.TransactOpts, blockHash [32]byte, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (*types.Transaction, error) {
-	return _Testimonium.contract.Transact(opts, "verifyMerkleProofForTx", blockHash, rlpEncodedTx, path, rlpEncodedNodes)
-}
-
-// VerifyMerkleProofForTx is a paid mutator transaction binding the contract method 0x625df79b.
-//
-// Solidity: function verifyMerkleProofForTx(bytes32 blockHash, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) returns(bool)
-func (_Testimonium *TestimoniumSession) VerifyMerkleProofForTx(blockHash [32]byte, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (*types.Transaction, error) {
-	return _Testimonium.Contract.VerifyMerkleProofForTx(&_Testimonium.TransactOpts, blockHash, rlpEncodedTx, path, rlpEncodedNodes)
-}
-
-// VerifyMerkleProofForTx is a paid mutator transaction binding the contract method 0x625df79b.
-//
-// Solidity: function verifyMerkleProofForTx(bytes32 blockHash, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) returns(bool)
-func (_Testimonium *TestimoniumTransactorSession) VerifyMerkleProofForTx(blockHash [32]byte, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (*types.Transaction, error) {
-	return _Testimonium.Contract.VerifyMerkleProofForTx(&_Testimonium.TransactOpts, blockHash, rlpEncodedTx, path, rlpEncodedNodes)
 }
 
 // TestimoniumPoWValidationResultIterator is returned from FilterPoWValidationResult and is used to iterate over the raw logs and unpacked data for PoWValidationResult events raised by the Testimonium contract.
@@ -850,128 +829,6 @@ func (_Testimonium *TestimoniumFilterer) WatchSubmitBlockHeader(opts *bind.Watch
 				// New log arrived, parse the event and forward to the user
 				event := new(TestimoniumSubmitBlockHeader)
 				if err := _Testimonium.contract.UnpackLog(event, "SubmitBlockHeader", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// TestimoniumVerifyMerkleProofForTxIterator is returned from FilterVerifyMerkleProofForTx and is used to iterate over the raw logs and unpacked data for VerifyMerkleProofForTx events raised by the Testimonium contract.
-type TestimoniumVerifyMerkleProofForTxIterator struct {
-	Event *TestimoniumVerifyMerkleProofForTx // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *TestimoniumVerifyMerkleProofForTxIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(TestimoniumVerifyMerkleProofForTx)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(TestimoniumVerifyMerkleProofForTx)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *TestimoniumVerifyMerkleProofForTxIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *TestimoniumVerifyMerkleProofForTxIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// TestimoniumVerifyMerkleProofForTx represents a VerifyMerkleProofForTx event raised by the Testimonium contract.
-type TestimoniumVerifyMerkleProofForTx struct {
-	ReturnCode *big.Int
-	Raw        types.Log // Blockchain specific contextual infos
-}
-
-// FilterVerifyMerkleProofForTx is a free log retrieval operation binding the contract event 0x48a166dfe7cc92a90865c9df35f53a04e2307e42bee4b65c9a5a08a8416288c4.
-//
-// Solidity: event VerifyMerkleProofForTx(uint256 returnCode)
-func (_Testimonium *TestimoniumFilterer) FilterVerifyMerkleProofForTx(opts *bind.FilterOpts) (*TestimoniumVerifyMerkleProofForTxIterator, error) {
-
-	logs, sub, err := _Testimonium.contract.FilterLogs(opts, "VerifyMerkleProofForTx")
-	if err != nil {
-		return nil, err
-	}
-	return &TestimoniumVerifyMerkleProofForTxIterator{contract: _Testimonium.contract, event: "VerifyMerkleProofForTx", logs: logs, sub: sub}, nil
-}
-
-// WatchVerifyMerkleProofForTx is a free log subscription operation binding the contract event 0x48a166dfe7cc92a90865c9df35f53a04e2307e42bee4b65c9a5a08a8416288c4.
-//
-// Solidity: event VerifyMerkleProofForTx(uint256 returnCode)
-func (_Testimonium *TestimoniumFilterer) WatchVerifyMerkleProofForTx(opts *bind.WatchOpts, sink chan<- *TestimoniumVerifyMerkleProofForTx) (event.Subscription, error) {
-
-	logs, sub, err := _Testimonium.contract.WatchLogs(opts, "VerifyMerkleProofForTx")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(TestimoniumVerifyMerkleProofForTx)
-				if err := _Testimonium.contract.UnpackLog(event, "VerifyMerkleProofForTx", log); err != nil {
 					return err
 				}
 				event.Raw = log

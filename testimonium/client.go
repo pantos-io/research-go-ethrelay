@@ -98,10 +98,6 @@ func (event TestimoniumPoWValidationResult) String() string {
 	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
 }
 
-func (event TestimoniumVerifyMerkleProofForTx) String() string {
-	return fmt.Sprintf("VerifyMerkleProofForTx: { returnCode: %d }", event.ReturnCode)
-}
-
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 	client := new(Client)
 	client.chains = make(map[uint8]*Chain)
@@ -444,38 +440,27 @@ func (c Client) VerifyTransaction(blockHash [32]byte, rlpEncodedTx []byte, path 
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].testimoniumContract.VerifyMerkleProofForTx(auth, blockHash, rlpEncodedTx, path, rlpEncodedProofNodes)
-	if err != nil {
-		log.Fatal("Failed to verify transaction: " + err.Error())
-	}
-	fmt.Println("Tx submitted: ", tx.Hash().String())
-
-	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	returnCode, err := c.chains[chain].testimoniumContract.VerifyTransaction(nil, blockHash, noOfConfirmations, rlpEncodedTx,
+		path, rlpEncodedProofNodes)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if receipt.Status == 0 {
-		// Transaction failed
-		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
-		fmt.Printf("Tx failed: %s\n", reason)
+
+	switch returnCode {
+	case 0:
+		return true
+	case 1:
+		fmt.Println("Block does not exist on chain")
 		return false
-	}
-
-	// Transaction is successful -> get events
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyMerkleProofForTx(&bind.FilterOpts{
-		Start: receipt.BlockNumber.Uint64(),
-		End: nil,
-		Context:nil,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if eventIterator.Next() {
-		event := eventIterator.Event
-		fmt.Printf("Tx successful: %s\n", event.String())
-		return event.ReturnCode.Uint64() == 0
+	case 2:
+		fmt.Println("The block containing the transaction is locked, not confirmed by enough blocks or not part of the longest PoW chain")
+		return false
+	case 3:
+		fmt.Println("The provided Merkle proof is invalid")
+		return false
+	default:
+		fmt.Println("Unknown return code: ", returnCode)
+		return false
 	}
 
 	return false
