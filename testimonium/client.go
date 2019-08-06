@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pf92/testimonium-cli/ethereum/ethash"
 	"github.com/pf92/testimonium-cli/typedefs"
 	"log"
@@ -80,12 +81,13 @@ common.Bytes2Hex(header.LatestFork[:]))
 }
 
 func (t TestimoniumSubmitBlockHeader) String() string {
-	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Difficulty: %s, Parent: %s }",
+	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Difficulty: %s, Parent: %s, TransactionsRoot: %s }",
 		common.BytesToHash(t.Hash[:]).String(),
 		common.BytesToHash(t.HashWithoutNonce[:]).String(),
 		t.Nonce.String(),
 		t.Difficulty.String(),
-		common.BytesToHash(t.Parent[:]).String())
+		common.BytesToHash(t.Parent[:]).String(),
+		common.BytesToHash(t.TransactionsRoot[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -94,6 +96,10 @@ func (event TestimoniumRemoveBranch) String() string {
 
 func (event TestimoniumPoWValidationResult) String() string {
 	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
+}
+
+func (event TestimoniumVerifyMerkleProofForTx) String() string {
+	return fmt.Sprintf("VerifyMerkleProofForTx: { returnCode: %d }", event.ReturnCode)
 }
 
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
@@ -385,27 +391,94 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	}
 }
 
-func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, [32]byte, error) {
+func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
-		return [32]byte{}, [32]byte{}, err
+		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
 	}
-	return txHash, txReceipt.BlockHash, nil
+	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
+	if err != nil {
+		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+
+	// create transactions trie
+	buffer := new(bytes.Buffer)
+	merkleTrie := new(trie.Trie)
+	txList := block.Transactions()
+	for i := 0; i < txList.Len(); i++ {
+		buffer.Reset()
+		rlp.Encode(buffer, uint(i))
+		merkleTrie.Update(buffer.Bytes(), txList.GetRlp(i))
+	}
+
+	// create Merkle proof
+	rlpEncodedTx := txList.GetRlp(int(txReceipt.TransactionIndex))
+	buffer.Reset()
+	rlp.Encode(buffer, uint(txReceipt.TransactionIndex))
+	path := make([]byte, len(buffer.Bytes()))
+	copy(path, buffer.Bytes())
+
+	merkleIterator := merkleTrie.NodeIterator(nil)
+	var proofNodes [][]byte
+	for merkleIterator.Next(true) {
+		if merkleIterator.Leaf() && bytes.Equal(merkleIterator.LeafKey(), path) {
+			// leaf node representing tx has been found --> create Merkle proof
+			proofNodes = merkleIterator.LeafProof()
+			break
+		}
+	}
+	buffer.Reset()
+	rlp.Encode(buffer, proofNodes)
+	rlpEncodedProofNodes := buffer.Bytes()
+
+	return txReceipt.BlockHash, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) VerifyTransaction(txHash [32]byte, blockHash [32]byte, noOfConfirmations uint8, chain uint8) bool {
+func (c Client) VerifyTransaction(blockHash [32]byte, rlpEncodedTx []byte, path []byte, rlpEncodedProofNodes []byte,
+	noOfConfirmations uint8, chain uint8) bool {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	isValid, err := c.chains[chain].testimoniumContract.VerifyTransaction(nil, txHash, blockHash, noOfConfirmations)
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
+	tx, err := c.chains[chain].testimoniumContract.VerifyMerkleProofForTx(auth, blockHash, rlpEncodedTx, path, rlpEncodedProofNodes)
 	if err != nil {
 		log.Fatal("Failed to verify transaction: " + err.Error())
 	}
-	return isValid
+	fmt.Println("Tx submitted: ", tx.Hash().String())
+
+	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return false
+	}
+
+	// Transaction is successful -> get events
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyMerkleProofForTx(&bind.FilterOpts{
+		Start: receipt.BlockNumber.Uint64(),
+		End: nil,
+		Context:nil,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if eventIterator.Next() {
+		event := eventIterator.Event
+		fmt.Printf("Tx successful: %s\n", event.String())
+		return event.ReturnCode.Uint64() == 0
+	}
+
+	return false
 }
 
 func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {

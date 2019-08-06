@@ -14,7 +14,9 @@
 
 package main
 
-import "github.com/pf92/testimonium-cli/cmd"
+import (
+	"github.com/pf92/testimonium-cli/cmd"
+)
 
 func main() {
 	cmd.Execute()

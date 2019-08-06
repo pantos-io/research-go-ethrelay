@@ -36,12 +36,13 @@ This information gets sent to the destination chain, where not only the existenc
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
-		txHash, blockHash, err := testimoniumClient.GenerateMerkleProof(txHash, verifyFlagSrcChain)
+		blockHash, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProof(txHash, verifyFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
-		isValid := testimoniumClient.VerifyTransaction(txHash, blockHash, noOfConfirmations, verifyFlagDestChain)
-		fmt.Println(isValid)
+
+		isValid := testimoniumClient.VerifyTransaction(blockHash, rlpEncodedTx, path, rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
+		fmt.Println("Tx Validation Result: ", isValid)
 	},
 }
 
