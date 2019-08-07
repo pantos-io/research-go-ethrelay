@@ -28,7 +28,7 @@ var (
 )
 
 // TestimoniumABI is the input ABI used to generate the binding from.
-const TestimoniumABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"longestChainEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"headers\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"name\":\"difficulty\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"_ethashContractAddr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"isPoWValid\",\"type\":\"bool\"},{\"indexed\":false,\"name\":\"errorCode\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"errorInfo\",\"type\":\"uint256\"}],\"name\":\"PoWValidationResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"difficulty\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"transactionsRoot\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getSuccessors\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"dataSetLookup\",\"type\":\"uint256[]\"},{\"name\":\"witnessForLookup\",\"type\":\"uint256[]\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const TestimoniumABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"longestChainEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"},{\"name\":\"_ethashContractAddr\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"isPoWValid\",\"type\":\"bool\"},{\"indexed\":false,\"name\":\"errorCode\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"errorInfo\",\"type\":\"uint256\"}],\"name\":\"PoWValidationResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"root\",\"type\":\"bytes32\"}],\"name\":\"RemoveBranch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hashWithoutNonce\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"difficulty\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"parent\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"transactionsRoot\",\"type\":\"bytes32\"}],\"name\":\"SubmitBlockHeader\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getHeader\",\"outputs\":[{\"name\":\"parent\",\"type\":\"bytes32\"},{\"name\":\"uncleHash\",\"type\":\"bytes32\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"name\":\"rlpHeaderHashWithoutNonce\",\"type\":\"bytes32\"},{\"name\":\"timestamp\",\"type\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"difficulty\",\"type\":\"uint256\"},{\"name\":\"totalDifficulty\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"getHeaderMetaInfo\",\"outputs\":[{\"name\":\"successors\",\"type\":\"bytes32[]\"},{\"name\":\"orderedIndex\",\"type\":\"uint256\"},{\"name\":\"iterableIndex\",\"type\":\"uint256\"},{\"name\":\"latestFork\",\"type\":\"bytes32\"},{\"name\":\"lockedUntil\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNoOfForks\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getBlockHashOfEndpoint\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"isBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_rlpHeader\",\"type\":\"bytes\"}],\"name\":\"submitHeader\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"dataSetLookup\",\"type\":\"uint256[]\"},{\"name\":\"witnessForLookup\",\"type\":\"uint256[]\"}],\"name\":\"disputeBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"},{\"name\":\"merkleRootHash\",\"type\":\"bytes32\"}],\"name\":\"verifyMerkleProof\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyTransaction\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyReceipt\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"name\":\"noOfConfirmations\",\"type\":\"uint8\"},{\"name\":\"rlpEncodedTx\",\"type\":\"bytes\"},{\"name\":\"path\",\"type\":\"bytes\"},{\"name\":\"rlpEncodedNodes\",\"type\":\"bytes\"}],\"name\":\"verifyState\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"isUnlocked\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Testimonium is an auto generated Go binding around an Ethereum contract.
 type Testimonium struct {
@@ -198,6 +198,126 @@ func (_Testimonium *TestimoniumCallerSession) GetBlockHashOfEndpoint(index *big.
 	return _Testimonium.Contract.GetBlockHashOfEndpoint(&_Testimonium.CallOpts, index)
 }
 
+// GetHeader is a free data retrieval call binding the contract method 0xb9615878.
+//
+// Solidity: function getHeader(bytes32 blockHash) constant returns(bytes32 parent, bytes32 uncleHash, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 timestamp, uint256 nonce, uint256 difficulty, uint256 totalDifficulty)
+func (_Testimonium *TestimoniumCaller) GetHeader(opts *bind.CallOpts, blockHash [32]byte) (struct {
+	Parent                    [32]byte
+	UncleHash                 [32]byte
+	StateRoot                 [32]byte
+	TransactionsRoot          [32]byte
+	ReceiptsRoot              [32]byte
+	BlockNumber               *big.Int
+	RlpHeaderHashWithoutNonce [32]byte
+	Timestamp                 *big.Int
+	Nonce                     *big.Int
+	Difficulty                *big.Int
+	TotalDifficulty           *big.Int
+}, error) {
+	ret := new(struct {
+		Parent                    [32]byte
+		UncleHash                 [32]byte
+		StateRoot                 [32]byte
+		TransactionsRoot          [32]byte
+		ReceiptsRoot              [32]byte
+		BlockNumber               *big.Int
+		RlpHeaderHashWithoutNonce [32]byte
+		Timestamp                 *big.Int
+		Nonce                     *big.Int
+		Difficulty                *big.Int
+		TotalDifficulty           *big.Int
+	})
+	out := ret
+	err := _Testimonium.contract.Call(opts, out, "getHeader", blockHash)
+	return *ret, err
+}
+
+// GetHeader is a free data retrieval call binding the contract method 0xb9615878.
+//
+// Solidity: function getHeader(bytes32 blockHash) constant returns(bytes32 parent, bytes32 uncleHash, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 timestamp, uint256 nonce, uint256 difficulty, uint256 totalDifficulty)
+func (_Testimonium *TestimoniumSession) GetHeader(blockHash [32]byte) (struct {
+	Parent                    [32]byte
+	UncleHash                 [32]byte
+	StateRoot                 [32]byte
+	TransactionsRoot          [32]byte
+	ReceiptsRoot              [32]byte
+	BlockNumber               *big.Int
+	RlpHeaderHashWithoutNonce [32]byte
+	Timestamp                 *big.Int
+	Nonce                     *big.Int
+	Difficulty                *big.Int
+	TotalDifficulty           *big.Int
+}, error) {
+	return _Testimonium.Contract.GetHeader(&_Testimonium.CallOpts, blockHash)
+}
+
+// GetHeader is a free data retrieval call binding the contract method 0xb9615878.
+//
+// Solidity: function getHeader(bytes32 blockHash) constant returns(bytes32 parent, bytes32 uncleHash, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 timestamp, uint256 nonce, uint256 difficulty, uint256 totalDifficulty)
+func (_Testimonium *TestimoniumCallerSession) GetHeader(blockHash [32]byte) (struct {
+	Parent                    [32]byte
+	UncleHash                 [32]byte
+	StateRoot                 [32]byte
+	TransactionsRoot          [32]byte
+	ReceiptsRoot              [32]byte
+	BlockNumber               *big.Int
+	RlpHeaderHashWithoutNonce [32]byte
+	Timestamp                 *big.Int
+	Nonce                     *big.Int
+	Difficulty                *big.Int
+	TotalDifficulty           *big.Int
+}, error) {
+	return _Testimonium.Contract.GetHeader(&_Testimonium.CallOpts, blockHash)
+}
+
+// GetHeaderMetaInfo is a free data retrieval call binding the contract method 0x3b93fc10.
+//
+// Solidity: function getHeaderMetaInfo(bytes32 blockHash) constant returns(bytes32[] successors, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork, uint256 lockedUntil)
+func (_Testimonium *TestimoniumCaller) GetHeaderMetaInfo(opts *bind.CallOpts, blockHash [32]byte) (struct {
+	Successors    [][32]byte
+	OrderedIndex  *big.Int
+	IterableIndex *big.Int
+	LatestFork    [32]byte
+	LockedUntil   *big.Int
+}, error) {
+	ret := new(struct {
+		Successors    [][32]byte
+		OrderedIndex  *big.Int
+		IterableIndex *big.Int
+		LatestFork    [32]byte
+		LockedUntil   *big.Int
+	})
+	out := ret
+	err := _Testimonium.contract.Call(opts, out, "getHeaderMetaInfo", blockHash)
+	return *ret, err
+}
+
+// GetHeaderMetaInfo is a free data retrieval call binding the contract method 0x3b93fc10.
+//
+// Solidity: function getHeaderMetaInfo(bytes32 blockHash) constant returns(bytes32[] successors, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork, uint256 lockedUntil)
+func (_Testimonium *TestimoniumSession) GetHeaderMetaInfo(blockHash [32]byte) (struct {
+	Successors    [][32]byte
+	OrderedIndex  *big.Int
+	IterableIndex *big.Int
+	LatestFork    [32]byte
+	LockedUntil   *big.Int
+}, error) {
+	return _Testimonium.Contract.GetHeaderMetaInfo(&_Testimonium.CallOpts, blockHash)
+}
+
+// GetHeaderMetaInfo is a free data retrieval call binding the contract method 0x3b93fc10.
+//
+// Solidity: function getHeaderMetaInfo(bytes32 blockHash) constant returns(bytes32[] successors, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork, uint256 lockedUntil)
+func (_Testimonium *TestimoniumCallerSession) GetHeaderMetaInfo(blockHash [32]byte) (struct {
+	Successors    [][32]byte
+	OrderedIndex  *big.Int
+	IterableIndex *big.Int
+	LatestFork    [32]byte
+	LockedUntil   *big.Int
+}, error) {
+	return _Testimonium.Contract.GetHeaderMetaInfo(&_Testimonium.CallOpts, blockHash)
+}
+
 // GetNoOfForks is a free data retrieval call binding the contract method 0xfbb5df38.
 //
 // Solidity: function getNoOfForks() constant returns(uint256)
@@ -222,112 +342,6 @@ func (_Testimonium *TestimoniumSession) GetNoOfForks() (*big.Int, error) {
 // Solidity: function getNoOfForks() constant returns(uint256)
 func (_Testimonium *TestimoniumCallerSession) GetNoOfForks() (*big.Int, error) {
 	return _Testimonium.Contract.GetNoOfForks(&_Testimonium.CallOpts)
-}
-
-// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
-//
-// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
-func (_Testimonium *TestimoniumCaller) GetSuccessors(opts *bind.CallOpts, blockHash [32]byte) ([][32]byte, error) {
-	var (
-		ret0 = new([][32]byte)
-	)
-	out := ret0
-	err := _Testimonium.contract.Call(opts, out, "getSuccessors", blockHash)
-	return *ret0, err
-}
-
-// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
-//
-// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
-func (_Testimonium *TestimoniumSession) GetSuccessors(blockHash [32]byte) ([][32]byte, error) {
-	return _Testimonium.Contract.GetSuccessors(&_Testimonium.CallOpts, blockHash)
-}
-
-// GetSuccessors is a free data retrieval call binding the contract method 0x8a9b5fc0.
-//
-// Solidity: function getSuccessors(bytes32 blockHash) constant returns(bytes32[])
-func (_Testimonium *TestimoniumCallerSession) GetSuccessors(blockHash [32]byte) ([][32]byte, error) {
-	return _Testimonium.Contract.GetSuccessors(&_Testimonium.CallOpts, blockHash)
-}
-
-// Headers is a free data retrieval call binding the contract method 0x9e7f2700.
-//
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
-func (_Testimonium *TestimoniumCaller) Headers(opts *bind.CallOpts, arg0 [32]byte) (struct {
-	Parent                    [32]byte
-	StateRoot                 [32]byte
-	TransactionsRoot          [32]byte
-	ReceiptsRoot              [32]byte
-	BlockNumber               *big.Int
-	RlpHeaderHashWithoutNonce [32]byte
-	Nonce                     *big.Int
-	LockedUntil               *big.Int
-	Difficulty                *big.Int
-	TotalDifficulty           *big.Int
-	OrderedIndex              *big.Int
-	IterableIndex             *big.Int
-	LatestFork                [32]byte
-}, error) {
-	ret := new(struct {
-		Parent                    [32]byte
-		StateRoot                 [32]byte
-		TransactionsRoot          [32]byte
-		ReceiptsRoot              [32]byte
-		BlockNumber               *big.Int
-		RlpHeaderHashWithoutNonce [32]byte
-		Nonce                     *big.Int
-		LockedUntil               *big.Int
-		Difficulty                *big.Int
-		TotalDifficulty           *big.Int
-		OrderedIndex              *big.Int
-		IterableIndex             *big.Int
-		LatestFork                [32]byte
-	})
-	out := ret
-	err := _Testimonium.contract.Call(opts, out, "headers", arg0)
-	return *ret, err
-}
-
-// Headers is a free data retrieval call binding the contract method 0x9e7f2700.
-//
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
-func (_Testimonium *TestimoniumSession) Headers(arg0 [32]byte) (struct {
-	Parent                    [32]byte
-	StateRoot                 [32]byte
-	TransactionsRoot          [32]byte
-	ReceiptsRoot              [32]byte
-	BlockNumber               *big.Int
-	RlpHeaderHashWithoutNonce [32]byte
-	Nonce                     *big.Int
-	LockedUntil               *big.Int
-	Difficulty                *big.Int
-	TotalDifficulty           *big.Int
-	OrderedIndex              *big.Int
-	IterableIndex             *big.Int
-	LatestFork                [32]byte
-}, error) {
-	return _Testimonium.Contract.Headers(&_Testimonium.CallOpts, arg0)
-}
-
-// Headers is a free data retrieval call binding the contract method 0x9e7f2700.
-//
-// Solidity: function headers(bytes32 ) constant returns(bytes32 parent, bytes32 stateRoot, bytes32 transactionsRoot, bytes32 receiptsRoot, uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 lockedUntil, uint256 difficulty, uint256 totalDifficulty, uint256 orderedIndex, uint256 iterableIndex, bytes32 latestFork)
-func (_Testimonium *TestimoniumCallerSession) Headers(arg0 [32]byte) (struct {
-	Parent                    [32]byte
-	StateRoot                 [32]byte
-	TransactionsRoot          [32]byte
-	ReceiptsRoot              [32]byte
-	BlockNumber               *big.Int
-	RlpHeaderHashWithoutNonce [32]byte
-	Nonce                     *big.Int
-	LockedUntil               *big.Int
-	Difficulty                *big.Int
-	TotalDifficulty           *big.Int
-	OrderedIndex              *big.Int
-	IterableIndex             *big.Int
-	LatestFork                [32]byte
-}, error) {
-	return _Testimonium.Contract.Headers(&_Testimonium.CallOpts, arg0)
 }
 
 // IsBlock is a free data retrieval call binding the contract method 0x528a309f.
@@ -406,6 +420,84 @@ func (_Testimonium *TestimoniumSession) LongestChainEndpoint() ([32]byte, error)
 // Solidity: function longestChainEndpoint() constant returns(bytes32)
 func (_Testimonium *TestimoniumCallerSession) LongestChainEndpoint() ([32]byte, error) {
 	return _Testimonium.Contract.LongestChainEndpoint(&_Testimonium.CallOpts)
+}
+
+// VerifyMerkleProof is a free data retrieval call binding the contract method 0x843b69e9.
+//
+// Solidity: function verifyMerkleProof(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes, bytes32 merkleRootHash) constant returns(uint8)
+func (_Testimonium *TestimoniumCaller) VerifyMerkleProof(opts *bind.CallOpts, blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte, merkleRootHash [32]byte) (uint8, error) {
+	var (
+		ret0 = new(uint8)
+	)
+	out := ret0
+	err := _Testimonium.contract.Call(opts, out, "verifyMerkleProof", blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes, merkleRootHash)
+	return *ret0, err
+}
+
+// VerifyMerkleProof is a free data retrieval call binding the contract method 0x843b69e9.
+//
+// Solidity: function verifyMerkleProof(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes, bytes32 merkleRootHash) constant returns(uint8)
+func (_Testimonium *TestimoniumSession) VerifyMerkleProof(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte, merkleRootHash [32]byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyMerkleProof(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes, merkleRootHash)
+}
+
+// VerifyMerkleProof is a free data retrieval call binding the contract method 0x843b69e9.
+//
+// Solidity: function verifyMerkleProof(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes, bytes32 merkleRootHash) constant returns(uint8)
+func (_Testimonium *TestimoniumCallerSession) VerifyMerkleProof(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte, merkleRootHash [32]byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyMerkleProof(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes, merkleRootHash)
+}
+
+// VerifyReceipt is a free data retrieval call binding the contract method 0x10fa6e83.
+//
+// Solidity: function verifyReceipt(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCaller) VerifyReceipt(opts *bind.CallOpts, blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	var (
+		ret0 = new(uint8)
+	)
+	out := ret0
+	err := _Testimonium.contract.Call(opts, out, "verifyReceipt", blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
+	return *ret0, err
+}
+
+// VerifyReceipt is a free data retrieval call binding the contract method 0x10fa6e83.
+//
+// Solidity: function verifyReceipt(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumSession) VerifyReceipt(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyReceipt(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
+}
+
+// VerifyReceipt is a free data retrieval call binding the contract method 0x10fa6e83.
+//
+// Solidity: function verifyReceipt(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCallerSession) VerifyReceipt(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyReceipt(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
+}
+
+// VerifyState is a free data retrieval call binding the contract method 0xfadfdb81.
+//
+// Solidity: function verifyState(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCaller) VerifyState(opts *bind.CallOpts, blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	var (
+		ret0 = new(uint8)
+	)
+	out := ret0
+	err := _Testimonium.contract.Call(opts, out, "verifyState", blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
+	return *ret0, err
+}
+
+// VerifyState is a free data retrieval call binding the contract method 0xfadfdb81.
+//
+// Solidity: function verifyState(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumSession) VerifyState(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyState(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
+}
+
+// VerifyState is a free data retrieval call binding the contract method 0xfadfdb81.
+//
+// Solidity: function verifyState(bytes32 blockHash, uint8 noOfConfirmations, bytes rlpEncodedTx, bytes path, bytes rlpEncodedNodes) constant returns(uint8)
+func (_Testimonium *TestimoniumCallerSession) VerifyState(blockHash [32]byte, noOfConfirmations uint8, rlpEncodedTx []byte, path []byte, rlpEncodedNodes []byte) (uint8, error) {
+	return _Testimonium.Contract.VerifyState(&_Testimonium.CallOpts, blockHash, noOfConfirmations, rlpEncodedTx, path, rlpEncodedNodes)
 }
 
 // VerifyTransaction is a free data retrieval call binding the contract method 0xa90a51f4.

@@ -38,19 +38,26 @@ type Client struct {
 
 type BlockHeader struct {
 	Parent                    [32]byte
+	UncleHash                 [32]byte
 	StateRoot                 [32]byte
 	TransactionsRoot          [32]byte
 	ReceiptsRoot              [32]byte
 	BlockNumber               *big.Int
 	RlpHeaderHashWithoutNonce [32]byte
+	Timestamp                 *big.Int
 	Nonce                     *big.Int
-	LockedUntil               *big.Int
-	Difficulty           	  *big.Int
+	Difficulty                *big.Int
 	TotalDifficulty           *big.Int
-	OrderedIndex              *big.Int
-	IterableIndex             *big.Int
-	LatestFork                [32]byte
 }
+
+type TrieValueType int
+
+const (
+	VALUE_TYPE_TRANSACTION    	TrieValueType = 0
+	VALUE_TYPE_RECEIPT    		TrieValueType = 1
+	VALUE_TYPE_STATE   			TrieValueType = 2
+)
+
 
 func (header BlockHeader) String() string {
 	return fmt.Sprintf(`BlockHeader: {
@@ -61,11 +68,7 @@ ReceiptsRoot: %s,
 BlockNumber: %s,
 RlpHeaderHashWithoutNonce: %s,
 Nonce: %s,
-LockedUntil: %s,
-TotalDifficulty: %s,
-OrderedIndex: %s,
-IterableIndex: %s,
-LatestFork: %s }`,
+TotalDifficulty: %s }`,
 common.Bytes2Hex(header.Parent[:]),
 common.Bytes2Hex(header.StateRoot[:]),
 common.Bytes2Hex(header.TransactionsRoot[:]),
@@ -73,11 +76,7 @@ common.Bytes2Hex(header.ReceiptsRoot[:]),
 header.BlockNumber.String(),
 common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
 header.Nonce.String(),
-header.LockedUntil.String(),
-header.TotalDifficulty.String(),
-header.OrderedIndex.String(),
-header.IterableIndex.String(),
-common.Bytes2Hex(header.LatestFork[:]))
+header.TotalDifficulty.String())
 }
 
 func (t TestimoniumSubmitBlockHeader) String() string {
@@ -235,7 +234,7 @@ func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error)
 }
 
 func (c Client) BlockHeader(blockHash [32]byte, chain uint8) (BlockHeader, error) {
-	return c.chains[chain].testimoniumContract.Headers(nil, blockHash)
+	return c.chains[chain].testimoniumContract.GetHeader(nil, blockHash)
 }
 
 func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
@@ -387,7 +386,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	}
 }
 
-func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
@@ -434,14 +433,97 @@ func (c Client) GenerateMerkleProof(txHash [32]byte, chain uint8) ([32]byte, []b
 	return txReceipt.BlockHash, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) VerifyTransaction(blockHash [32]byte, rlpEncodedTx []byte, path []byte, rlpEncodedProofNodes []byte,
-	noOfConfirmations uint8, chain uint8) bool {
+func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	returnCode, err := c.chains[chain].testimoniumContract.VerifyTransaction(nil, blockHash, noOfConfirmations, rlpEncodedTx,
-		path, rlpEncodedProofNodes)
+	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
+	if err != nil {
+		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
+	if err != nil {
+		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+
+	var path []byte
+	var rlpEncodedReceipt []byte
+
+	// create receipts trie
+	buffer := new(bytes.Buffer)
+	merkleTrie := new(trie.Trie)
+	for i := 0; i < block.Transactions().Len(); i++ {
+		tx := block.Body().Transactions[i]
+		receipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), tx.Hash())
+		if err != nil {
+			return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+		}
+
+		buffer.Reset()
+		receipt.EncodeRLP(buffer)
+		encodedReceipt := make([]byte, len(buffer.Bytes()))
+		copy(encodedReceipt, buffer.Bytes())
+
+		buffer.Reset()
+		rlp.Encode(buffer, uint(i))
+
+		if txReceipt.TxHash == receipt.TxHash {
+			path = make([]byte, len(buffer.Bytes()))
+			copy(path, buffer.Bytes())
+
+			rlpEncodedReceipt = make([]byte, len(encodedReceipt))
+			copy(rlpEncodedReceipt, encodedReceipt)
+		}
+
+		merkleTrie.Update(buffer.Bytes(), encodedReceipt)
+	}
+
+	// create Merkle proof
+
+	merkleIterator := merkleTrie.NodeIterator(nil)
+	var proofNodes [][]byte
+	for merkleIterator.Next(true) {
+		if merkleIterator.Leaf() && bytes.Equal(merkleIterator.LeafKey(), path) {
+			// leaf node representing tx has been found --> create Merkle proof
+			proofNodes = merkleIterator.LeafProof()
+			break
+		}
+	}
+	buffer.Reset()
+	rlp.Encode(buffer, proofNodes)
+	rlpEncodedProofNodes := buffer.Bytes()
+
+	return txReceipt.BlockHash, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
+}
+
+func (c Client) VerifyMerkleProof(blockHash [32]byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
+	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain uint8) bool {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+
+	fmt.Println("rlpEncodedTx=", common.Bytes2Hex(rlpEncodedValue))
+	fmt.Println("path=", common.Bytes2Hex(path))
+	fmt.Println("rlpEncodedProofNodes=", common.Bytes2Hex(rlpEncodedProofNodes))
+
+	var returnCode uint8
+	var err error
+
+	switch trieValueType {
+	case VALUE_TYPE_TRANSACTION:
+		returnCode, err = c.chains[chain].testimoniumContract.VerifyTransaction(nil, blockHash, noOfConfirmations, rlpEncodedValue,
+			path, rlpEncodedProofNodes)
+	case VALUE_TYPE_RECEIPT:
+		returnCode, err = c.chains[chain].testimoniumContract.VerifyReceipt(nil, blockHash, noOfConfirmations, rlpEncodedValue,
+			path, rlpEncodedProofNodes)
+	case VALUE_TYPE_STATE:
+		returnCode, err = c.chains[chain].testimoniumContract.VerifyState(nil, blockHash, noOfConfirmations, rlpEncodedValue,
+			path, rlpEncodedProofNodes)
+	default:
+		log.Fatal("Unexpected trie value type: ", trieValueType)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}

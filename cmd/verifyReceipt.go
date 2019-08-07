@@ -22,34 +22,31 @@ import (
 	"log"
 )
 
-var noOfConfirmations uint8
+// verifyReceiptCmd represents the receipt command
+var verifyReceiptCmd = &cobra.Command{
+	Use:   "receipt [txHash]",
+	Short: "Verify a receipt",
+	Long: `Verify a receipt from the source chain on the destination chain
 
-// verifyTransactionCmd represents the transaction command
-var verifyTransactionCmd = &cobra.Command{
-	Use:   "transaction [txHash]",
-	Short: "Verify a transaction",
-	Long: `Verify a transaction from the source chain on the destination chain
-
-Behind the scene, the command queries the transaction with the specified hash ('txHash') from the source chain.
-It then generates a Merkle Proof contesting the existence of the transaction within a specific block.
+Behind the scene, the command queries the receipt with the specified hash ('txHash') from the source chain.
+It then generates a Merkle Proof contesting the existence of the receipt within a specific block.
 This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified`,
 	Aliases: []string{"tx"},
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
-		blockHash, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(txHash, verifyFlagSrcChain)
+		blockHash, rlpEncodedReceipt, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForReceipt(txHash, verifyFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
 
-		isValid := testimoniumClient.VerifyMerkleProof(blockHash, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
-			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
-		fmt.Println("Tx Validation Result: ", isValid)
+		isValid := testimoniumClient.VerifyMerkleProof(blockHash, testimonium.VALUE_TYPE_RECEIPT, rlpEncodedReceipt, path, rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
+		fmt.Println("Receipt Validation Result: ", isValid)
 	},
 }
 
 func init() {
-	verifyCmd.AddCommand(verifyTransactionCmd)
+	verifyCmd.AddCommand(verifyReceiptCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -59,5 +56,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	verifyTransactionCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
+	verifyReceiptCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
 }
