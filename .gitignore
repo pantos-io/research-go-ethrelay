@@ -107,4 +107,7 @@ fabric.properties
 # Sonarlint plugin
 .idea/sonarlint
 
+.DS_Store
+ethereum/.DS_Store
+
 # End of https://www.gitignore.io/api/go,intellij
