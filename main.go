@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/pf92/testimonium-cli/cmd"
+	"github.com/pf92/go-testimonium/cmd"
 )
 
 func main() {

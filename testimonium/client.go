@@ -18,8 +18,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/pf92/testimonium-cli/ethereum/ethash"
-	"github.com/pf92/testimonium-cli/typedefs"
+	"github.com/pf92/go-testimonium/ethereum/ethash"
+	"github.com/pf92/go-testimonium/typedefs"
 	"log"
 	"math/big"
 	"strconv"
@@ -211,10 +211,10 @@ func (c Client) TotalBalance() (*big.Int, error) {
 	var totalBalance = new(big.Int)
 	for k,_ := range c.chains {
 		balance, err := c.Balance(k)
-		totalBalance.Add(totalBalance, balance)
 		if err != nil {
 			return nil, err
 		}
+		totalBalance.Add(totalBalance, balance)
 	}
 	return totalBalance, nil
 }

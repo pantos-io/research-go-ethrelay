@@ -4,7 +4,7 @@
 package cmd
 
 import (
-	"github.com/pf92/testimonium-cli/ethereum/ethash"
+	"github.com/pf92/go-testimonium/ethereum/ethash"
 	"math/big"
 
 	"log"

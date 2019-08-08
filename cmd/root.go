@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pf92/testimonium-cli/testimonium"
+	"github.com/pf92/go-testimonium/testimonium"
 	"os"
 
 	"github.com/mitchellh/go-homedir"

@@ -3,7 +3,7 @@
 package mtree
 
 import (
-	"github.com/pf92/testimonium-cli/typedefs"
+	"github.com/pf92/go-testimonium/typedefs"
 )
 
 func conventionalWord(data typedefs.Word) ([]byte, []byte) {

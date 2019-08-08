@@ -20,8 +20,8 @@ package ethash
 import (
 	"errors"
 	"fmt"
-	"github.com/pf92/testimonium-cli/mtree"
-	"github.com/pf92/testimonium-cli/typedefs"
+	"github.com/pf92/go-testimonium/mtree"
+	"github.com/pf92/go-testimonium/typedefs"
 	"math"
 	"math/big"
 	"math/rand"
