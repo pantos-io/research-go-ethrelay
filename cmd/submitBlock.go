@@ -19,8 +19,8 @@ var submitFlagLiveMode bool
 // submitCmd represents the submit command
 var submitBlockCmd = &cobra.Command{
 	Use:   "block [blocknumber]",
-	Short: "Submits a block header to the destination chain",
-	Long: `Submits the specified block header from the source chain to the destination chain`,
+	Short: "Submits a block header to the verifying chain",
+	Long: `Submits the specified block header from the target chain to the verifying chain`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var blockNumber *big.Int = nil
@@ -66,7 +66,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	submitBlockCmd.Flags().BoolVarP(&submitFlagLiveMode, "live", "l", false, "live mode (continuously submits most recent block headers)")
-	submitBlockCmd.Flags().Uint8Var(&submitFlagSrcChain, "source", 2, "source chain")
+	submitBlockCmd.Flags().Uint8Var(&submitFlagSrcChain, "target", 2, "target chain")
 	submitBlockCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block")
 	submitBlockCmd.Flags().StringVarP(&submitFlagParent, "parent", "p", "", "set parent explicitly")
 }

@@ -26,7 +26,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagSrcChain, "source", 2, "source chain")
+	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagSrcChain, "target", 2, "target chain")
 	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagDestChain, "destination", 1, "destination chain")
 
 	// Cobra supports local flags which will only run when this command

@@ -27,26 +27,26 @@ import (
 // verifyBlockCmd represents the block command
 var verifyBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
-	Short: "Verify a block",
-	Long: `Verify a block from the source chain on the destination chain
+	Short: "Verifies a block",
+	Long: `Verifies a block from the target chain on the verifying chain
 
 The command queries the block information belonging to the specified block hash ('blockHash') stored on the 
-destination blockchain and verifies if the information is correct by comparing it to the block information
-on the source chain.`,
+verifying blockchain and verifies if the information is correct by comparing it to the block information
+on the target chain.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
 		headerExists, err := testimoniumClient.BlockHeaderExists(blockHash, verifyFlagDestChain)
 		if err != nil {
-			log.Fatal("Could not verify block header on destination chain: " + err.Error())
+			log.Fatal("Could not verify block header on verifying chain: " + err.Error())
 		}
 		if !headerExists {
-			fmt.Printf("No header stored for block %s on destination chain\n", ShortHexString(args[0]))
+			fmt.Printf("No header stored for block %s on verifying chain\n", ShortHexString(args[0]))
 			return
 		}
 		_, err = testimoniumClient.OriginalBlockHeader(blockHash, verifyFlagSrcChain)
 		if err != nil {
-			log.Fatal("Could not get original block on source chain: " + err.Error())
+			log.Fatal("Could not get original block on target chain: " + err.Error())
 		}
 		fmt.Printf("Block %s is valid\n", ShortHexString(args[0]))
 	},

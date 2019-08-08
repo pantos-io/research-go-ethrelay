@@ -12,8 +12,8 @@ var submitFlagDestChain uint8
 // verifyCmd represents the verify command
 var submitCmd = &cobra.Command{
 	Use:   "submit",
-	Short: "Submits a block of the source chain or epoch data on the destination chain",
-	Long: `Submits a block of the source chain or epoch data on the destination chain`,
+	Short: "Submits a block of the target chain or epoch data to the verifying chain",
+	Long: `Submits a block of the target chain or epoch data to the verifying chain`,
 }
 
 func init() {
@@ -25,7 +25,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	submitCmd.PersistentFlags().Uint8Var(&submitFlagDestChain, "destination", 1, "destination chain")
+	submitCmd.PersistentFlags().Uint8Var(&submitFlagDestChain, "destination", 1, "verifying chain")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

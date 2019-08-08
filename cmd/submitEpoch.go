@@ -15,8 +15,8 @@ import (
 // submitEpochCmd represents the command for setting epoch data (Ethash contract)
 var submitEpochCmd = &cobra.Command{
 	Use:   "epoch [epoch]",
-	Short: "Sets the epoch data for the specified epoch on the destination chain",
-	Long: `Sets the epoch data for the specified epoch on the destination chain`,
+	Short: "Sets the epoch data for the specified epoch on the verifying chain",
+	Long: `Sets the epoch data for the specified epoch on the verifying chain`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var epoch *big.Int = nil

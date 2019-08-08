@@ -14,12 +14,12 @@ import (
 // verifyReceiptCmd represents the receipt command
 var verifyReceiptCmd = &cobra.Command{
 	Use:   "receipt [txHash]",
-	Short: "Verify a receipt",
-	Long: `Verify a receipt from the source chain on the destination chain
+	Short: "Verifies a receipt",
+	Long: `Verifies a receipt from the target chain on the verifying chain
 
-Behind the scene, the command queries the receipt with the specified hash ('txHash') from the source chain.
+Behind the scene, the command queries the receipt with the specified hash ('txHash') from the target chain.
 It then generates a Merkle Proof contesting the existence of the receipt within a specific block.
-This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified`,
+This information gets sent to the verifying chain, where not only the existence of the block but also the Merkle Proof are verified`,
 	Aliases: []string{"tx"},
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
