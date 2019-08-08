@@ -1,3 +1,7 @@
+// This file contains functions called by the various commands. These functions are used to interact with smart contracts
+// (Ethash, Testimonium)
+// Authors: Marten Sigwart, Philipp Frauenthaler
+
 package testimonium
 
 import (
@@ -204,7 +208,7 @@ func (c Client) Account() string {
 }
 
 func (c Client) TotalBalance() (*big.Int, error) {
-	var totalBalance = new(big.Int);
+	var totalBalance = new(big.Int)
 	for k,_ := range c.chains {
 		balance, err := c.Balance(k)
 		totalBalance.Add(totalBalance, balance)

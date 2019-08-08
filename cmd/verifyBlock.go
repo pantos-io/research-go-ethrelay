@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+// This file contains logic executed if the command "verify block" is typed in.
+// Authors: Marten Sigwart, Philipp Frauenthaler
 
 package cmd
 
