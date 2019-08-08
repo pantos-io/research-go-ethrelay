@@ -1,5 +1,5 @@
 # Go-Testimonium
-This project contains a Go-library and command-line interface (CLI) to interact with the [Testimonium](todo add link) prototype.
+This project contains a Go-library and command-line interface (CLI) to interact with the [Testimonium](https://github.com/pf92/testimonium) prototype.
  
 The Testimonium prototype enables the cross-blockchain verification of transactions. 
 That is, a "verifying" blockchain can verify that a certain transaction (receipt, state) is included 
