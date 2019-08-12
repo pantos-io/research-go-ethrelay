@@ -13,15 +13,18 @@ in a different "target" blockchain without relying on third-party trust.
 You need to have [Golang](https://golang.org/) installed.
 To install follow the instructions [here](https://golang.org/doc/install).
 
-Install the library and CLI with `$ go get github.com/pantos-io/go-testimonium`.  
+1. Install the library and CLI with `$ go get github.com/pantos-io/go-testimonium`.  
 Check that the CLI was installed correctly by running `$ go-testimonium --help`.
 
-TODO How to create testimonium.yml file
+2. Run `go-testimonium init` to initialize the client.
 
-TODO How to deploy the contracts
+3. TODO: Deploy the contracts.
+
 
 ## Usage
 The CLI can be started with `go-testimonium [command]` where `[command]` is one of the following:
+
+`init`: Initializes the client by creating a testimonium.yml file in the current directory.
 
 `account`: Prints the address of the current account
 

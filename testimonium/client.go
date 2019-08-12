@@ -22,6 +22,7 @@ import (
 	"github.com/pf92/go-testimonium/typedefs"
 	"log"
 	"math/big"
+	"os"
 	"strconv"
 	"time"
 )
@@ -30,8 +31,8 @@ type Chain struct {
 	client                     *ethclient.Client
 	testimoniumContractAddress common.Address
 	testimoniumContract        *Testimonium
-	ethashContractAddress common.Address
-	ethashContract        *ethash.Ethash
+	ethashContractAddress 	   common.Address
+	ethashContract             *ethash.Ethash
 }
 
 type Client struct {
@@ -101,6 +102,20 @@ func (event TestimoniumPoWValidationResult) String() string {
 	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
 }
 
+func CreateChainConfig(connectionType string, connectionUrl string, connectionPort uint64) map[string]interface{} {
+	chainConfig := make(map[string]interface{})
+
+	chainConfig["url"] = connectionUrl
+
+	if connectionType != "" {
+		chainConfig["type"] = connectionType
+	}
+	if connectionPort != 0 {
+		chainConfig["port"] = connectionPort
+	}
+	return chainConfig
+}
+
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 	client := new(Client)
 	client.chains = make(map[uint8]*Chain)
@@ -117,7 +132,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 		var ethClient *ethclient.Client
 		fullUrl, err := createConnectionUrl(chainConfig)
 		if err != nil {
-			fmt.Printf("WARNING: No url specified for chain %d\n", chainId)
+			fmt.Printf("WARNING: Could not read url specified for chain %d (%s)\n", chainId, err)
 			continue
 		}
 
@@ -127,36 +142,47 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 			continue	// --> even if we cannot connect to this chain, we still try to connect to the other ones
 		}
 
+		chain := new(Chain)
+		chain.client = ethClient
+
 		// create testimonium contract instance
-		addressHex := chainConfig["testimonium-address"].(string)
-		testimoniumAddress := common.HexToAddress(addressHex)
 		var testimoniumContract *Testimonium
-		testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
-		if err != nil {
-			fmt.Printf("WARNING: No Testimonium Contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+		addressHex := chainConfig["testimonium-address"]
+		if addressHex == nil {
+			fmt.Printf("WARNING: No address specified for Testimonium contract on chain %d (%s). Is the contract deployed?\n", chainId, fullUrl)
+		} else {
+			testimoniumAddress := common.HexToAddress(addressHex.(string))
+			testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
+			if err != nil {
+				fmt.Printf("WARNING: No Testimonium contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			}
+			chain.testimoniumContract = testimoniumContract
+			chain.testimoniumContractAddress = testimoniumAddress
 		}
 
 		// create ethash contract instance
-		addressHex = chainConfig["ethash-address"].(string)
-		ethashAddress := common.HexToAddress(addressHex)
 		var ethashContract *ethash.Ethash
-		ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
-		if err != nil {
-			fmt.Printf("WARNING: No Ethash Contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+		addressHex = chainConfig["ethash-address"]
+		if addressHex == nil {
+			fmt.Printf("WARNING: No address specified for Ethash contract on chain %d (%s). Is the contract deployed?\n", chainId, fullUrl)
+		} else {
+			ethashAddress := common.HexToAddress(addressHex.(string))
+			ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
+			if err != nil {
+				fmt.Printf("WARNING: No Ethash contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			}
+			chain.ethashContract = ethashContract
+			chain.ethashContractAddress = ethashAddress
 		}
-		client.chains[uint8(chainId)] = &Chain{
-			ethClient,
-			testimoniumAddress,
-			testimoniumContract,
-			 ethashAddress,
-			ethashContract,
-		}
+
+		client.chains[uint8(chainId)] = chain
 	}
 
 	// get public address
 	privateKeyBytes, err := hexutil.Decode(privateKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Could not decode private key. Is it a correct hex string (0x...)?")
+		os.Exit(1)
 	}
 	ecdsaPrivateKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
@@ -187,7 +213,18 @@ func createConnectionUrl(chainConfig map[string]interface{}) (string, error) {
 
 	fullUrl += chainConfig["url"].(string)
 	if chainConfig["port"] != nil {
-		fullUrl = fmt.Sprintf("%s:%d", fullUrl, chainConfig["port"].(int))
+		// port can be parsed as int
+		if port, ok := chainConfig["port"].(int); ok {
+			fullUrl = fmt.Sprintf("%s:%d", fullUrl, port)
+			return fullUrl, nil
+		}
+
+		// port is a string but could still be a legal port
+		port, err := strconv.ParseUint(chainConfig["port"].(string), 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("llegal port: %s", chainConfig["port"].(string))
+		}
+		fullUrl = fmt.Sprintf("%s:%d", fullUrl, port)
 	}
 	return fullUrl, nil
 }
