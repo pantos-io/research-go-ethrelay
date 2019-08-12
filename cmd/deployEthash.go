@@ -15,23 +15,17 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // ethashCmd represents the ethash command
 var ethashCmd = &cobra.Command{
 	Use:   "ethash",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Deploys the Ethash smart contract on the specified blockchain",
+	Long: `Deploys the Ethash smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ethash called")
+		testimoniumClient = createTestimoniumClient()
+		testimoniumClient.DeployEthash(deployFlagChain)
 	},
 }
 

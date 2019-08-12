@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pf92/go-testimonium/ethereum/ethash"
 	"github.com/pf92/go-testimonium/typedefs"
@@ -31,8 +32,9 @@ type Chain struct {
 	client                     *ethclient.Client
 	testimoniumContractAddress common.Address
 	testimoniumContract        *Testimonium
-	ethashContractAddress 	   common.Address
-	ethashContract             *ethash.Ethash
+	ethashContractAddress common.Address
+	ethashContract        *ethash.Ethash
+	fullUrl					string
 }
 
 type Client struct {
@@ -48,6 +50,7 @@ type BlockHeader struct {
 	TransactionsRoot          [32]byte
 	ReceiptsRoot              [32]byte
 	BlockNumber               *big.Int
+	GasLimit                  *big.Int
 	RlpHeaderHashWithoutNonce [32]byte
 	Timestamp                 *big.Int
 	Nonce                     *big.Int
@@ -144,6 +147,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 
 		chain := new(Chain)
 		chain.client = ethClient
+		chain.fullUrl = fullUrl
 
 		// create testimonium contract instance
 		var testimoniumContract *Testimonium
@@ -336,11 +340,18 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 }
 
-func (c Client) Block(blockHash common.Hash, chain uint8) (*types.Block, error) {
+func (c Client) BlockByHash(blockHash common.Hash, chain uint8) (*types.Block, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 	return c.chains[chain].client.BlockByHash(context.Background(), blockHash)
+}
+
+func (c Client) BlockByNumber(blockNumber uint64, chain uint8) (*types.Block, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].client.BlockByNumber(context.Background(), new(big.Int).SetUint64(blockNumber))
 }
 
 func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header, error) {
@@ -348,6 +359,39 @@ func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 	return c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
+}
+
+type TotalDifficulty struct {
+	TotalDifficulty string `json:"totalDifficulty"       gencodec:"required"`
+}
+
+func toBlockNumArg(number *big.Int) string {
+	if number == nil {
+		return "latest"
+	}
+	return hexutil.EncodeBig(number)
+}
+
+func (c Client) TotalDifficulty(blockNumber *big.Int, chain uint8) (*big.Int, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	client, err := rpc.Dial(c.chains[chain].fullUrl)
+	if err != nil {
+		log.Fatal("Failed to connect to chain", err)
+	}
+
+	var totalDifficulty *TotalDifficulty
+	err = client.CallContext(context.Background(), &totalDifficulty, "eth_getBlockByNumber", toBlockNumArg(blockNumber), false)
+	if err == nil && totalDifficulty == nil {
+		return big.NewInt(0), ethereum.NotFound
+	}
+
+	diff, err := hexutil.DecodeBig(totalDifficulty.TotalDifficulty)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+	return diff, nil
 }
 
 func (c Client) HeaderByHash(blockHash common.Hash, chain uint8) (*types.Header, error) {
@@ -633,6 +677,80 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 			nodes = []*big.Int{}
 		}
 	}
+}
+
+func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisBlockNumber uint64) {
+	if _, exists := c.chains[targetChain]; !exists {
+		log.Fatalf("Target chain '%d' does not exist", targetChain)
+	}
+	if _, exists := c.chains[sourceChain]; !exists {
+		log.Fatalf("Source chain '%d' does not exist", sourceChain)
+	}
+
+	header, err := c.HeaderByNumber(new(big.Int).SetUint64(genesisBlockNumber), sourceChain)
+	if err != nil {
+		log.Fatal("Failed to retrieve header from source chain: " + err.Error())
+	}
+
+	totalDifficulty, err := c.TotalDifficulty(new(big.Int).SetUint64(genesisBlockNumber), sourceChain)
+	if err != nil {
+		log.Fatalf("Failed to retrieve total difficulty of block %d: %s", genesisBlockNumber, err)
+	}
+
+	rlpHeader, err := encodeHeaderToRLP(header)
+	if err != nil {
+		log.Fatal("Failed to encode header to RLP: " + err.Error())
+	}
+
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain])
+
+	addr, tx, _, err := DeployTestimonium(auth, c.chains[targetChain].client, rlpHeader, totalDifficulty, c.chains[targetChain].ethashContractAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	receipt, err := awaitTxReceipt(c.chains[targetChain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return
+	}
+
+	// TODO: save contract address in config file
+	fmt.Println("Contract has been deployed at address: ", addr.String())
+}
+
+func (c Client) DeployEthash(targetChain uint8) {
+	if _, exists := c.chains[targetChain]; !exists {
+		log.Fatalf("Target chain '%d' does not exist", targetChain)
+	}
+
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain])
+
+	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[targetChain].client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	receipt, err := awaitTxReceipt(c.chains[targetChain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return
+	}
+
+	// TODO: save contract address in config file
+	fmt.Println("Contract has been deployed at address: ", addr.String())
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {

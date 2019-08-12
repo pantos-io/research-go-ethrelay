@@ -15,23 +15,20 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
+
+var deployFlagTargetChain uint8
+var deployFlagGenesisNumber uint64
 
 // testimoniumCmd represents the testimonium command
 var testimoniumCmd = &cobra.Command{
 	Use:   "testimonium",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Deploys the Testimonium smart contract on the specified blockchain",
+	Long: `Deploys the Testimonium smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("testimonium called")
+		testimoniumClient = createTestimoniumClient()
+		testimoniumClient.DeployTestimonium(deployFlagChain, deployFlagTargetChain, deployFlagGenesisNumber)
 	},
 }
 
@@ -43,6 +40,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// testimoniumCmd.PersistentFlags().String("foo", "", "A help for foo")
+	testimoniumCmd.Flags().Uint8VarP(&deployFlagTargetChain, "target", "t", 0, "The 'target' chain containing the specified genesis block")
+	testimoniumCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the target chain) that should be used as genesis block")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

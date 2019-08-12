@@ -33,7 +33,7 @@ var getBlockCmd = &cobra.Command{
 			return
 		}
 
-		block, err := testimoniumClient.Block(blockHash, getFlagChain)
+		block, err := testimoniumClient.BlockByHash(blockHash, getFlagChain)
 		if err != nil {
 			log.Fatal("Failed to retrieve block: " + err.Error())
 		}
