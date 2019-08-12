@@ -28,6 +28,10 @@ import (
 	"time"
 )
 
+type ChainConfig map[string]interface{}
+
+type ChainsConfig map[uint8]ChainConfig
+
 type Chain struct {
 	client                     *ethclient.Client
 	testimoniumContractAddress common.Address
@@ -679,7 +683,7 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 	}
 }
 
-func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisBlockNumber uint64) {
+func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisBlockNumber uint64) (common.Address) {
 	if _, exists := c.chains[targetChain]; !exists {
 		log.Fatalf("Target chain '%d' does not exist", targetChain)
 	}
@@ -718,14 +722,14 @@ func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisB
 		// Transaction failed
 		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
-		return
+		return common.Address{}
 	}
 
-	// TODO: save contract address in config file
 	fmt.Println("Contract has been deployed at address: ", addr.String())
+	return addr
 }
 
-func (c Client) DeployEthash(targetChain uint8) {
+func (c Client) DeployEthash(targetChain uint8) (common.Address) {
 	if _, exists := c.chains[targetChain]; !exists {
 		log.Fatalf("Target chain '%d' does not exist", targetChain)
 	}
@@ -746,11 +750,11 @@ func (c Client) DeployEthash(targetChain uint8) {
 		// Transaction failed
 		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
-		return
+		return common.Address{}
 	}
 
-	// TODO: save contract address in config file
 	fmt.Println("Contract has been deployed at address: ", addr.String())
+	return addr
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {

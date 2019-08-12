@@ -16,6 +16,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/spf13/viper"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -44,4 +47,15 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// deployCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func updateChainsConfig(deployedAddress common.Address, chainId uint8, key string) {
+	chainsConfig := viper.Get("chains").(map[string]interface {})
+	deployChainConfig := chainsConfig[strconv.FormatUint(uint64(chainId), 10)].(map[string]interface{})
+	deployChainConfig[key] = deployedAddress.String()
+
+	chainsConfig[strconv.FormatUint(uint64(chainId), 10)] = deployChainConfig
+	viper.Set("chains", chainsConfig)
+
+	_ = viper.WriteConfig()
 }

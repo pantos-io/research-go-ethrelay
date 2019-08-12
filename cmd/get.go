@@ -24,7 +24,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
-	getCmd.PersistentFlags().Uint8VarP(&getFlagChain, "chain", "c", 2, "chain")
+	getCmd.PersistentFlags().Uint8VarP(&getFlagChain, "chain", "c", 0, "chain")
 
 
 	// Cobra supports local flags which will only run when this command
