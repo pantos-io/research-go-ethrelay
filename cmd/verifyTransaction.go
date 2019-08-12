@@ -26,6 +26,8 @@ This information gets sent to the verifying chain, where not only the existence 
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
+
+		testimoniumClient = createTestimoniumClient()
 		blockHash, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(txHash, verifyFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())

@@ -24,6 +24,8 @@ var balanceCmd = &cobra.Command{
 	If not, it prints the total balance`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+
+		testimoniumClient = createTestimoniumClient()
 		if len(args) > 0 {
 			chainId, err := strconv.ParseInt(args[0], 10, 8)
 			if err != nil {

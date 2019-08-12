@@ -22,6 +22,8 @@ var getBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
+		testimoniumClient = createTestimoniumClient()
+
 		if headerFlag {
 			header, err := testimoniumClient.HeaderByHash(blockHash, getFlagChain)
 			if err != nil {

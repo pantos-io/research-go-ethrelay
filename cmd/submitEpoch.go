@@ -27,6 +27,7 @@ var submitEpochCmd = &cobra.Command{
 			log.Fatalf("Illegal epoch number '%s'", args[0])
 		}
 
+		testimoniumClient = createTestimoniumClient()
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
 		testimoniumClient.SetEpochData(epochData, submitFlagDestChain)
 	},

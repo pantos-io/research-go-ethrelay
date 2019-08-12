@@ -36,6 +36,8 @@ on the target chain.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
+
+		testimoniumClient = createTestimoniumClient()
 		headerExists, err := testimoniumClient.BlockHeaderExists(blockHash, verifyFlagDestChain)
 		if err != nil {
 			log.Fatal("Could not verify block header on verifying chain: " + err.Error())

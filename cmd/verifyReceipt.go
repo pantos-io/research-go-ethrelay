@@ -29,6 +29,7 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
 
+		testimoniumClient = createTestimoniumClient()
 		isValid := testimoniumClient.VerifyMerkleProof(blockHash, testimonium.VALUE_TYPE_RECEIPT, rlpEncodedReceipt, path, rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
 		fmt.Println("Receipt Validation Result: ", isValid)
 	},

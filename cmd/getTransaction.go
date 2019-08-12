@@ -23,6 +23,8 @@ var getTransactionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
 
+		testimoniumClient = createTestimoniumClient()
+
 		if receiptFlag {
 			txReceipt, err := testimoniumClient.TransactionReceipt(txHash, getFlagChain)
 			if err != nil {

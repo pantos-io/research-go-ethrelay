@@ -22,12 +22,14 @@ var disputeCmd = &cobra.Command{
 	Long: `Disputes the submitted block header with the specified hash ('blockHash')`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+
 		blockHash := common.HexToHash(args[0])	// omit the first two chars "0x"
 		blockHashBytes := blockHash.Bytes()
 		var blockHashBytes32 [32]byte
 		copy(blockHashBytes32[:], blockHashBytes)
 
 		// get blockNumber, nonce and RlpHeaderHashWithoutNonce and generate dataSetLookup and witnessForLookup
+		testimoniumClient = createTestimoniumClient()
 		header, err := testimoniumClient.BlockHeader(blockHashBytes32, disputeFlagChain)
 		if err != nil {
 			log.Fatal("Failed to retrieve header from contract: " + err.Error())

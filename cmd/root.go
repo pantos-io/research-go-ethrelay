@@ -71,6 +71,11 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
+
+
+}
+
+func createTestimoniumClient() (*testimonium.Client) {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Can't read config file:", err)
@@ -79,6 +84,5 @@ func initConfig() {
 	chainsConfig := viper.Get("chains").(map[string]interface{})
 	privateKey := viper.Get("privateKey").(string)
 
-	testimoniumClient = testimonium.NewClient(privateKey, chainsConfig)
-
+	return testimonium.NewClient(privateKey, chainsConfig)
 }

@@ -36,6 +36,7 @@ var submitBlockCmd = &cobra.Command{
 			log.Fatal("Live mode not implemented yet")
 		}
 
+		testimoniumClient = createTestimoniumClient()
 		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to retrieve header: " + err.Error())
