@@ -155,7 +155,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 
 		// create testimonium contract instance
 		var testimoniumContract *Testimonium
-		addressHex := chainConfig["testimonium-address"]
+		addressHex := chainConfig["testimoniumaddress"]
 		if addressHex != nil {
 			testimoniumAddress := common.HexToAddress(addressHex.(string))
 			testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
@@ -169,7 +169,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 
 		// create ethash contract instance
 		var ethashContract *ethash.Ethash
-		addressHex = chainConfig["ethash-address"]
+		addressHex = chainConfig["ethashaddress"]
 		if addressHex != nil {
 			ethashAddress := common.HexToAddress(addressHex.(string))
 			ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
