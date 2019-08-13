@@ -156,31 +156,29 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 		// create testimonium contract instance
 		var testimoniumContract *Testimonium
 		addressHex := chainConfig["testimonium-address"]
-		if addressHex == nil {
-			fmt.Printf("WARNING: No address specified for Testimonium contract on chain %d (%s). Is the contract deployed?\n", chainId, fullUrl)
-		} else {
+		if addressHex != nil {
 			testimoniumAddress := common.HexToAddress(addressHex.(string))
 			testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
 			if err != nil {
 				fmt.Printf("WARNING: No Testimonium contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			} else {
+				chain.testimoniumContract = testimoniumContract
+				chain.testimoniumContractAddress = testimoniumAddress
 			}
-			chain.testimoniumContract = testimoniumContract
-			chain.testimoniumContractAddress = testimoniumAddress
 		}
 
 		// create ethash contract instance
 		var ethashContract *ethash.Ethash
 		addressHex = chainConfig["ethash-address"]
-		if addressHex == nil {
-			fmt.Printf("WARNING: No address specified for Ethash contract on chain %d (%s). Is the contract deployed?\n", chainId, fullUrl)
-		} else {
+		if addressHex != nil {
 			ethashAddress := common.HexToAddress(addressHex.(string))
 			ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
 			if err != nil {
 				fmt.Printf("WARNING: No Ethash contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			} else {
+				chain.ethashContract = ethashContract
+				chain.ethashContractAddress = ethashAddress
 			}
-			chain.ethashContract = ethashContract
-			chain.ethashContractAddress = ethashAddress
 		}
 
 		client.chains[uint8(chainId)] = chain
