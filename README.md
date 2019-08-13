@@ -3,7 +3,9 @@ This project contains a Go-library and command-line interface (CLI) to interact 
  
 The Testimonium prototype enables the cross-blockchain verification of transactions. 
 That is, a "verifying" blockchain can verify that a certain transaction (receipt, state) is included 
-in a different "target" blockchain without relying on third-party trust. 
+in a different "target" blockchain without relying on third-party trust.
+
+Detailed information about how the prototype works can be found [here](https://dsg.tuwien.ac.at/projects/tast/pub/tast-white-paper-6.pdf).
 
 > _Important: Testimonium is a research prototype. 
     It represents ongoing work conducted within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) 
@@ -23,17 +25,40 @@ Check that the CLI was installed correctly by running `$ go-testimonium --help`.
 
 3. Start Ganache
 
-3. TODO: Deploy the contracts.
+4. Deploy the Ethash contract with `go-testimonium deploy ethash`. 
+This deploys the contract responsible for verifying the Proof of Work (PoW) of a block.
 
+5. Submit the correct epoch data to the Ethash contract with `go-testimonium submit epoch <EPOCH_NO>`.
+Depending on which block will be submitted as genesis block to the Testimonium contract, 
+the correct epoch data can be calculated as `EPOCH_NO = BLOCK_NO / 30000`. 
+    > e.g., for genesis block 8084509 the correct epoch data is 269
+
+6. Deploy the Testimonium contract with `go-testimonium deploy testimonium --genesis <BLOCK_NO>`.
+This deploys the contract responsible for the verification of transactions (receipts, state). 
+The `genesis` parameter specifies the first block of the target chain which will be submitted to 
+the Testimonium contract. Verifications will be possible for all subsequent blocks.
+
+###
+The Testimonium prototype is now setup. 
+You can now submit block data from the target chain to the verifying chain, 
+and request verifications of transactions, and dispute illegal blocks. 
 
 ## Usage
-The CLI can be started with `go-testimonium [command]` where `[command]` is one of the following:
+The CLI can be started with `go-testimonium [command]` where `[command]` is one of the commands below.
+
+Use `go-testimonium [command] --help` for more information about a command.
+
+---
 
 `init`: Initializes the client by creating a testimonium.yml file in the current directory.
 
 `account`: Prints the address of the current account
 
 `balance`: Prints the balance of the current account
+
+`deploy ethash`: Deploys the Ethash smart contract on the verifying chain
+
+`deploy testimonium`: Deploys the Testimonium contract on the verifying chain
 
 `dispute [blockHash]`: Disputes the submitted block header with the specified hash
 
@@ -51,7 +76,6 @@ The CLI can be started with `go-testimonium [command]` where `[command]` is one 
 
 `verify receipt [txHash]`: Verifies a receipt from the target chain on the verifying chain
 
-Use `go-testimonium [command] --help` for more information about a command.
 
 ## Configuration
 The Testimonium client uses a configuration file called `testimonium.yml` file.
