@@ -1,5 +1,5 @@
 # Go-Testimonium
-This project contains a Go-library and command-line interface (CLI) to interact with the [Testimonium](https://github.com/pf92/testimonium) prototype.
+This project contains a Go-library and command-line interface (CLI) to interact with the [Testimonium](https://github.com/pantos-io/testimonium) prototype.
  
 The Testimonium prototype enables the cross-blockchain verification of transactions. 
 That is, a "verifying" blockchain can verify that a certain transaction (receipt, state) is included 
@@ -11,11 +11,11 @@ Detailed information about how the prototype works can be found [here](https://d
     It represents ongoing work conducted within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) 
     research project. Use with care._
 ## Prerequisites
-You need to have [Golang](https://golang.org/) and [Ganache](https://www.trufflesuite.com/ganache) installed. 
+You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://www.trufflesuite.com/ganache) installed. 
 ## Get Started
 _The following setup will take you through the deployment of Testimonium with a local Ethereum blockchain (Ganache)
 as verifying chain and the main Ethereum chain as target chain.
-Information on how to connect other blockchains can be found [here](README.md#Configuration)._
+Information on how to connect other blockchains can be found [here](#Configuration)._
 
 
 1. Install the library and CLI with `$ go get github.com/pantos-io/go-testimonium`.  
@@ -118,7 +118,7 @@ If you deployed the contracts manually, just add the entries.
 
 ## How to Contribute
 Testimonium is a research prototype. We welcome anyone to contribute.
-File a bug report or submit feature requests through the [issue tracker](https://github.com/pf92/go-testimonium/issues). 
+File a bug report or submit feature requests through the [issue tracker](https://github.com/pantos-io/go-testimonium/issues). 
 If you want to contribute feel free to submit a pull request.
 
 ## Acknowledgement
