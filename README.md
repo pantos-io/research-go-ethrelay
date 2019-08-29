@@ -23,7 +23,7 @@ Check that the CLI was installed correctly by running `$ go-testimonium --help`.
 
 2. Run `go-testimonium init` to initialize the client.
 
-3. Start Ganache
+3. Start Ganache (port 8545)
 
 4. Deploy the Ethash contract with `go-testimonium deploy ethash`. 
 This deploys the contract responsible for verifying the Proof of Work (PoW) of a block.
@@ -89,16 +89,18 @@ The default file looks like this:
         1:
             type: http
             url: localhost
-            port: 7545
+            port: 8545
 
 Chain ID 0 contains connection configuration for the main Ethereum chain (via Infura).
 Chain ID 1 contains connection configuration for a local chain (e.g., run via Ganache).
 
-You can configure the Testimonium client for other Ethereum blockchains.
+You can configure the Testimonium client for other Ethereum blockchains (there is no upper limit).
 Just manually add or edit a chain entry under the `chains` key.
 Key `type` refers to the connections type (e.g., http, https, ws, wss), 
 `url` refers to the URL, 
-and `port` refers to the port number under which the specific chain is reachable.
+and `port` refers to the port number under which the specific chain is reachable. If no type is specified, https is used.
+If no port is defined, it is determined by the default port of the type.
+
 
 If you have already deployed the Ethash and Testimonium contracts, you might find further entries
 `ethashAddress` and `testimoniumAddress` under a specific chain config:
@@ -109,7 +111,7 @@ If you have already deployed the Ethash and Testimonium contracts, you might fin
         1:
             type: http
             url: localhost
-            port: 7545
+            port: 8545
             testimoniumAddress: 0xabc123...
             ethashAddress: 0x123abc...
 
