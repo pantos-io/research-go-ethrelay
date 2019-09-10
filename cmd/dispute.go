@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pf92/go-testimonium/ethereum/ethash"
+	"github.com/pantos-io/go-testimonium/ethereum/ethash"
 
 	"log"
 

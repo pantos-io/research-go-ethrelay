@@ -5,7 +5,7 @@ package mtree
 import (
 	"container/list"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pf92/go-testimonium/typedefs"
+	"github.com/pantos-io/go-testimonium/typedefs"
 	"math/big"
 )
 

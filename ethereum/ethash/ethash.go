@@ -20,8 +20,9 @@ package ethash
 import (
 	"errors"
 	"fmt"
-	"github.com/pf92/go-testimonium/mtree"
-	"github.com/pf92/go-testimonium/typedefs"
+	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/pantos-io/go-testimonium/mtree"
+	"github.com/pantos-io/go-testimonium/typedefs"
 	"math"
 	"math/big"
 	"math/rand"
@@ -37,7 +38,6 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/rcrowley/go-metrics"
 )
 
 var ErrInvalidDumpMagic = errors.New("invalid dump magic")

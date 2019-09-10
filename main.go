@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/pf92/go-testimonium/cmd"
+	"github.com/pantos-io/go-testimonium/cmd"
 )
 
 func main() {

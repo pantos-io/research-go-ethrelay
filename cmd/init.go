@@ -17,7 +17,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/pf92/go-testimonium/testimonium"
+	"github.com/pantos-io/go-testimonium/testimonium"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
