@@ -11,7 +11,7 @@ Detailed information about how the prototype works can be found [here](https://d
     It represents ongoing work conducted within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) 
     research project. Use with care._
 ## Prerequisites
-You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://www.trufflesuite.com/ganache) installed. 
+You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://www.trufflesuite.com/ganache) (>= 2.1.0) installed. 
 ## Get Started
 _The following setup will take you through the deployment of Testimonium with a local Ethereum blockchain (Ganache)
 as verifying chain and the main Ethereum chain as target chain.
@@ -116,7 +116,11 @@ If you have already deployed the Ethash and Testimonium contracts, you might fin
             ethashAddress: 0x123abc...
 
 These are the addresses that the client uses to interact with the Testimonium smart contracts.
-If you deployed the contracts manually, just add the entries. 
+If you deployed the contracts manually, just add the entries.
+
+## Troubleshooting
+#### Dispute causes error: "VM Exception while processing transaction: revert"
+If disputing a certain block causes a generic revert exception, make sure you are running Ganache version >= 2.1.0.
 
 ## How to Contribute
 Testimonium is a research prototype. We welcome anyone to contribute.
