@@ -122,6 +122,13 @@ If you deployed the contracts manually, just add the entries.
 #### Dispute causes error: "VM Exception while processing transaction: revert"
 If disputing a certain block causes a generic revert exception, make sure you are running Ganache version >= 2.1.0.
 
+#### Submitting a transaction over websocket causes error: "unexpected EOF"
+If you are connecting to your local Ganache instance over websocket (e.g., ws://localhost:8545),
+make sure you are using at least version 1.9.0 of the go-ethereum package.
+You can update the go-ethereum package by running `go get -u github.com/ethereum/go-ethereum`. 
+
+See this [pull request](https://github.com/ethereum/go-ethereum/pull/19866) for more info.
+
 ## How to Contribute
 Testimonium is a research prototype. We welcome anyone to contribute.
 File a bug report or submit feature requests through the [issue tracker](https://github.com/pantos-io/go-testimonium/issues). 

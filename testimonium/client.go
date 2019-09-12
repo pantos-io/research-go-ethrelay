@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
@@ -660,6 +661,7 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 			tx, err := c.chains[chain].ethashContract.SetEpochData(auth, epochData.Epoch, epochData.FullSizeIn128Resolution,
 				epochData.BranchDepth, nodes, start, mnlen)
 			if err != nil {
+				log.Fatal("Oh no")
 				log.Fatal(err)
 			}
 			fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
@@ -755,6 +757,21 @@ func (c Client) DeployEthash(targetChain uint8) (common.Address) {
 	return addr
 }
 
+func (c Client) WatchSubmitBlockHeader(chain uint8, sink chan <- *TestimoniumSubmitBlockHeader) (event.Subscription, error){
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+
+	return c.chains[chain].testimoniumContract.TestimoniumFilterer.WatchSubmitBlockHeader(nil, sink);
+}
+
+func (c Client) FilterSubmitBlockHeaderEvents(chain uint8) (*TestimoniumSubmitBlockHeaderIterator, error) {
+	if _, exists := c.chains[chain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", chain)
+	}
+	return c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlockHeader(nil)
+}
+
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
 	code, err := client.CallContract(context.Background(), createCallMsgFromTransaction(from, tx), blockNumber)
 	if err != nil {
@@ -807,11 +824,9 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Printf("Nonce: %d, Suggested Gas Price: %d\n", nonce, gasPrice)
 	auth := bind.NewKeyedTransactor(privateKey)
-	auth.From = from
-	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)     // in wei
+	auth.Nonce = big.NewInt(int64(nonce))
 	auth.GasPrice = gasPrice
 	// one could also set the gas limit, however it seems that the right gas limit is only estimated
 	// if the gas limit is not set specifically

@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/pantos-io/go-testimonium/testimonium"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -17,11 +18,27 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go-testimonium",
-	Short: "The CLI to interact with the Testimonium prototype",
-	Long: `The CLI to interact with the Testimonium prototype.`,
+	Short: "Starts the Testimonium client",
+	Long: `Starts the Testimonium client`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("root command called")
+		client := createTestimoniumClient()
+		sink := make(chan *testimonium.TestimoniumSubmitBlockHeader)
+
+		_, err := client.WatchSubmitBlockHeader(1, sink)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for {
+			select {
+			case event := <-sink:
+				fmt.Println(event)
+			}
+		}
+	},
 }
 
 var testimoniumClient *testimonium.Client
