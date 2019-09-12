@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/viper"
 	"strconv"
@@ -30,9 +29,6 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploys a smart contract (Testimonium or Ethash) on the specified blockchain",
 	Long: `Deploys a smart contract (Testimonium or Ethash) on the specified blockchain`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("deploy called")
-	},
 }
 
 func init() {
