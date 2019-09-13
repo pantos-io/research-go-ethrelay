@@ -44,7 +44,7 @@ func init() {
 	// testimoniumCmd.PersistentFlags().String("foo", "", "A help for foo")
 	testimoniumCmd.Flags().Uint8VarP(&deployFlagTargetChain, "target", "t", 0, "The 'target' chain containing the specified genesis block")
 	testimoniumCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the target chain) that should be used as genesis block")
-
+	_ = testimoniumCmd.MarkFlagRequired("genesis")
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// testimoniumCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
