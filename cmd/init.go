@@ -41,7 +41,7 @@ The default testimonium.yml file looks like this:
         0:
             url: mainnet.infura.io
         1:
-            type: http
+            type: ws
             url: localhost
             port: 7545
 
@@ -60,7 +60,7 @@ Chain ID 1 contains connection configuration for a local chain (e.g., run via Ga
 		mainnetConfig := testimonium.CreateChainConfig("", "mainnet.infura.io", 0)
 		chainsConfig[0] = mainnetConfig
 
-		ganacheConfig := testimonium.CreateChainConfig("http", "localhost", 8545)
+		ganacheConfig := testimonium.CreateChainConfig("ws", "localhost", 8545)
 		chainsConfig[1] = ganacheConfig
 
 		viper.Set("chains", chainsConfig)
