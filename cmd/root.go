@@ -5,12 +5,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-testimonium/testimonium"
-	"log"
-	"os"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
+	"math/big"
+	"os"
+	"sync"
 )
 
 var cfgFile string
@@ -23,21 +25,17 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("root command called")
 		client := createTestimoniumClient()
-		sink := make(chan *testimonium.TestimoniumSubmitBlockHeader)
 
-		_, err := client.WatchSubmitBlockHeader(1, sink)
-		if err != nil {
-			log.Fatal(err)
-		}
+		latestBlockNumberChannel := make(chan *big.Int, 1)
 
-		for {
-			select {
-			case event := <-sink:
-				fmt.Println(event)
-			}
-		}
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go submitBlockHeaders(&wg, client, latestBlockNumberChannel)
+
+		wg.Add(1)
+		go validateBlockHeaders(&wg, client, latestBlockNumberChannel)
+		wg.Wait()
 	},
 }
 
@@ -94,3 +92,69 @@ func createTestimoniumClient() (*testimonium.Client) {
 
 	return testimonium.NewClient(privateKey, chainsConfig)
 }
+
+func submitBlockHeaders(wg *sync.WaitGroup, client *testimonium.Client, latestBlockNumberChannel chan *big.Int) {
+	defer wg.Done()
+	for {
+		select {
+			case latest := <-latestBlockNumberChannel:
+				blockHeightToSubmit := new(big.Int)
+				blockHeightToSubmit.Add(latest, big.NewInt(1))
+				header, err := client.HeaderByNumber(blockHeightToSubmit, 0)
+				if err != nil {
+					fmt.Printf("WARNING: could not get block with height %d from source chain %d: %s\n", blockHeightToSubmit, 0, err)
+				}
+				fmt.Printf("Submitting block header %s to destination chain %d...\n", header.Hash().String(), 1)
+				client.SubmitHeader(header, 1)
+				// todo: react to success or failure accordingly
+		}
+	}
+}
+
+func validateBlockHeaders(wg *sync.WaitGroup, client *testimonium.Client, latestBlockNumberChannel chan<- *big.Int) {
+	defer wg.Done()
+	sink := make(chan *testimonium.TestimoniumSubmitBlockHeader, 1)
+
+	// find latest valid block header of source chain on destination chain
+	hash, err := client.LongestChainEndpoint(1)
+	if err != nil {
+		log.Fatal("could not read longest chain endpoint", err)
+	}
+
+	header, err := client.BlockHeader(hash, 1)
+	if err != nil {
+		log.Fatal("could not read endpoint header", err)
+	}
+
+	sink <- toSubmitEvent(hash, header) // create 'fake' submit event to pass to event sink
+
+	// listen to newly submitted headers
+	_, err = client.WatchSubmitBlockHeader(1, sink)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		select {
+		case event := <-sink:
+			fmt.Printf("Validating submitted block header %s (height %d)...\n", common.BytesToHash(event.Hash[:]).String(), event.BlockNumber)
+			if isValidBlockHeader(event.Hash) {
+				latestBlockNumberChannel <- event.BlockNumber
+			} else {
+				// todo: dispute and query longest chain endpoint again
+			}
+		}
+	}
+}
+
+func isValidBlockHeader(blockHash [32]byte) bool {
+	return true  // todo: compare passed block hash with block header of source chain
+}
+
+func toSubmitEvent(hash common.Hash, header testimonium.BlockHeader) *testimonium.TestimoniumSubmitBlockHeader {
+	submitEvent := new(testimonium.TestimoniumSubmitBlockHeader)
+	submitEvent.Hash = hash
+	submitEvent.BlockNumber = header.BlockNumber
+	return submitEvent
+}
+

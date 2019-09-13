@@ -93,13 +93,9 @@ header.TotalDifficulty.String())
 }
 
 func (t TestimoniumSubmitBlockHeader) String() string {
-	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Difficulty: %s, Parent: %s, TransactionsRoot: %s }",
+	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, BlockNumber: %d }",
 		common.BytesToHash(t.Hash[:]).String(),
-		common.BytesToHash(t.HashWithoutNonce[:]).String(),
-		t.Nonce.String(),
-		t.Difficulty.String(),
-		common.BytesToHash(t.Parent[:]).String(),
-		common.BytesToHash(t.TransactionsRoot[:]).String())
+		t.BlockNumber)
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -283,6 +279,10 @@ func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error)
 
 func (c Client) BlockHeader(blockHash [32]byte, chain uint8) (BlockHeader, error) {
 	return c.chains[chain].testimoniumContract.GetHeader(nil, blockHash)
+}
+
+func (c Client) LongestChainEndpoint(chain uint8) ([32]byte, error) {
+	return c.chains[chain].testimoniumContract.LongestChainEndpoint(nil)
 }
 
 func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
