@@ -142,18 +142,58 @@ func validateBlockHeaders(wg *sync.WaitGroup, client *testimonium.Client, latest
 	for {
 		select {
 		case event := <-sink:
-			fmt.Printf("Validating submitted block header %s (height %d)...\n", common.BytesToHash(event.Hash[:]).String(), event.BlockNumber)
-			if isValidBlockHeader(event.Hash) {
-				latestBlockNumberChannel <- event.BlockNumber
+			fmt.Printf("Validating block header %s (height %d)...\n", ShortHexString(common.BytesToHash(event.Hash[:]).String()), event.BlockNumber)
+			if isValidBlockHeader(client, event.Hash, 0) {
+				fmt.Printf("Block header %s is valid.\n", ShortHexString(common.BytesToHash(event.Hash[:]).String()))
+				select {
+					case latestBlockNumberChannel <- event.BlockNumber:
+						break
+					default:
+						// non-blocking behaviour in case no routine is listening to the latestBlockNumberChannel
+						// e.g., if the --no-submit flag is set
+						break
+				}
+
 			} else {
-				// todo: dispute and query longest chain endpoint again
+				// Dispute header
+				fmt.Printf("Validation Failed! Disputing block %s...\n", ShortHexString(common.BytesToHash(event.Hash[:]).String()))
+
+				go func() {
+					header, err := client.BlockHeader(event.Hash, 1)
+					if err != nil {
+						log.Fatal("Failed to retrieve header from contract: " + err.Error())
+					}
+					blockMetaData := ethash.NewBlockMetaData(header.BlockNumber.Uint64(), header.Nonce.Uint64(), header.RlpHeaderHashWithoutNonce)
+					dataSetLookup := blockMetaData.DAGElementArray()
+					witnessForLookup := blockMetaData.DAGProofArray()
+					client.DisputeBlock(event.Hash, dataSetLookup, witnessForLookup, 1)
+
+					// Query longest chain
+					hash, err := client.LongestChainEndpoint(1)
+					if err != nil {
+						log.Fatal("could not read longest chain endpoint", err)
+					}
+
+					header, err = client.BlockHeader(hash, 1)
+					if err != nil {
+						log.Fatal("could not read endpoint header", err)
+					}
+
+					sink <- toSubmitEvent(hash, header) // create 'fake' submit event to pass to event sink
+				}()
+
 			}
 		}
 	}
 }
 
-func isValidBlockHeader(blockHash [32]byte) bool {
-	return true  // todo: compare passed block hash with block header of source chain
+func isValidBlockHeader(client *testimonium.Client, blockHash [32]byte, chain uint8) bool {
+	_, err := client.OriginalBlockHeader(blockHash, chain)
+	if err != nil {
+		// if an error is returned, it means that no block with the specified block hash exists
+		return false;
+	}
+	return true
 }
 
 func toSubmitEvent(hash common.Hash, header testimonium.BlockHeader) *testimonium.TestimoniumSubmitBlockHeader {
