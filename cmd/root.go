@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pantos-io/go-testimonium/ethereum/ethash"
 	"github.com/pantos-io/go-testimonium/testimonium"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,6 +17,7 @@ import (
 )
 
 var cfgFile string
+var noSubmitFlag bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -30,8 +32,10 @@ var rootCmd = &cobra.Command{
 		latestBlockNumberChannel := make(chan *big.Int, 1)
 
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go submitBlockHeaders(&wg, client, latestBlockNumberChannel)
+		if !noSubmitFlag {
+			wg.Add(1)
+			go submitBlockHeaders(&wg, client, latestBlockNumberChannel)
+		}
 
 		wg.Add(1)
 		go validateBlockHeaders(&wg, client, latestBlockNumberChannel)
@@ -61,7 +65,8 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolVar(&noSubmitFlag, "no-submit", false, "do not submit new block headers if this flag is set")
+	//rootCmd.Flags().BoolVar(&noSubmitFlag, "no-dispute", false, "Do not validate blocks if this flag is set")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -156,5 +161,13 @@ func toSubmitEvent(hash common.Hash, header testimonium.BlockHeader) *testimoniu
 	submitEvent.Hash = hash
 	submitEvent.BlockNumber = header.BlockNumber
 	return submitEvent
+}
+
+
+func ShortHexString(hex string) string {
+	if len(hex) <= 12 {
+		return hex
+	}
+	return fmt.Sprintf("%s...%s", hex[:6], hex[len(hex)-4:])
 }
 

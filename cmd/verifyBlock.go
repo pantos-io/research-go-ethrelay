@@ -68,9 +68,3 @@ func init() {
 	// verifyBlockCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func ShortHexString(hex string) string {
-	if len(hex) <= 12 {
-		return hex
-	}
-	return fmt.Sprintf("%s...%s", hex[:6], hex[len(hex)-4:])
-}
