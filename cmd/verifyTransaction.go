@@ -4,7 +4,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-testimonium/testimonium"
 	"github.com/spf13/cobra"
@@ -32,10 +31,12 @@ This information gets sent to the verifying chain, where not only the existence 
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
-
-		isValid := testimoniumClient.VerifyMerkleProof(blockHash, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
+		feesInWei, err := testimoniumClient.GetRequiredVerificationFee(verifyFlagDestChain)
+		if err != nil {
+			log.Fatal(err)
+		}
+		testimoniumClient.VerifyMerkleProof(feesInWei, blockHash, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
 			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
-		fmt.Println("Tx Validation Result: ", isValid)
 	},
 }
 

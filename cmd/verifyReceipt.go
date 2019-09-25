@@ -4,7 +4,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-testimonium/testimonium"
 	"github.com/spf13/cobra"
@@ -30,8 +29,12 @@ This information gets sent to the verifying chain, where not only the existence 
 		}
 
 		testimoniumClient = createTestimoniumClient()
-		isValid := testimoniumClient.VerifyMerkleProof(blockHash, testimonium.VALUE_TYPE_RECEIPT, rlpEncodedReceipt, path, rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
-		fmt.Println("Receipt Validation Result: ", isValid)
+		feesInWei, err := testimoniumClient.GetRequiredVerificationFee(verifyFlagDestChain)
+		if err != nil {
+			log.Fatal(err)
+		}
+		testimoniumClient.VerifyMerkleProof(feesInWei, blockHash, testimonium.VALUE_TYPE_RECEIPT, rlpEncodedReceipt, path,
+			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
 	},
 }
 

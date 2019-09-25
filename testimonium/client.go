@@ -36,14 +36,14 @@ type Chain struct {
 	client                     *ethclient.Client
 	testimoniumContractAddress common.Address
 	testimoniumContract        *Testimonium
-	ethashContractAddress common.Address
-	ethashContract        *ethash.Ethash
-	fullUrl					string
+	ethashContractAddress      common.Address
+	ethashContract             *ethash.Ethash
+	fullUrl                    string
 }
 
 type Client struct {
-	chains map[uint8]*Chain
-	account common.Address
+	chains     map[uint8]*Chain
+	account    common.Address
 	privateKey *ecdsa.PrivateKey
 }
 
@@ -62,14 +62,17 @@ type BlockHeader struct {
 	TotalDifficulty           *big.Int
 }
 
+type VerificationResult struct {
+	returnCode uint8
+}
+
 type TrieValueType int
 
 const (
-	VALUE_TYPE_TRANSACTION    	TrieValueType = 0
-	VALUE_TYPE_RECEIPT    		TrieValueType = 1
-	VALUE_TYPE_STATE   			TrieValueType = 2
+	VALUE_TYPE_TRANSACTION TrieValueType = 0
+	VALUE_TYPE_RECEIPT     TrieValueType = 1
+	VALUE_TYPE_STATE       TrieValueType = 2
 )
-
 
 func (header BlockHeader) String() string {
 	return fmt.Sprintf(`BlockHeader: {
@@ -81,24 +84,18 @@ BlockNumber: %s,
 RlpHeaderHashWithoutNonce: %s,
 Nonce: %s,
 TotalDifficulty: %s }`,
-common.Bytes2Hex(header.Parent[:]),
-common.Bytes2Hex(header.StateRoot[:]),
-common.Bytes2Hex(header.TransactionsRoot[:]),
-common.Bytes2Hex(header.ReceiptsRoot[:]),
-header.BlockNumber.String(),
-common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
-header.Nonce.String(),
-header.TotalDifficulty.String())
+		common.Bytes2Hex(header.Parent[:]),
+		common.Bytes2Hex(header.StateRoot[:]),
+		common.Bytes2Hex(header.TransactionsRoot[:]),
+		common.Bytes2Hex(header.ReceiptsRoot[:]),
+		header.BlockNumber.String(),
+		common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
+		header.Nonce.String(),
+		header.TotalDifficulty.String())
 }
 
-func (t TestimoniumSubmitBlockHeader) String() string {
-	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s, HashWithoutNonce: %s, Nonce: %s, Difficulty: %s, Parent: %s, TransactionsRoot: %s }",
-		common.BytesToHash(t.Hash[:]).String(),
-		common.BytesToHash(t.HashWithoutNonce[:]).String(),
-		t.Nonce.String(),
-		t.Difficulty.String(),
-		common.BytesToHash(t.Parent[:]).String(),
-		common.BytesToHash(t.TransactionsRoot[:]).String())
+func (t TestimoniumSubmitBlock) String() string {
+	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -107,6 +104,14 @@ func (event TestimoniumRemoveBranch) String() string {
 
 func (event TestimoniumPoWValidationResult) String() string {
 	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
+}
+
+func (result VerificationResult) String() string {
+	return fmt.Sprintf("VerificationResult: { returnCode: %d }", result.returnCode)
+}
+
+func (event TestimoniumWithdrawStake) String() string {
+	return fmt.Sprintf("TestimoniumWithdrawStakeEvent: { client: %s, withdrawnStake: %d }", common.Bytes2Hex(event.Client.Bytes()), event.WithdrawnStake)
 }
 
 func CreateChainConfig(connectionType string, connectionUrl string, connectionPort uint64) map[string]interface{} {
@@ -127,8 +132,8 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 	client := new(Client)
 	client.chains = make(map[uint8]*Chain)
 
-	for k,v := range chainsConfig {
-		chainId, err := strconv.ParseInt(k,10, 8)
+	for k, v := range chainsConfig {
+		chainId, err := strconv.ParseInt(k, 10, 8)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -146,7 +151,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 		ethClient, err = ethclient.Dial(fullUrl)
 		if err != nil {
 			fmt.Printf("WARNING: Cannot connect to chain %d (%s): %s\n", chainId, fullUrl, err)
-			continue	// --> even if we cannot connect to this chain, we still try to connect to the other ones
+			continue // --> even if we cannot connect to this chain, we still try to connect to the other ones
 		}
 
 		chain := new(Chain)
@@ -252,7 +257,7 @@ func (c Client) Account() string {
 
 func (c Client) TotalBalance() (*big.Int, error) {
 	var totalBalance = new(big.Int)
-	for k,_ := range c.chains {
+	for k, _ := range c.chains {
 		balance, err := c.Balance(k)
 		if err != nil {
 			return nil, err
@@ -276,7 +281,79 @@ func (c Client) Balance(chainId uint8) (*big.Int, error) {
 	return totalBalance, nil
 }
 
+func (c Client) GetStake(chainId uint8) (*big.Int, error) {
+	_, exists := c.chains[chainId]
+	if !exists {
+		return nil, fmt.Errorf("chain %s does not exist", chainId)
+	}
+	stake, err := c.chains[chainId].testimoniumContract.GetStake(
+		&bind.CallOpts{
+			From: c.account,
+		})
+	if err != nil {
+		return nil, err
+	}
+	return stake, nil
+}
+
+func (c Client) DepositStake(chainId uint8, amountInWei *big.Int) error {
+	_, exists := c.chains[chainId]
+	if !exists {
+		return fmt.Errorf("chain %s does not exist", chainId)
+	}
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], amountInWei)
+	tx, err := c.chains[chainId].testimoniumContract.DepositStake(auth, amountInWei)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+	return nil
+}
+
+func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
+	_, exists := c.chains[chainId]
+	if !exists {
+		return fmt.Errorf("chain %s does not exist", chainId)
+	}
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], big.NewInt(0))
+	tx, err := c.chains[chainId].testimoniumContract.WithdrawStake(auth, amountInWei)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	receipt, err := awaitTxReceipt(c.chains[chainId].client, tx.Hash())
+	if err != nil {
+		return err
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[chainId].client, c.account, tx, receipt.BlockNumber)
+		return fmt.Errorf("Tx failed: %s\n", reason)
+	}
+
+	// Transaction is successful
+	eventIterator, err := c.chains[chainId].testimoniumContract.TestimoniumFilterer.FilterWithdrawStake(&bind.FilterOpts{
+		Start:   receipt.BlockNumber.Uint64(),
+		End:     nil,
+		Context: nil,
+	})
+	if err != nil {
+		return err
+	}
+
+	if eventIterator.Next() {
+		fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+	}
+
+	return nil
+}
+
 func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error) {
+	_, exists := c.chains[chain]
+	if !exists {
+		return false, fmt.Errorf("chain %s does not exist", chain)
+	}
 	return c.chains[chain].testimoniumContract.IsBlock(nil, blockHash)
 }
 
@@ -308,8 +385,8 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Submit Transfer Transaction
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].testimoniumContract.SubmitHeader(auth, rlpHeader)
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+	tx, err := c.chains[chain].testimoniumContract.SubmitBlock(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -328,10 +405,10 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlockHeader(&bind.FilterOpts{
-		Start: receipt.BlockNumber.Uint64(),
-		End: nil,
-		Context:nil,
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlock(&bind.FilterOpts{
+		Start:   receipt.BlockNumber.Uint64(),
+		End:     nil,
+		Context: nil,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -427,8 +504,8 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 
 func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witnessForLookup []*big.Int, chain uint8) {
 	fmt.Println("Dispute block ...")
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
-	tx, err := c.chains[chain].testimoniumContract.DisputeBlock(auth, blockHash, dataSetLookUp, witnessForLookup)
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, blockHash, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -448,9 +525,9 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 
 	// get RemoveBranch event
 	eventIteratorRemoveBranch, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
-		Start: receipt.BlockNumber.Uint64(),
-		End: nil,
-		Context:nil,
+		Start:   receipt.BlockNumber.Uint64(),
+		End:     nil,
+		Context: nil,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -461,9 +538,9 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 
 	// get PoW Verification event
 	eventIteratorPoWResult, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
-		Start: receipt.BlockNumber.Uint64(),
-		End: nil,
-		Context:nil,
+		Start:   receipt.BlockNumber.Uint64(),
+		End:     nil,
+		Context: nil,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -584,29 +661,34 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([32
 	return txReceipt.BlockHash, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) VerifyMerkleProof(blockHash [32]byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
-	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain uint8) bool {
+func (c Client) GetRequiredVerificationFee(chain uint8) (*big.Int, error) {
+	return c.chains[chain].testimoniumContract.GetRequiredVerificationFee(nil)
+}
+
+func (c Client) VerifyMerkleProof(feeInWei *big.Int, blockHash [32]byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
+	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain uint8) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	fmt.Println("rlpEncodedTx=", common.Bytes2Hex(rlpEncodedValue))
-	fmt.Println("path=", common.Bytes2Hex(path))
-	fmt.Println("rlpEncodedProofNodes=", common.Bytes2Hex(rlpEncodedProofNodes))
+	//fmt.Println("rlpEncodedTx=", common.Bytes2Hex(rlpEncodedValue))
+	//fmt.Println("path=", common.Bytes2Hex(path))
+	//fmt.Println("rlpEncodedProofNodes=", common.Bytes2Hex(rlpEncodedProofNodes))
 
-	var returnCode uint8
+	var tx *types.Transaction
 	var err error
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], feeInWei)
 
 	switch trieValueType {
 	case VALUE_TYPE_TRANSACTION:
-		returnCode, err = c.chains[chain].testimoniumContract.VerifyTransaction(nil, blockHash, noOfConfirmations, rlpEncodedValue,
-			path, rlpEncodedProofNodes)
+		tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, blockHash,
+			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
 	case VALUE_TYPE_RECEIPT:
-		returnCode, err = c.chains[chain].testimoniumContract.VerifyReceipt(nil, blockHash, noOfConfirmations, rlpEncodedValue,
-			path, rlpEncodedProofNodes)
+		tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, blockHash, noOfConfirmations,
+			rlpEncodedValue, path, rlpEncodedProofNodes)
 	case VALUE_TYPE_STATE:
-		returnCode, err = c.chains[chain].testimoniumContract.VerifyState(nil, blockHash, noOfConfirmations, rlpEncodedValue,
-			path, rlpEncodedProofNodes)
+		tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, blockHash, noOfConfirmations,
+			rlpEncodedValue, path, rlpEncodedProofNodes)
 	default:
 		log.Fatal("Unexpected trie value type: ", trieValueType)
 	}
@@ -615,24 +697,88 @@ func (c Client) VerifyMerkleProof(blockHash [32]byte, trieValueType TrieValueTyp
 		log.Fatal(err)
 	}
 
-	switch returnCode {
-	case 0:
-		return true
-	case 1:
-		fmt.Println("Block does not exist on chain")
-		return false
-	case 2:
-		fmt.Println("The block containing the transaction is locked, not confirmed by enough blocks or not part of the longest PoW chain")
-		return false
-	case 3:
-		fmt.Println("The provided Merkle proof is invalid")
-		return false
-	default:
-		fmt.Println("Unknown return code: ", returnCode)
-		return false
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return
 	}
 
-	return false
+	var verificationResult *VerificationResult
+
+	switch trieValueType {
+	case VALUE_TYPE_TRANSACTION:
+		verificationResult, err = c.getVerifyTransactionEvent(chain, receipt)
+	case VALUE_TYPE_RECEIPT:
+		verificationResult, err = c.getVerifyReceiptEvent(chain, receipt)
+	case VALUE_TYPE_STATE:
+		verificationResult, err = c.getVerifyStateEvent(chain, receipt)
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Tx successful: %s\n", verificationResult.String())
+}
+
+func (c Client) getVerifyTransactionEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyTransaction(
+		&bind.FilterOpts{
+			Start:   receipt.BlockNumber.Uint64(),
+			End:     nil,
+			Context: nil,
+		})
+	if err != nil {
+		return nil, err
+	}
+	if eventIterator.Next() {
+		return &VerificationResult{
+			returnCode: eventIterator.Event.Result,
+		}, nil
+	}
+	return nil, fmt.Errorf("no event found")
+}
+
+func (c Client) getVerifyReceiptEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyReceipt(
+		&bind.FilterOpts{
+			Start:   receipt.BlockNumber.Uint64(),
+			End:     nil,
+			Context: nil,
+		})
+	if err != nil {
+		return nil, err
+	}
+	if eventIterator.Next() {
+		return &VerificationResult{
+			returnCode: eventIterator.Event.Result,
+		}, nil
+	}
+	return nil, fmt.Errorf("no event found")
+}
+
+func (c Client) getVerifyStateEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyState(
+		&bind.FilterOpts{
+			Start:   receipt.BlockNumber.Uint64(),
+			End:     nil,
+			Context: nil,
+		})
+	if err != nil {
+		return nil, err
+	}
+	if eventIterator.Next() {
+		return &VerificationResult{
+			returnCode: eventIterator.Event.Result,
+		}, nil
+	}
+	return nil, fmt.Errorf("no event found")
 }
 
 func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
@@ -655,7 +801,7 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 				continue
 			}
 
-			auth := prepareTransaction(c.account, c.privateKey, c.chains[chain])
+			auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
 
 			tx, err := c.chains[chain].ethashContract.SetEpochData(auth, epochData.Epoch, epochData.FullSizeIn128Resolution,
 				epochData.BranchDepth, nodes, start, mnlen)
@@ -704,7 +850,7 @@ func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisB
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain])
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain], big.NewInt(0))
 
 	addr, tx, _, err := DeployTestimonium(auth, c.chains[targetChain].client, rlpHeader, totalDifficulty, c.chains[targetChain].ethashContractAddress)
 	if err != nil {
@@ -732,7 +878,7 @@ func (c Client) DeployEthash(targetChain uint8) (common.Address) {
 		log.Fatalf("Target chain '%d' does not exist", targetChain)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain])
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain], big.NewInt(0))
 
 	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[targetChain].client)
 	if err != nil {
@@ -765,12 +911,12 @@ func getFailureReason(client *ethclient.Client, from common.Address, tx *types.T
 
 func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) ethereum.CallMsg {
 	return ethereum.CallMsg{
-		From: from,
-		To: tx.To(),
-		Gas: tx.Gas(),
+		From:     from,
+		To:       tx.To(),
+		Gas:      tx.Gas(),
 		GasPrice: tx.GasPrice(),
-		Value: tx.Value(),
-		Data: tx.Data(),
+		Value:    tx.Value(),
+		Data:     tx.Data(),
 	}
 }
 
@@ -797,8 +943,7 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 	return buffer.Bytes(), err
 }
 
-
-func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain *Chain) *bind.TransactOpts {
+func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain *Chain, valueInWei *big.Int) *bind.TransactOpts {
 	nonce, err := chain.client.PendingNonceAt(context.Background(), from)
 	if err != nil {
 		log.Fatal(err)
@@ -811,7 +956,7 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.From = from
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)     // in wei
+	auth.Value = valueInWei // in wei
 	auth.GasPrice = gasPrice
 	// one could also set the gas limit, however it seems that the right gas limit is only estimated
 	// if the gas limit is not set specifically
@@ -823,7 +968,7 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	receipts := make(chan *types.Receipt)
 
 	go func(chan *types.Receipt) {
-		for ;; {
+		for ; ; {
 			receipt, _ := client.TransactionReceipt(context.Background(), txHash)
 
 			if receipt != nil {
@@ -833,10 +978,10 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	}(receipts)
 
 	select {
-		case receipt := <- receipts:
-			return receipt, nil
-		case <- time.After(TimeoutLength * time.Minute):
-			return nil, fmt.Errorf("timeout: did not receive receipt after %d minutes", TimeoutLength)
+	case receipt := <-receipts:
+		return receipt, nil
+	case <-time.After(TimeoutLength * time.Minute):
+		return nil, fmt.Errorf("timeout: did not receive receipt after %d minutes", TimeoutLength)
 	}
 
 	//query := ethereum.FilterQuery{
@@ -864,4 +1009,3 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	//	}
 	//}
 }
-
