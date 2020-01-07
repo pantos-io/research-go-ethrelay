@@ -16,10 +16,10 @@ import (
 )
 
 type BlockMetaData struct {
-	blockNumber		uint64
-	nonce			uint64
-	hashNoNonce		common.Hash
-	dt              *mtree.DagTree
+	blockNumber uint64
+	nonce       uint64
+	hashNoNonce common.Hash
+	DagTree     *mtree.DagTree
 }
 
 func ProcessDuringRead(
@@ -73,35 +73,35 @@ func (s *BlockMetaData) buildDagTree() {
 		s.nonce,
 	)
 	fmt.Printf("indices: %v\n", indices)
-	s.dt = mtree.NewDagTree()
-	s.dt.RegisterIndex(indices...)
+	s.DagTree = mtree.NewDagTree()
+	s.DagTree.RegisterIndex(indices...)
 	MakeDAG(s.blockNumber, DefaultDir)
 	fullSize := DAGSize(s.blockNumber)
 	fullSizeIn128Resolution := fullSize / 128
 	branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
-	s.dt.RegisterStoredLevel(uint32(branchDepth), uint32(10))
+	s.DagTree.RegisterStoredLevel(uint32(branchDepth), uint32(10))
 	path := PathToDAG(uint64(s.blockNumber/30000), DefaultDir)
-	ProcessDuringRead(path, s.dt)
-	s.dt.Finalize()
+	ProcessDuringRead(path, s.DagTree)
+	s.DagTree.Finalize()
 }
 
 func (s *BlockMetaData) DAGElementArray() []*big.Int {
-	if s.dt == nil {
+	if s.DagTree == nil {
 		s.buildDagTree()
 	}
 	result := []*big.Int{}
-	for _, w := range s.dt.AllDAGElements() {
+	for _, w := range s.DagTree.AllDAGElements() {
 		result = append(result, w.ToUint256Array()...)
 	}
 	return result
 }
 
 func (s *BlockMetaData) DAGProofArray() []*big.Int {
-	if s.dt == nil {
+	if s.DagTree == nil {
 		s.buildDagTree()
 	}
 	result := []*big.Int{}
-	for _, be := range s.dt.AllBranchesArray() {
+	for _, be := range s.DagTree.AllBranchesArray() {
 		result = append(result, be.Big())
 	}
 	return result
