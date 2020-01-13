@@ -4,10 +4,13 @@
 package cmd
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-testimonium/testimonium"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
 )
 
 var noOfConfirmations uint8
@@ -31,13 +34,55 @@ This information gets sent to the verifying chain, where not only the existence 
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
+
+		if jsonFlag {
+			hexEncodedTxHash := make([]byte, hex.EncodedLen(len(txHash)))
+			hex.Encode(hexEncodedTxHash, txHash[:])
+
+			writeMerkleProofAsJson(hexEncodedTxHash, blockHash, rlpEncodedTx, path, rlpEncodedProofNodes)
+			fmt.Printf("Wrote merkle proof to 0x%s.json\n", hexEncodedTxHash)
+			return
+		}
+
 		feesInWei, err := testimoniumClient.GetRequiredVerificationFee(verifyFlagDestChain)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		testimoniumClient.VerifyMerkleProof(feesInWei, blockHash, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
 			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
 	},
+}
+
+func writeMerkleProofAsJson(fileName []byte, blockHash [32]byte, tx []byte, path []byte, nodes []byte) {
+	f, err := os.Create(fmt.Sprintf("./0x%s.json", fileName))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	hexEncodedHash := make([]byte, hex.EncodedLen(len(blockHash)))
+	hex.Encode(hexEncodedHash, blockHash[:])
+
+	hexEncodedTx := make([]byte, hex.EncodedLen(len(tx)))
+	hex.Encode(hexEncodedTx, tx)
+
+	hexEncodedPath := make([]byte, hex.EncodedLen(len(path)))
+	hex.Encode(hexEncodedPath, path)
+
+	hexEncodedNodes := make([]byte, hex.EncodedLen(len(nodes)))
+	hex.Encode(hexEncodedNodes, nodes)
+
+	_, err = fmt.Fprint(f, "{\n")
+	_, err = fmt.Fprintf(f, "  \"blockHash\": \"0x%s\",\n", hexEncodedHash)
+	_, err = fmt.Fprintf(f, "  \"rlpEncodedTx\": \"0x%s\",\n", hexEncodedTx)
+	_, err = fmt.Fprintf(f, "  \"path\": \"0x%s\",\n", hexEncodedPath)
+	_, err = fmt.Fprintf(f, "  \"rlpEncodedNodes\": \"0x%s\"\n", hexEncodedNodes)
+	_, err = fmt.Fprint(f, "\n}")
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {
@@ -52,4 +97,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	verifyTransactionCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
+	verifyTransactionCmd.Flags().BoolVar(&jsonFlag, "json", false, "save merkle proof to a json file")
 }
