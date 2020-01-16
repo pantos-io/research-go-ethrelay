@@ -45,6 +45,7 @@ func ProcessAllDuringRead(
 	}
 	var i uint32 = 0
 	for {
+		fmt.Println("before read")
 		n, err := io.ReadFull(r, buf[:128])
 		if n == 0 {
 			if err == nil {
@@ -59,7 +60,9 @@ func ProcessAllDuringRead(
 			log.Fatal("Malformed dataset")
 		}
 		for _, metaData := range metaDataArray {
+			fmt.Println("before write")
 			metaData.DagTree.Insert(typedefs.Word(buf), i)
+			fmt.Println("after write")
 		}
 		if err != nil && err != io.EOF {
 			log.Fatal(err)
