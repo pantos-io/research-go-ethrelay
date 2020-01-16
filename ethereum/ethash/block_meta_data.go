@@ -113,7 +113,15 @@ func ProcessDuringRead(
 }
 
 // make sure to only call with meta data of same epoch
-func BuildDagTree(metaDataArray []*BlockMetaData) {
+func BuildDagTrees(metaDataArray []*BlockMetaData) {
+	fmt.Println("step 1")
+	MakeDAG(metaDataArray[0].blockNumber, DefaultDir)
+	fmt.Println("step 2")
+	fullSize := DAGSize(metaDataArray[0].blockNumber)
+	fullSizeIn128Resolution := fullSize / 128
+	branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
+	fmt.Println("step 3")
+
 	for _, s := range metaDataArray {
 		indices := Instance.GetVerificationIndices(
 			s.blockNumber,
@@ -123,18 +131,17 @@ func BuildDagTree(metaDataArray []*BlockMetaData) {
 		fmt.Printf("indices: %v\n", indices)
 		s.DagTree = mtree.NewDagTree()
 		s.DagTree.RegisterIndex(indices...)
-		MakeDAG(s.blockNumber, DefaultDir)
-		fullSize := DAGSize(s.blockNumber)
-		fullSizeIn128Resolution := fullSize / 128
-		branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
 		s.DagTree.RegisterStoredLevel(uint32(branchDepth), uint32(10))
 	}
+	fmt.Println("step 4")
 
 	path := PathToDAG(metaDataArray[0].blockNumber/30000, DefaultDir)
 	ProcessAllDuringRead(path, metaDataArray)
+	fmt.Println("step 5")
 	for _, s := range metaDataArray {
 		s.DagTree.Finalize()
 	}
+	fmt.Println("step 6")
 }
 
 func (s *BlockMetaData) buildDagTree() {
