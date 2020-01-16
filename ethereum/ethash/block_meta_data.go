@@ -227,7 +227,7 @@ func (s *BlockMetaData) BuildDagTree(dag *BufferedDag) {
 		s.hashNoNonce,
 		s.nonce,
 	)
-	fmt.Printf("indices: %v\n", indices)
+	//fmt.Printf("indices: %v\n", indices)
 	s.DagTree = mtree.NewDagTree()
 	s.DagTree.RegisterIndex(indices...)
 	//MakeDAG(s.blockNumber, DefaultDir)
