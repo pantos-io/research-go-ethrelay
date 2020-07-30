@@ -58,6 +58,7 @@ func initConfig() {
 		// Search config in current directory with name "testimonium" (without extension).
 		viper.AddConfigPath(".")
 		viper.SetConfigName("testimonium")
+		viper.SetConfigType("yml")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
