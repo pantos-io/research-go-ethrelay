@@ -39,12 +39,13 @@ The default testimonium.yml file looks like this:
     privateKey: <YOUR PRIVATE KEY>
     chains:
         0:
-            url: mainnet.infura.io/v3/1e835672adba4b9b930a12a3ec58ebad
+            url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
         1:
             type: http
             url: localhost
             port: 7545
 
+Websocket-Connection is required for submitting blocks in live mode.
 Chain ID 0 contains connection configuration for the target chain, which defaults to the main Ethereum chain (via Infura).
 Chain ID 1 contains connection configuration for the verifying chain, which defaults to a local chain (e.g., run via Ganache).`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -57,7 +58,7 @@ Chain ID 1 contains connection configuration for the verifying chain, which defa
 
 		chainsConfig := make(map[uint8]interface{})
 
-		mainnetConfig := testimonium.CreateChainConfig("", "mainnet.infura.io/v3/1e835672adba4b9b930a12a3ec58ebad", 0)
+		mainnetConfig := testimonium.CreateChainConfig("wss", "mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad", 0)
 		chainsConfig[0] = mainnetConfig
 
 		ganacheConfig := testimonium.CreateChainConfig("http", "localhost", 7545)
