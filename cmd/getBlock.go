@@ -25,21 +25,27 @@ var getBlockCmd = &cobra.Command{
 		testimoniumClient = createTestimoniumClient()
 
 		if headerFlag {
+			// if only the header should be printed
+
 			header, err := testimoniumClient.HeaderByHash(blockHash, getFlagChain)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
 			}
-			printHeader(header)
-			return
-		}
 
-		block, err := testimoniumClient.BlockByHash(blockHash, getFlagChain)
-		if err != nil {
-			log.Fatal("Failed to retrieve block: " + err.Error())
-		}
-		printBlock(block)
-		if detailFlag {
-			printTransactions(block)
+			printHeader(header)
+		} else {
+			// else the full header will be printed
+
+			block, err := testimoniumClient.BlockByHash(blockHash, getFlagChain)
+			if err != nil {
+				log.Fatal("Failed to retrieve block: " + err.Error())
+			}
+
+			printBlock(block)
+
+			if detailFlag {
+				printTransactions(block)
+			}
 		}
 	},
 }

@@ -19,36 +19,46 @@ var submitFlagLiveMode bool
 // submitCmd represents the submit command
 var submitBlockCmd = &cobra.Command{
 	Use:   "block [blocknumber]",
-	Short: "Submits a block header to the verifying chain",
-	Long: `Submits the specified block header from the target chain to the verifying chain`,
+	Short: "Submits a block header from source chain to destination chain",
+	Long: `Queries the given block from the source chain and submits it to the destination chain`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var blockNumber *big.Int = nil
+
 		if len(args) > 0 {
 			var ok bool
+
 			blockNumber = new(big.Int)
 			blockNumber, ok = blockNumber.SetString(args[0], 10)
+
 			if !ok {
 				log.Fatalf("Illegal block number '%s'", args[0])
 			}
 		}
+
 		if submitFlagLiveMode {
 			log.Fatal("Live mode not implemented yet")
+
+			// TODO
 		}
 
 		testimoniumClient = createTestimoniumClient()
 		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
+
 		if err != nil {
 			log.Fatal("Failed to retrieve header: " + err.Error())
 		}
+
 		if len(submitFlagParent) > 0 {
 			fmt.Printf("Modifying parent...\n")
 			header.ParentHash = common.HexToHash(submitFlagParent)
 		}
+
 		if submitFlagRandomize {
 			fmt.Printf("Randomizing header...\n")
 			header = testimoniumClient.RandomizeHeader(header, submitFlagSrcChain)
 		}
+
 		fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 		testimoniumClient.SubmitHeader(header, submitFlagDestChain)

@@ -30,17 +30,23 @@ This information gets sent to the verifying chain, where not only the existence 
 		txHash := common.HexToHash(args[0])
 
 		testimoniumClient = createTestimoniumClient()
-		blockHash, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(txHash, verifyFlagSrcChain)
+
+		rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(txHash, verifyFlagSrcChain)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
 
+		// TODO: this produces a merkle proof for the transaction and does not verify the transaction
+		//  maybe it is better to introduce a new command for this behaviour as it is quite confusing to
+		//  call verifyTransaction and no transaction is verified
 		if jsonFlag {
 			hexEncodedTxHash := make([]byte, hex.EncodedLen(len(txHash)))
 			hex.Encode(hexEncodedTxHash, txHash[:])
 
-			writeMerkleProofAsJson(hexEncodedTxHash, blockHash, rlpEncodedTx, path, rlpEncodedProofNodes)
+			writeMerkleProofAsJson(hexEncodedTxHash, rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes)
+
 			fmt.Printf("Wrote merkle proof to 0x%s.json\n", hexEncodedTxHash)
+
 			return
 		}
 
@@ -49,20 +55,22 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(feesInWei, blockHash, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
+		testimoniumClient.VerifyMerkleProof(feesInWei, rlpHeader, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
 			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
 	},
 }
 
-func writeMerkleProofAsJson(fileName []byte, blockHash [32]byte, tx []byte, path []byte, nodes []byte) {
+func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, tx []byte, path []byte, nodes []byte) {
 	f, err := os.Create(fmt.Sprintf("./0x%s.json", fileName))
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer f.Close()
 
-	hexEncodedHash := make([]byte, hex.EncodedLen(len(blockHash)))
-	hex.Encode(hexEncodedHash, blockHash[:])
+	hexEncodedRlpHeader := make([]byte, hex.EncodedLen(len(rlpHeader)))
+	hex.Encode(hexEncodedRlpHeader, rlpHeader)
 
 	hexEncodedTx := make([]byte, hex.EncodedLen(len(tx)))
 	hex.Encode(hexEncodedTx, tx)
@@ -74,7 +82,7 @@ func writeMerkleProofAsJson(fileName []byte, blockHash [32]byte, tx []byte, path
 	hex.Encode(hexEncodedNodes, nodes)
 
 	_, err = fmt.Fprint(f, "{\n")
-	_, err = fmt.Fprintf(f, "  \"blockHash\": \"0x%s\",\n", hexEncodedHash)
+	_, err = fmt.Fprintf(f, "  \"rlpHeader\": \"0x%s\",\n", hexEncodedRlpHeader)
 	_, err = fmt.Fprintf(f, "  \"rlpEncodedTx\": \"0x%s\",\n", hexEncodedTx)
 	_, err = fmt.Fprintf(f, "  \"path\": \"0x%s\",\n", hexEncodedPath)
 	_, err = fmt.Fprintf(f, "  \"rlpEncodedNodes\": \"0x%s\"\n", hexEncodedNodes)
