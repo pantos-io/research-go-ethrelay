@@ -277,15 +277,19 @@ func (c Client) TotalBalance() (*big.Int, error) {
 
 func (c Client) Balance(chainId uint8) (*big.Int, error) {
 	var totalBalance = new(big.Int);
+
 	_, exists := c.chains[chainId]
 	if !exists {
 		return nil, fmt.Errorf("chain %s does not exist", chainId)
 	}
+
 	balance, err := c.chains[chainId].client.BalanceAt(context.Background(), c.account, nil)
-	totalBalance.Add(totalBalance, balance)
 	if err != nil {
 		return nil, err
 	}
+
+	totalBalance.Add(totalBalance, balance)
+
 	return totalBalance, nil
 }
 
@@ -309,12 +313,16 @@ func (c Client) DepositStake(chainId uint8, amountInWei *big.Int) error {
 	if !exists {
 		return fmt.Errorf("chain %s does not exist", chainId)
 	}
+
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], amountInWei)
+
 	tx, err := c.chains[chainId].testimoniumContract.DepositStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
+
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
 	return nil
 }
 
@@ -597,9 +605,6 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	fmt.Println("Disputing block ...")
 
-	var dataSetLookUp []*big.Int
-	var witnessForLookup []*big.Int
-
 	rlpEncodedBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHash)
 	if err != nil {
 		log.Fatal(err)
@@ -626,8 +631,8 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 
 	// get DAG and compute dataSetLookup and witnessForLookup
 	blockMetaData := ethash.NewBlockMetaData(blockHeader.Number.Uint64(), blockHeader.Nonce.Uint64(), blockHeaderHashWithoutNonceLength32)
-	dataSetLookUp = blockMetaData.DAGElementArray()
-	witnessForLookup = blockMetaData.DAGProofArray()
+	dataSetLookUp := blockMetaData.DAGElementArray()
+	witnessForLookup := blockMetaData.DAGProofArray()
 
 	// the last thing needed for calling dispute is the parent rlp encoded block header
 	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
@@ -1030,12 +1035,14 @@ func (c Client) DeployEthash(targetChain uint8) (common.Address) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	receipt, err := awaitTxReceipt(c.chains[targetChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
@@ -1044,14 +1051,17 @@ func (c Client) DeployEthash(targetChain uint8) (common.Address) {
 	}
 
 	fmt.Println("Contract has been deployed at address: ", addr.String())
+
 	return addr
 }
 
 func getFailureReason(client *ethclient.Client, from common.Address, tx *types.Transaction, blockNumber *big.Int) string {
 	code, err := client.CallContract(context.Background(), createCallMsgFromTransaction(from, tx), blockNumber)
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return fmt.Sprintf(string(code[67:]))
 }
 
@@ -1091,9 +1101,9 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 }
 
 func decodeHeaderFromRLP(bytes []byte) (*types.Header, error) {
-	var header *types.Header
+	header := new(types.Header)
 
-	err := rlp.DecodeBytes(bytes, &header)
+	err := rlp.DecodeBytes(bytes, header)
 
 	return header, err
 }
@@ -1125,16 +1135,18 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	gasPrice, err := chain.client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Printf("Nonce: %d, Suggested Gas Price: %d\n", nonce, gasPrice)
+
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.From = from
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = valueInWei // in wei
 	auth.GasPrice = gasPrice
+
 	// one could also set the gas limit, however it seems that the right gas limit is only estimated
 	// if the gas limit is not set specifically
 	return auth

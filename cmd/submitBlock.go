@@ -37,9 +37,7 @@ var submitBlockCmd = &cobra.Command{
 		}
 
 		if submitFlagLiveMode {
-			log.Fatal("Live mode not implemented yet")
-
-			// TODO
+			// testimoniumClient.SubmitHeader(header, submitFlagDestChain)
 		}
 
 		testimoniumClient = createTestimoniumClient()

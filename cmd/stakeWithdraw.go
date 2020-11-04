@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"math/big"
-	"strconv"
 )
 
 // stakeDepositCmd represents the command 'stake deposit <amount>'
@@ -17,11 +16,14 @@ var stakeWithdrawCmd = &cobra.Command{
 	Long: `Withdraws the specified amount of Wei, i.e., the client's stake is decreased by the specified amount'`,
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
-		amountInWei, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
+
+		amountInWei := new(big.Int)
+		amountInWei, ok := amountInWei.SetString(args[0], 10)
+		if !ok {
+			log.Fatal("Can not parse amountInWei parameter")
 		}
-		err = testimoniumClient.WithdrawStake(stakeFlagChain, big.NewInt(int64(amountInWei)))
+		
+		err := testimoniumClient.WithdrawStake(stakeFlagChain, amountInWei)
 		if err != nil {
 			log.Fatal(err)
 		}
