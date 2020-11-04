@@ -9,6 +9,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"log"
+	"math/big"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,11 +27,6 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pantos-io/go-testimonium/ethereum/ethash"
 	"github.com/pantos-io/go-testimonium/typedefs"
-	"log"
-	"math/big"
-	"os"
-	"strconv"
-	"time"
 )
 
 type ChainConfig map[string]interface{}
@@ -47,7 +48,13 @@ type Client struct {
 	privateKey *ecdsa.PrivateKey
 }
 
-type BlockHeader struct {
+type Header struct {
+	Hash                      [32]byte
+	BlockNumber               *big.Int
+	TotalDifficulty           *big.Int
+}
+
+type FullHeader struct {
 	Parent                    [32]byte
 	UncleHash                 [32]byte
 	StateRoot                 [32]byte
@@ -55,11 +62,12 @@ type BlockHeader struct {
 	ReceiptsRoot              [32]byte
 	BlockNumber               *big.Int
 	GasLimit                  *big.Int
+	GasUsed                   *big.Int
 	RlpHeaderHashWithoutNonce [32]byte
 	Timestamp                 *big.Int
 	Nonce                     *big.Int
 	Difficulty                *big.Int
-	TotalDifficulty           *big.Int
+	ExtraData                 *byte
 }
 
 type VerificationResult struct {
@@ -74,7 +82,7 @@ const (
 	VALUE_TYPE_STATE       TrieValueType = 2
 )
 
-func (header BlockHeader) String() string {
+func (header FullHeader) String() string {
 	return fmt.Sprintf(`BlockHeader: {
 Parent: %s,
 StateRoot: %s,
@@ -83,7 +91,7 @@ ReceiptsRoot: %s,
 BlockNumber: %s,
 RlpHeaderHashWithoutNonce: %s,
 Nonce: %s,
-TotalDifficulty: %s }`,
+Difficulty: %s }`,
 		common.Bytes2Hex(header.Parent[:]),
 		common.Bytes2Hex(header.StateRoot[:]),
 		common.Bytes2Hex(header.TransactionsRoot[:]),
@@ -91,7 +99,7 @@ TotalDifficulty: %s }`,
 		header.BlockNumber.String(),
 		common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
 		header.Nonce.String(),
-		header.TotalDifficulty.String())
+		header.Difficulty.String())
 }
 
 func (t TestimoniumSubmitBlock) String() string {
@@ -103,7 +111,7 @@ func (event TestimoniumRemoveBranch) String() string {
 }
 
 func (event TestimoniumPoWValidationResult) String() string {
-	return fmt.Sprintf("PoWValidationResultEvent: { isPoWValid: %t, errorCode: %d, errorInfo: %d }", event.IsPoWValid, event.ErrorCode, event.ErrorInfo)
+	return fmt.Sprintf("PoWValidationResultEvent: { returnCode: %d, errorInfo: %d }", event.ReturnCode, event.ErrorInfo)
 }
 
 func (result VerificationResult) String() string {
@@ -354,14 +362,24 @@ func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error)
 	if !exists {
 		return false, fmt.Errorf("chain %s does not exist", chain)
 	}
-	return c.chains[chain].testimoniumContract.IsBlock(nil, blockHash)
+
+	return c.chains[chain].testimoniumContract.IsHeaderStored(nil, blockHash)
 }
 
-func (c Client) BlockHeader(blockHash [32]byte, chain uint8) (BlockHeader, error) {
+func (c Client) LongestChainEndpoint(chain uint8) ([32]byte, error) {
+	_, exists := c.chains[chain]
+	if !exists {
+		fmt.Errorf("chain %s does not exist", chain)
+	}
+
+	return c.chains[chain].testimoniumContract.LongestChainEndpoint(nil)
+}
+
+func (c Client) GetBlockHeader(blockHash [32]byte, chain uint8) (Header, error) {
 	return c.chains[chain].testimoniumContract.GetHeader(nil, blockHash)
 }
 
-func (c Client) OriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
+func (c Client) GetOriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
 	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
@@ -374,7 +392,7 @@ func (c Client) SubmitHeader(header *types.Header, chain uint8) {
 	if err != nil {
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}
-	//fmt.Printf("RLP: 0x%s\n", hex.EncodeToString(rlpHeader))
+
 	c.SubmitRLPHeader(rlpHeader, chain)
 }
 
@@ -391,12 +409,13 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex()) // tx sent: 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
@@ -423,6 +442,7 @@ func (c Client) BlockByHash(blockHash common.Hash, chain uint8) (*types.Block, e
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.BlockByHash(context.Background(), blockHash)
 }
 
@@ -430,6 +450,7 @@ func (c Client) BlockByNumber(blockNumber uint64, chain uint8) (*types.Block, er
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.BlockByNumber(context.Background(), new(big.Int).SetUint64(blockNumber))
 }
 
@@ -437,6 +458,7 @@ func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
 }
 
@@ -448,6 +470,7 @@ func toBlockNumArg(number *big.Int) string {
 	if number == nil {
 		return "latest"
 	}
+
 	return hexutil.EncodeBig(number)
 }
 
@@ -455,6 +478,7 @@ func (c Client) TotalDifficulty(blockNumber *big.Int, chain uint8) (*big.Int, er
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	client, err := rpc.Dial(c.chains[chain].fullUrl)
 	if err != nil {
 		log.Fatal("Failed to connect to chain", err)
@@ -470,6 +494,7 @@ func (c Client) TotalDifficulty(blockNumber *big.Int, chain uint8) (*big.Int, er
 	if err != nil {
 		return big.NewInt(0), err
 	}
+
 	return diff, nil
 }
 
@@ -477,6 +502,7 @@ func (c Client) HeaderByHash(blockHash common.Hash, chain uint8) (*types.Header,
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.HeaderByHash(context.Background(), blockHash)
 }
 
@@ -484,6 +510,7 @@ func (c Client) Transaction(txHash common.Hash, chain uint8) (*types.Transaction
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.TransactionByHash(context.Background(), txHash)
 }
 
@@ -491,31 +518,137 @@ func (c Client) TransactionReceipt(txHash common.Hash, chain uint8) (*types.Rece
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
+
 	return c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
 }
 
 func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header {
 	temp := header.TxHash
+
 	header.TxHash = header.ReceiptHash
 	header.ReceiptHash = header.Root
 	header.Root = temp
+
 	return header
 }
 
-func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witnessForLookup []*big.Int, chain uint8) {
-	fmt.Println("Dispute block ...")
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
-	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, blockHash, dataSetLookUp, witnessForLookup)
+func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
+	eventIterator, err := chain.testimoniumContract.FilterSubmitBlock(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: the search could be enhanced if we use index event parameters, but this causes a little more cost and changes to the contract, evaluation is necessary
+
+	for eventIterator.Next() {
+		// according to the contract, the submit header event has exactly one parameter/data-item that is submitted
+		// as no block-hash can be submitted twice, we found an event if the event data does equal the block-hash
+		if bytes.Equal(eventIterator.Event.Raw.Data, blockHash[:]) {
+
+			// get the hash where the event was emitted
+			txHash := eventIterator.Event.Raw.TxHash
+
+			// get the full transaction by txhash
+			tx, isPending, err := chain.client.TransactionByHash(context.Background(), txHash)
+			if err != nil {
+				return nil, err
+			}
+
+			// if the transaction is pending, we don't know if it will be included
+			if isPending {
+				return nil, fmt.Errorf("transaction where block was submitted is currently pending...")
+			}
+
+			// get raw abi-encoded bytes of transaction data
+			txData := tx.Data()
+
+			// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
+			methodId := txData[0:4]
+
+			// compare method-id with abi to ensure correct contracts etc., else fail
+			// TODO: this needs to be changed if the contract changes the submit-method name or their params
+			//  this could be prevented in parsing the contract ABI and make your own signature of the header
+			//  additionally, the parsing of the method params could be automated if we know the exact ABI content
+			if !bytes.Equal(methodId, common.Hex2Bytes("d5107381")) {
+				return nil, fmt.Errorf("signature of called method does not match contract method signature")
+			}
+
+			// get the position where the dynamic byte array (byte slice), containing the rlp encoded header, starts
+			// this is encoded in the next 32 bytes after the 4 bytes of the method signature
+			position := new(big.Int)
+			position.SetBytes(txData[4:4 + 32])
+
+			// as the rlp header is a dynamic byte array, we need to know the length of the content which is encoded
+			// in the next 32 bytes - generally, variable content with a prepended length param is appended to the
+			// end of the encoded, in this case it directly follows after the starting position of the first param
+			length := new(big.Int)
+			length.SetBytes(txData[4 + position.Uint64():4 + position.Uint64() + 32])
+
+			// get the rlpHeader data from the transaction starting after all params and length params are parsed
+			rlpEncodedBlockHeader := txData[4 + position.Uint64() + 32: 4 + position.Uint64() + 32 + length.Uint64()]
+
+			return rlpEncodedBlockHeader, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no submit event for block '%s' found", common.Bytes2Hex(blockHash[:]))
+}
+
+func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
+	fmt.Println("Disputing block ...")
+
+	var dataSetLookUp []*big.Int
+	var witnessForLookup []*big.Int
+
+	rlpEncodedBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex()) // tx sent: 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
+	// decode block header from rlp encoded block header
+	blockHeader, err := decodeHeaderFromRLP(rlpEncodedBlockHeader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// take the encoded block header and encode it without the nonce and the mixed hash
+	blockHeaderWithoutNonce, err := encodeHeaderWithoutNonceToRLP(blockHeader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create a hash to get the block hash without nonce needed for the ethash metadata construction
+	blockHeaderHashWithoutNonce := crypto.Keccak256(blockHeaderWithoutNonce)
+
+	// keccak256 returns a dynamic byte array, but we need a 32 byte fixed size byte array for the ethash block meta data
+	var blockHeaderHashWithoutNonceLength32 [32]byte
+	copy(blockHeaderHashWithoutNonceLength32[:], blockHeaderHashWithoutNonce)
+
+	// get DAG and compute dataSetLookup and witnessForLookup
+	blockMetaData := ethash.NewBlockMetaData(blockHeader.Number.Uint64(), blockHeader.Nonce.Uint64(), blockHeaderHashWithoutNonceLength32)
+	dataSetLookUp = blockMetaData.DAGElementArray()
+	witnessForLookup = blockMetaData.DAGProofArray()
+
+	// the last thing needed for calling dispute is the parent rlp encoded block header
+	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+
+	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
@@ -532,6 +665,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if eventIteratorRemoveBranch.Next() {
 		fmt.Printf("Tx successful: %s\n", eventIteratorRemoveBranch.Event.String())
 	}
@@ -545,23 +679,29 @@ func (c Client) DisputeBlock(blockHash [32]byte, dataSetLookUp []*big.Int, witne
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if eventIteratorPoWResult.Next() {
 		fmt.Printf("Tx successful: %s\n", eventIteratorPoWResult.Event.String())
 	}
 }
 
-func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
+func (c Client) GetRequiredVerificationFee(chain uint8) (*big.Int, error) {
+	return c.chains[chain].testimoniumContract.GetRequiredVerificationFee(nil)
+}
+
+func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, []byte, []byte, []byte, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
 	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
-		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
+
 	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
-		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
 
 	// create transactions trie
@@ -576,6 +716,7 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([32]byte
 
 	// create Merkle proof
 	rlpEncodedTx := txList.GetRlp(int(txReceipt.TransactionIndex))
+
 	buffer.Reset()
 	rlp.Encode(buffer, uint(txReceipt.TransactionIndex))
 	path := make([]byte, len(buffer.Bytes()))
@@ -590,25 +731,31 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([32]byte
 			break
 		}
 	}
+
 	buffer.Reset()
 	rlp.Encode(buffer, proofNodes)
 	rlpEncodedProofNodes := buffer.Bytes()
 
-	return txReceipt.BlockHash, rlpEncodedTx, path, rlpEncodedProofNodes, nil
+	buffer.Reset()
+	rlp.Encode(buffer, block.Header())
+	rlpEncodedHeader := buffer.Bytes()
+
+	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([32]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]byte, []byte, []byte, []byte, error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
 	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
-		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
+
 	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
-		return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
 
 	var path []byte
@@ -621,7 +768,7 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([32
 		tx := block.Body().Transactions[i]
 		receipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), tx.Hash())
 		if err != nil {
-			return [32]byte{}, []byte{}, []byte{}, []byte{}, err
+			return []byte{}, []byte{}, []byte{}, []byte{}, err
 		}
 
 		buffer.Reset()
@@ -654,43 +801,40 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([32
 			break
 		}
 	}
+
 	buffer.Reset()
 	rlp.Encode(buffer, proofNodes)
 	rlpEncodedProofNodes := buffer.Bytes()
 
-	return txReceipt.BlockHash, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
+	buffer.Reset()
+	rlp.Encode(buffer, block.Header())
+	rlpEncodedHeader := buffer.Bytes()
+
+	return rlpEncodedHeader, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) GetRequiredVerificationFee(chain uint8) (*big.Int, error) {
-	return c.chains[chain].testimoniumContract.GetRequiredVerificationFee(nil)
-}
-
-func (c Client) VerifyMerkleProof(feeInWei *big.Int, blockHash [32]byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
+func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
 	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain uint8) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
-
-	//fmt.Println("rlpEncodedTx=", common.Bytes2Hex(rlpEncodedValue))
-	//fmt.Println("path=", common.Bytes2Hex(path))
-	//fmt.Println("rlpEncodedProofNodes=", common.Bytes2Hex(rlpEncodedProofNodes))
 
 	var tx *types.Transaction
 	var err error
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], feeInWei)
 
 	switch trieValueType {
-	case VALUE_TYPE_TRANSACTION:
-		tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, blockHash,
-			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
-	case VALUE_TYPE_RECEIPT:
-		tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, blockHash, noOfConfirmations,
-			rlpEncodedValue, path, rlpEncodedProofNodes)
-	case VALUE_TYPE_STATE:
-		tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, blockHash, noOfConfirmations,
-			rlpEncodedValue, path, rlpEncodedProofNodes)
-	default:
-		log.Fatal("Unexpected trie value type: ", trieValueType)
+		case VALUE_TYPE_TRANSACTION:
+			tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, rlpHeader,
+				noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
+		case VALUE_TYPE_RECEIPT:
+			tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
+				rlpEncodedValue, path, rlpEncodedProofNodes)
+		case VALUE_TYPE_STATE:
+			tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
+				rlpEncodedValue, path, rlpEncodedProofNodes)
+		default:
+			log.Fatal("Unexpected trie value type: ", trieValueType)
 	}
 
 	if err != nil {
@@ -703,6 +847,7 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, blockHash [32]byte, trieVal
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
@@ -724,6 +869,7 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, blockHash [32]byte, trieVal
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fmt.Printf("Tx successful: %s\n", verificationResult.String())
 }
 
@@ -922,6 +1068,7 @@ func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) et
 
 func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 	buffer := new(bytes.Buffer)
+
 	err := rlp.Encode(buffer, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
@@ -939,7 +1086,37 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 		header.MixDigest,
 		header.Nonce,
 	})
-	//fmt.Printf("F RLP: 0x%s\n", hex.EncodeToString(buffer.Bytes()))
+
+	return buffer.Bytes(), err
+}
+
+func decodeHeaderFromRLP(bytes []byte) (*types.Header, error) {
+	var header *types.Header
+
+	err := rlp.DecodeBytes(bytes, &header)
+
+	return header, err
+}
+
+func encodeHeaderWithoutNonceToRLP(header *types.Header) ([]byte, error) {
+	buffer := new(bytes.Buffer)
+
+	err := rlp.Encode(buffer, []interface{}{
+		header.ParentHash,
+		header.UncleHash,
+		header.Coinbase,
+		header.Root,
+		header.TxHash,
+		header.ReceiptHash,
+		header.Bloom,
+		header.Difficulty,
+		header.Number,
+		header.GasLimit,
+		header.GasUsed,
+		header.Time,
+		header.Extra,
+	})
+
 	return buffer.Bytes(), err
 }
 
