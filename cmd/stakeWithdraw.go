@@ -22,7 +22,7 @@ var stakeWithdrawCmd = &cobra.Command{
 		if !ok {
 			log.Fatal("Can not parse amountInWei parameter")
 		}
-		
+
 		err := testimoniumClient.WithdrawStake(stakeFlagChain, amountInWei)
 		if err != nil {
 			log.Fatal(err)
