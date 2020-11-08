@@ -102,8 +102,8 @@ Difficulty: %s }`,
 		header.Difficulty.String())
 }
 
-func (t TestimoniumSubmitBlock) String() string {
-	return fmt.Sprintf("SubmitBlockHeaderEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
+func (t TestimoniumSubmitHeader) String() string {
+	return fmt.Sprintf("SubmitHeaderEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -432,7 +432,7 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlock(&bind.FilterOpts{
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitHeader(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -541,7 +541,7 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 }
 
 func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
-	eventIterator, err := chain.testimoniumContract.FilterSubmitBlock(nil)
+	eventIterator, err := chain.testimoniumContract.FilterSubmitHeader(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -723,7 +723,7 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, 
 	rlpEncodedTx := txList.GetRlp(int(txReceipt.TransactionIndex))
 
 	buffer.Reset()
-	rlp.Encode(buffer, uint(txReceipt.TransactionIndex))
+	rlp.Encode(buffer, txReceipt.TransactionIndex)
 	path := make([]byte, len(buffer.Bytes()))
 	copy(path, buffer.Bytes())
 
@@ -739,11 +739,13 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, 
 
 	buffer.Reset()
 	rlp.Encode(buffer, proofNodes)
-	rlpEncodedProofNodes := buffer.Bytes()
+	rlpEncodedProofNodes := make([]byte, len(buffer.Bytes()))
+	copy(rlpEncodedProofNodes, buffer.Bytes())
 
 	buffer.Reset()
 	rlp.Encode(buffer, block.Header())
-	rlpEncodedHeader := buffer.Bytes()
+	rlpEncodedHeader := make([]byte, len(buffer.Bytes()))
+	copy(rlpEncodedHeader, buffer.Bytes())
 
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
@@ -771,6 +773,7 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]b
 	merkleTrie := new(trie.Trie)
 	for i := 0; i < block.Transactions().Len(); i++ {
 		tx := block.Body().Transactions[i]
+
 		receipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), tx.Hash())
 		if err != nil {
 			return []byte{}, []byte{}, []byte{}, []byte{}, err
@@ -809,11 +812,13 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]b
 
 	buffer.Reset()
 	rlp.Encode(buffer, proofNodes)
-	rlpEncodedProofNodes := buffer.Bytes()
+	rlpEncodedProofNodes := make([]byte, len(buffer.Bytes()))
+	copy(rlpEncodedProofNodes, buffer.Bytes())
 
 	buffer.Reset()
 	rlp.Encode(buffer, block.Header())
-	rlpEncodedHeader := buffer.Bytes()
+	rlpEncodedHeader := make([]byte, len(buffer.Bytes()))
+	copy(rlpEncodedHeader, buffer.Bytes())
 
 	return rlpEncodedHeader, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
 }
@@ -863,12 +868,12 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValue
 	var verificationResult *VerificationResult
 
 	switch trieValueType {
-	case VALUE_TYPE_TRANSACTION:
-		verificationResult, err = c.getVerifyTransactionEvent(chain, receipt)
-	case VALUE_TYPE_RECEIPT:
-		verificationResult, err = c.getVerifyReceiptEvent(chain, receipt)
-	case VALUE_TYPE_STATE:
-		verificationResult, err = c.getVerifyStateEvent(chain, receipt)
+		case VALUE_TYPE_TRANSACTION:
+			verificationResult, err = c.getVerifyTransactionEvent(chain, receipt)
+		case VALUE_TYPE_RECEIPT:
+			verificationResult, err = c.getVerifyReceiptEvent(chain, receipt)
+		case VALUE_TYPE_STATE:
+			verificationResult, err = c.getVerifyStateEvent(chain, receipt)
 	}
 
 	if err != nil {
@@ -1097,6 +1102,7 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 		header.Nonce,
 	})
 
+	// be careful when passing byte-array as buffer, the pointer can change if the buffer is used again
 	return buffer.Bytes(), err
 }
 
