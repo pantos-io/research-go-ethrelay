@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"log"
 	"math"
@@ -23,10 +24,12 @@ var stakeCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		var stakeInEth = new(big.Float)
 		stakeInEth = stakeInEth.SetInt(stakeInWei)
 		stakeInEth = new(big.Float).Quo(stakeInEth, big.NewFloat(math.Pow10(18)))
-		log.Println("Stake (ETH):", stakeInEth)
+
+		fmt.Printf("Stake balance: %s ETH\n", stakeInEth.String())
 	},
 }
 

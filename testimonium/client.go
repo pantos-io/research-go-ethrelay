@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -102,8 +103,8 @@ Difficulty: %s }`,
 		header.Difficulty.String())
 }
 
-func (t TestimoniumSubmitHeader) String() string {
-	return fmt.Sprintf("SubmitHeaderEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
+func (t TestimoniumSubmitBlock) String() string {
+	return fmt.Sprintf("SubmitBlockEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -316,12 +317,12 @@ func (c Client) DepositStake(chainId uint8, amountInWei *big.Int) error {
 
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], amountInWei)
 
-	tx, err := c.chains[chainId].testimoniumContract.DepositStake(auth, amountInWei)
+	_, err := c.chains[chainId].testimoniumContract.DepositStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	return nil
 }
@@ -331,17 +332,21 @@ func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
 	if !exists {
 		return fmt.Errorf("chain %s does not exist", chainId)
 	}
+
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], big.NewInt(0))
+
 	tx, err := c.chains[chainId].testimoniumContract.WithdrawStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	receipt, err := awaitTxReceipt(c.chains[chainId].client, tx.Hash())
 	if err != nil {
 		return err
 	}
+
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chainId].client, c.account, tx, receipt.BlockNumber)
@@ -359,10 +364,16 @@ func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
 	}
 
 	if eventIterator.Next() {
-		fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+
+		if eventIterator.Event.WithdrawnStake.Cmp(amountInWei) != 0 {
+			return errors.New("withdraw not successful, reason: more than 'amount' stake is locked in contract")
+		}
+
+		return nil
 	}
 
-	return nil
+	return errors.New("uncaught error")
 }
 
 func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error) {
@@ -374,13 +385,13 @@ func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error)
 	return c.chains[chain].testimoniumContract.IsHeaderStored(nil, blockHash)
 }
 
-func (c Client) LongestChainEndpoint(chain uint8) ([32]byte, error) {
+func (c Client) GetLongestChainEndpoint(chain uint8) ([32]byte, error) {
 	_, exists := c.chains[chain]
 	if !exists {
 		fmt.Errorf("chain %s does not exist", chain)
 	}
 
-	return c.chains[chain].testimoniumContract.LongestChainEndpoint(nil)
+	return c.chains[chain].testimoniumContract.GetLongestChainEndpoint(nil)
 }
 
 func (c Client) GetBlockHeader(blockHash [32]byte, chain uint8) (Header, error) {
@@ -391,7 +402,7 @@ func (c Client) GetOriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.
 	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
-func (c Client) SubmitHeader(header *types.Header, chain uint8) {
+func (c Client) SubmitHeader(header *types.Header, chain uint8) (error) {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
@@ -401,23 +412,232 @@ func (c Client) SubmitHeader(header *types.Header, chain uint8) {
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}
 
-	c.SubmitRLPHeader(rlpHeader, chain)
+	return c.SubmitRLPHeader(rlpHeader, chain)
 }
 
-func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
+func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lockTime time.Duration) {
+	// Check preconditions
+	if _, exists := c.chains[destinationChain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", destinationChain)
+	}
+
+	if _, exists := c.chains[sourceChain]; !exists {
+		log.Fatalf("Chain '%d' does not exist", sourceChain)
+	}
+
+	/*
+		there is much more to care about here:
+		- 	if the genesis block of the testimonium contract is not on the current main chain,
+			it is unpossible to find a block from where we can start submitting new blocks.
+			this should be taken into account when creating a contract by selecting a genesis block
+			far enough in the past that is ensured to not get into this scenario. the best case would be
+			to start at block 0 of the source blockchain as this can never be a forked orphan branch.
+			if this is the case, the search would go to block no. 0 to realize the genesis block is not on
+			a given branch. this could be prevented by including a contract-creation search and check if the
+			given blockNumber is not smaller than the genesis block, else it is useless and we can stop immediately.
+		- 	if new blocks occur on the main chain, it is not safe if thy get into the longest chain or not.
+			a participant in the relay-network may not take the risk to submit transactions with a high transaction-
+			cost if they will never get any fees for this block. here, the participant with the fastest
+			internet-connection (receiving new blocks from the main-chain and sending the blocks to the
+			destination chain only requires latency and no hard problems) can relay all new blocks and
+			wins the race so all fees go to the single participant. maybe this is not a big problem as relays
+			can be deployed in the cloud and run in a very cheap and cost-intensive way.
+		-	at the very first time the search and submit-phase takes a very long time because first one
+			has to go back all the blocks and than submit all single blocks. here, the only way this could
+			be enhanced is batch processing, which the testimonium contract already supports and some kind of
+			binary search to effectively search for the latest submitted block which is part of the longest chain
+			and part in the testimonium contract
+		-	there may be not enough stake to deposit all blocks so one have to wait until the blocks are unlocked and
+			the stake is freed again.
+		-	another one has already submitted the block between finding this block with the search and submitting the block
+		-	implement a live mode by subscribing to new blocks, here the same errors as above can occur
+	*/
+
+	// as the relay makes only sense if it's on the latest state of the main chain and it should never get older
+	// than a few blocks behind the main chain it should be more performant and easier to do a simple backward-scan
+	// starting with the newest block of the main chain, on the other hand, a binary search is always very fast and
+	// if in the backwards search more than log2(n) blocks are stored, a binary search is always faster, so maybe
+	// implement a binary search as default here
+
+	genesis, err := c.chains[destinationChain].testimoniumContract.GetGenesisBlockHash(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Getting sure Testimonium genesis block 0x%s from destination chain %d really exists on source chain %d\n", common.Bytes2Hex(genesis[:]), sourceChain, destinationChain)
+
+	// returns an error if genesis was not found
+	_, err = c.chains[sourceChain].client.HeaderByHash(context.Background(), genesis)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// at the beginning this is nil - which returns the most recent block
+	var blockNumber *big.Int = nil
+	one := big.NewInt(1)
+
+	var header *types.Header = nil
+
+	// find the most recent block that was already submitted
+	for {
+		// get newest, longest header from source chain
+		header, err = c.HeaderByNumber(blockNumber, sourceChain)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("\nSearching for block No. %s from source chain %d on destination chain %d", header.Number.String(), sourceChain, destinationChain)
+
+		isHeaderStored, err := c.chains[destinationChain].testimoniumContract.IsHeaderStored(nil, header.Hash())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if isHeaderStored {
+			break
+		}
+
+		blockNumber = header.Number
+
+		blockNumber.Sub(blockNumber, one)
+	}
+
+	fmt.Printf("\n\nlatest block No. submitted to destination chain: %s\n\n", header.Number.String())
+
+	requiredStake, err := c.chains[destinationChain].testimoniumContract.GetRequiredStakePerBlock(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stake, err := c.GetStake(destinationChain)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// check if there is enough stake
+	if stake.Cmp(requiredStake) < 0 {
+		log.Fatal("not enough stake deposited")
+	}
+
+	// has to be bigger than one as we checked above
+	// TODO: if stake is currently locked, the routine tries to use it, but an error occurs
+	maxBlocksWithStake := big.NewInt(0)
+	maxBlocksWithStake.Div(stake, requiredStake)
+
+	// calculate max. block submissions with stake
+	var queue []time.Time
+
+	// blockNumber was updated, so the destination chain is a few blocks behind source chain - updating now
+	if blockNumber != nil {
+		// submit all blocks to the most recent one
+		for {
+			if len(queue) >= int(maxBlocksWithStake.Uint64()) {
+				timeUntilNextBlockIsUnlocked := queue[0].Add(lockTime)
+				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
+
+				if waitingTime > 0 {
+					fmt.Printf("all stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
+					time.Sleep(waitingTime)
+				}
+
+				queue = queue[1:]
+			}
+
+			// increase by one as we only want blocks that are new
+			blockNumber.Add(blockNumber, one)
+
+			header, err := c.HeaderByNumber(blockNumber, sourceChain)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("submitting block: %s\n", blockNumber.String())
+			fmt.Println("queue-length: ", len(queue))
+
+			// TODO: a check for enough free/unlocked stake is required here, though a time based workaround is already implemented
+			err = c.SubmitHeader(header, destinationChain)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// add now + 1m for latency and whatever
+			queue = append(queue, time.Now().Add(time.Second))
+
+			// get newest, longest header from source chain
+			header, err = c.HeaderByNumber(nil, sourceChain)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// we caught up all the blocks... continue
+			if header.Number.Cmp(blockNumber) == 0 {
+				break
+			}
+		}
+	}
+
+	fmt.Printf("\nstarting live mode...\n\n")
+
+	headers := make(chan *types.Header)
+
+	sub, err := c.chains[sourceChain].client.SubscribeNewHead(context.Background(), headers)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		select {
+		case err := <-sub.Err():
+			log.Fatal(err)
+		case header := <-headers:
+			if len(queue) >= int(maxBlocksWithStake.Uint64()) {
+				timeUntilNextBlockIsUnlocked := queue[0].Add(lockTime)
+				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
+
+				if waitingTime > 0 {
+					fmt.Printf("all stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
+					time.Sleep(waitingTime)
+				}
+
+				queue = queue[1:]
+			}
+
+			fmt.Printf("submitting block: %s\n", header.Number.String())
+			fmt.Println("queue-length: ", len(queue))
+
+			err = c.SubmitHeader(header, destinationChain)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			queue = append(queue, time.Now().Add(time.Second))
+		}
+	}
+}
+
+func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) (error) {
 	// Check preconditions
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
+	// for getting the max. actual gas limit, that's only a workaround for the indeterministic
+	// "now" value in the contract method cleanSubmitList's isUnlocked call as we don't know
+	// the exact timestamp and can't estimate gas precisely
+	lastBlock, err := c.chains[chain].client.BlockByNumber(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Submit Transfer Transaction
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+	auth.GasLimit = lastBlock.GasLimit()
 	tx, err := c.chains[chain].testimoniumContract.SubmitBlock(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
 	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
 	if err != nil {
@@ -427,12 +647,12 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
-		fmt.Printf("Tx failed: %s\n", reason)
-		return
+		// fmt.Printf("Tx failed: %s\n", reason)
+		return errors.New(reason)
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitHeader(&bind.FilterOpts{
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlock(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -441,9 +661,22 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) {
 		log.Fatal(err)
 	}
 
+	// TODO: is this really the next event on the same chain? what if a transaction is included into one block,
+	//  but get's overtaken by a submit-event of another fork? if it is guaranteed that the client is not reconnecting
+	//  to other nodes within a usage - this may also be the case on every other transaction call
+	//  workaround: check that the transaction from eventIterator's event is the same as the submitted transaction above
 	if eventIterator.Next() {
-		fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
+
+		// TODO: this is only 1 special hash value emitted by the contract for too small stake and not a read error code
+		if eventIterator.Event.BlockHash == [32] byte { 0 } {
+			return errors.New("block was not submitted, reason: too small stake deposited")
+		}
+
+		return nil
 	}
+
+	return errors.New("uncaught error")
 }
 
 func (c Client) BlockByHash(blockHash common.Hash, chain uint8) (*types.Block, error) {
@@ -541,12 +774,14 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 }
 
 func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
-	eventIterator, err := chain.testimoniumContract.FilterSubmitHeader(nil)
+	eventIterator, err := chain.testimoniumContract.FilterSubmitBlock(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: the search could be enhanced if we use index event parameters, but this causes a little more cost and changes to the contract, evaluation is necessary
+	// TODO: the search could be enhanced if we use index event parameters, but this causes a little more cost and changes to the contract,
+	//  evaluation is necessary - neglected in the first case, as the usual case is, that the event is at most the lock period behind,
+	//  because it is not meant to need this for anything else than disputing
 
 	for eventIterator.Next() {
 		// according to the contract, the submit header event has exactly one parameter/data-item that is submitted
@@ -983,9 +1218,9 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 	}
 }
 
-func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisBlockNumber uint64) (common.Address) {
-	if _, exists := c.chains[targetChain]; !exists {
-		log.Fatalf("Target chain '%d' does not exist", targetChain)
+func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, genesisBlockNumber uint64) (common.Address) {
+	if _, exists := c.chains[destinationChain]; !exists {
+		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
 	}
 	if _, exists := c.chains[sourceChain]; !exists {
 		log.Fatalf("Source chain '%d' does not exist", sourceChain)
@@ -1006,21 +1241,21 @@ func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisB
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
 
-	addr, tx, _, err := DeployTestimonium(auth, c.chains[targetChain].client, rlpHeader, totalDifficulty, c.chains[targetChain].ethashContractAddress)
+	addr, tx, _, err := DeployTestimonium(auth, c.chains[destinationChain].client, rlpHeader, totalDifficulty, c.chains[destinationChain].ethashContractAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[targetChain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.chains[destinationChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.chains[destinationChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return common.Address{}
 	}
@@ -1029,28 +1264,28 @@ func (c Client) DeployTestimonium(targetChain uint8, sourceChain uint8, genesisB
 	return addr
 }
 
-func (c Client) DeployEthash(targetChain uint8) (common.Address) {
-	if _, exists := c.chains[targetChain]; !exists {
-		log.Fatalf("Target chain '%d' does not exist", targetChain)
+func (c Client) DeployEthash(destinationChain uint8) (common.Address) {
+	if _, exists := c.chains[destinationChain]; !exists {
+		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[targetChain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
 
-	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[targetChain].client)
+	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[destinationChain].client)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[targetChain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.chains[destinationChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[targetChain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.chains[destinationChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return common.Address{}
 	}

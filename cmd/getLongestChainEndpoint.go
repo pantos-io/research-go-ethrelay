@@ -1,5 +1,5 @@
 // This file contains logic executed if the command "get longestchainendpoint" is typed in.
-// Authors: Marten Sigwart, Philipp Frauenthaler
+// Authors: Leonhard Esterbauer
 
 package cmd
 
@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var testimoniumContractChain uint8
+
 // getLongestChainEndpointCmd represents the block command
 var getLongestChainEndpointCmd = &cobra.Command{
 	Use:   "longestchainendpoint",
@@ -21,15 +23,17 @@ var getLongestChainEndpointCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
 
-		blockHash, err := testimoniumClient.LongestChainEndpoint(getFlagChain)
+		blockHash, err := testimoniumClient.GetLongestChainEndpoint(testimoniumContractChain)
 		if err != nil {
-			log.Fatal("Failed to retrieve longest chain blockHash from chain " + strconv.Itoa(int(getFlagChain)) + ":" + err.Error())
+			log.Fatal("Failed to retrieve longest chain blockHash from chain " + strconv.Itoa(int(testimoniumContractChain)) + ":" + err.Error())
 		}
 
-		fmt.Printf("LongestChainEndpointBlockHash: { Hash: %s }\n", common.BytesToHash(blockHash[:]).String())
+		fmt.Printf("LongestChainEndpointBlockHash: %s\n", common.BytesToHash(blockHash[:]).String())
 	},
 }
 
 func init() {
 	getCmd.AddCommand(getLongestChainEndpointCmd)
+
+	getLongestChainEndpointCmd.PersistentFlags().Uint8VarP(&testimoniumContractChain, "verifying", "v", 1, "The blockchain where the contract was deployed")
 }

@@ -28,9 +28,9 @@ var testimoniumCmd = &cobra.Command{
 	Long: `Deploys the Testimonium smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
-		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagChain, deployFlagTargetChain, deployFlagGenesisNumber)
+		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagVerifyingChain, deployFlagTargetChain, deployFlagGenesisNumber)
 
-		updateChainsConfig(deployedAddress, deployFlagChain, "testimoniumAddress")
+		updateChainsConfig(deployedAddress, deployFlagVerifyingChain, "testimoniumAddress")
 	},
 }
 

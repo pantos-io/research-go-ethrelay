@@ -4,8 +4,10 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"log"
+	"math"
 	"math/big"
 )
 
@@ -28,7 +30,11 @@ var stakeDepositCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		log.Println("Deposit was successful")
+		var stakeInEth = new(big.Float)
+		stakeInEth = stakeInEth.SetInt(amountInWei)
+		stakeInEth = new(big.Float).Quo(stakeInEth, big.NewFloat(math.Pow10(18)))
+
+		fmt.Printf("Successfully deposited stake: %s ETH\n", stakeInEth.String())
 	},
 }
 

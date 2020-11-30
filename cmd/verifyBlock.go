@@ -26,6 +26,10 @@ import (
 // verifyBlockCmd represents the block command
 // TODO: this command only compares the hashes and checks for existence on the respective chain, not for equality
 //  even though a tampering is hard to achieve, this does not mean the blocks are equal
+// 	another unlikely misbehaviour of this command is occurs if one tries to verify a block to kick off a dispute
+// 	- here it is possible that a block is valid on the verifying chain and can't be disputed by participants,
+//  however, this would means that an "attacker" can produce blocks in a faster way than the source blockchain
+//  and is for that reason very unlikely
 var verifyBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
 	Short: "Verifies a block",

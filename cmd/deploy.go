@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deployFlagChain uint8
+var deployFlagVerifyingChain uint8
 
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
@@ -38,7 +38,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	deployCmd.PersistentFlags().Uint8VarP(&deployFlagChain, "chain", "c", 1, "The blockchain to which the smart contract is deployed")
+	deployCmd.PersistentFlags().Uint8VarP(&deployFlagVerifyingChain, "verifying", "v", 1, "The blockchain to which the smart contract is deployed")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

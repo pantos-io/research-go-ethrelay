@@ -25,9 +25,9 @@ var ethashCmd = &cobra.Command{
 	Long: `Deploys the Ethash smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
-		deployedAddress := testimoniumClient.DeployEthash(deployFlagChain)
+		deployedAddress := testimoniumClient.DeployEthash(deployFlagVerifyingChain)
 
-		updateChainsConfig(deployedAddress, deployFlagChain, "ethashAddress")
+		updateChainsConfig(deployedAddress, deployFlagVerifyingChain, "ethashAddress")
 	},
 }
 

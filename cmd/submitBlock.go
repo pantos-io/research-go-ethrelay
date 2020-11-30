@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"math/big"
+	"time"
 )
 
 var submitFlagSrcChain uint8
@@ -37,7 +38,11 @@ var submitBlockCmd = &cobra.Command{
 		}
 
 		if submitFlagLiveMode {
-			log.Fatalf("Live mode is not implemented yet.")
+			testimoniumClient = createTestimoniumClient()
+			// TODO: live mode should be variable, outsource this to terminal
+			testimoniumClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5 * time.Minute)
+
+			return
 		}
 
 		testimoniumClient = createTestimoniumClient()
@@ -58,8 +63,13 @@ var submitBlockCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
+
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
-		testimoniumClient.SubmitHeader(header, submitFlagDestChain)
+
+		err = testimoniumClient.SubmitHeader(header, submitFlagDestChain)
+		if err != nil {
+			log.Fatal("Failed to submit header: " + err.Error())
+		}
 	},
 }
 
