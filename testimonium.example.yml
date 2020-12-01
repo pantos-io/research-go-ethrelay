@@ -1,0 +1,11 @@
+chains:
+  "0":
+    type: wss
+    url: mainnet.infura.io/ws/v3/1e835672adba4a9b934a12a3ec58ebad
+  "1":
+    ethashaddress: 0x9094860c5B746EC0b151eb6673Ec543EeF5cEbc3
+    port: 7545
+    testimoniumaddress: 0x8B8583022E2922bee495B1c2b0f7BE0e7cac0b3f
+    type: http
+    url: localhost
+privatekey: 0x45b5ffd7266ec7131f31f94fa843b99fd270b42d94bf01368ceeb936649dfc3b
