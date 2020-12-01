@@ -16,14 +16,14 @@ You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://
 ## Get Started
 _The following setup will take you through the deployment of ETH Relay with a local Ethereum blockchain (Ganache)
 as verifying chain and the main Ethereum chain as target chain.
-Information on how to connect other blockchains can be found [here](#Configuration)._
-
+Information on how to connect to other blockchains can be found [here](#Configuration)._
+Remark: testimonium was the name of the old relay client and at some points in this repo the old name testimonium is used for things like e.g. the config files.
 
 1. Install the library and CLI with `$ go get github.com/pantos-io/go-ethrelay`.
 Check that the CLI was installed correctly by running `$ go-ethrelay --help`.
-If you want to install the library manually, you can simply clone this repository and run any command in the cloned direcoty with `go run main.go [command]`.
+If you want to install the library manually, you can simply clone this repository and run any command in the cloned directory with `go run main.go [command]`.
 
-2. Run `go-ethrelay init` or `go run main.go init` to initialize the client.
+2. Run `go-ethrelay init` to initialize the client.
 If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the testimonium.yml config file in the current folder.
 It is also possible to generate the file by hand or change the example config file named testimonium.example.yml contained in this repo. 
 
@@ -53,7 +53,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 ---
 
-`init`: Initializes the client by creating a ethrelay.yml file in the current directory that acts as config file for all command calls.
+`init`: Initializes the client by creating a testimonium.yml file in the current directory that acts as config file for all command calls.
 
 `account`: Prints the address of the current account
 
@@ -102,7 +102,7 @@ sh setup-realy.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649d
 ```
 
 ## Configuration
-The relay client uses a configuration file called `ethrelay.yml` file.
+The relay client uses a configuration file called `testimonium.yml` file.
 
 The default file looks like this:
 
@@ -127,7 +127,7 @@ If no port is defined, it is determined by the default port of the type.
 
 
 If you have already deployed the Ethash and ETH Relay contracts, you might find further entries
-`ethashAddress` and `ethrelayAddress` under a specific chain config:
+`ethashAddress` and `testimoniumAddress` under a specific chain config:
 
     ...
     chains:
@@ -136,7 +136,7 @@ If you have already deployed the Ethash and ETH Relay contracts, you might find 
             type: http
             url: localhost
             port: 8545
-            ethrelayAddress: 0xabc123...
+            testimoniumAddress: 0xabc123...
             ethashAddress: 0x123abc...
 
 These are the addresses that the client uses to interact with the ETH Relay smart contracts.
