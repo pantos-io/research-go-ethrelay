@@ -409,6 +409,8 @@ func (c Client) SubmitHeader(header *types.Header, chain uint8) (error) {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
+	fmt.Printf("Submitting block: \nNo: %s\nHash: %s\n", header.Number.String(), header.Hash().String())
+
 	rlpHeader, err := encodeHeaderToRLP(header)
 	if err != nil {
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
@@ -553,8 +555,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 				log.Fatal(err)
 			}
 
-			fmt.Printf("submitting block: %s\n", blockNumber.String())
-			fmt.Println("queue-length: ", len(queue))
+			fmt.Println("Stake queue-length: ", len(queue), "\n")
 
 			// TODO: a check for enough free/unlocked stake is required here, though a time based workaround is already implemented
 			err = c.SubmitHeader(header, destinationChain)
@@ -604,8 +605,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 				queue = queue[1:]
 			}
 
-			fmt.Printf("submitting block: %s\n", header.Number.String())
-			fmt.Println("queue-length: ", len(queue))
+			fmt.Println("Stake queue-length: ", len(queue), "\n")
 
 			err = c.SubmitHeader(header, destinationChain)
 			if err != nil {
