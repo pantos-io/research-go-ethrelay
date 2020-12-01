@@ -1,15 +1,16 @@
-# Go-ethrelay
-This project contains a Go-library and command-line interface (CLI) to interact with the [ETH Relay](https://github.com/pantos-io/ethrelay) prototype.
+# Go-ETH Relay
+This project contains a Go-library and a command-line interface (CLI) to interact with the [ETH Relay](https://github.com/pantos-io/ethrelay) prototype.
  
-ETH Relay enables the cross-blockchain verification of transactions. 
-That is, a "verifying" blockchain can verify that a certain transaction (receipt, state) is included 
-in a different "target" blockchain without relying on third-party trust.
+ETH Relay enables the cross-blockchain verification of transactions.
+This makes it possible that a "verifying" (destination) blockchain can verify if a certain transaction (or receipt, or state) is included 
+in a different "target" (source) blockchain without relying or trusting a third-party.
 
 Detailed information about how the prototype works can be found [here](https://dsg.tuwien.ac.at/projects/tast/pub/tast-white-paper-6.pdf).
 
 > _Important: ETH Relay is a research prototype. 
     It represents ongoing work conducted within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) 
     research project. Use with care._
+
 ## Prerequisites
 You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://www.trufflesuite.com/ganache) (>= 2.1.0) installed. 
 ## Get Started
@@ -18,29 +19,31 @@ as verifying chain and the main Ethereum chain as target chain.
 Information on how to connect other blockchains can be found [here](#Configuration)._
 
 
-1. Install the library and CLI with `$ go get github.com/pantos-io/go-ethrelay`.  
+1. Install the library and CLI with `$ go get github.com/pantos-io/go-ethrelay`.
 Check that the CLI was installed correctly by running `$ go-ethrelay --help`.
+If you want to install the library manually, you can simply clone this repository and run any command in the cloned direcoty with `go run main.go [command]`.
 
-2. Run `go-ethrelay init` to initialize the client.
+2. Run `go-ethrelay init` or `go run main.go init` to initialize the client.
+If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the testimonium.yml config file in the current folder.
+It is also possible to generate the file by hand or change the example config file named testimonium.example.yml contained in this repo. 
 
-3. Start Ganache (port 8545)
+3. Start Ganache (should start on the default port 7545, if not, change this in the config file)
 
 4. Deploy the Ethash contract with `go-ethrelay deploy ethash`. 
 This deploys the contract responsible for verifying the Proof of Work (PoW) of a block.
 
 5. Submit the correct epoch data to the Ethash contract with `go-ethrelay submit epoch <EPOCH_NO>`.
 Depending on which block will be submitted as genesis block to the ETH Relay contract, 
-the correct epoch data can be calculated as `EPOCH_NO = BLOCK_NO / 30000`. 
-    > e.g., for genesis block 8084509 the correct epoch data is 269
+the correct epoch data can be calculated as `EPOCH_NO = BLOCK_NO / 30000` floored. This may take a while. 
+    > e.g., for genesis block 8084509, the correct epoch data is 269
 
 6. Deploy the ETH Relay contract with `go-ethrelay deploy ethrelay --genesis <BLOCK_NO>`.
-This deploys the contract responsible for the verification of transactions (receipts, state). 
+This deploys the contract responsible for the verification of transactions (or receipts, or state). 
 The `genesis` parameter specifies the first block of the target chain which will be submitted to 
 the ETH Relay contract. Verifications will be possible for all subsequent blocks.
 
 ###
-ETH Relay is now setup. 
-You can now submit block data from the target chain to the verifying chain, 
+ETH Relay is now setup. In order to submit blocks, a stake has to be submitted first. After you deposited some stake, you can submit block data from the target chain to the verifying chain, 
 and request verifications of transactions, and dispute illegal blocks. 
 
 ## Usage
@@ -50,7 +53,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 ---
 
-`init`: Initializes the client by creating a ethrelay.yml file in the current directory.
+`init`: Initializes the client by creating a ethrelay.yml file in the current directory that acts as config file for all command calls.
 
 `account`: Prints the address of the current account
 
@@ -66,6 +69,16 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `get transaction [txHash]`: Retrieves the transaction with the specified hash
 
+`get longestchainendpoint`: Retrieves the most recent block hash of the longest chain in the eth relay contract on the verifying chain
+
+`stake`: Retrieves the amount of stake deposited in the relay-contract on the verifying chain
+
+`stake deposit [amountInWei]`: Deposits amountInWei stake of the account balance in the contract
+
+> e.g. `stake deposit 25000000000000000000` deposits 25 ETH
+
+`stake withdraw [amountInWei]`: Withdraws the submitted stake back to the account balance. Remember that stake can be locked in the contract when a block was submitted and you have to wait until it is unlocked again.
+
 `submit block [blocknumber]`: Submits the specified block header from the target chain to the verifying chain
 
 `submit epoch [epoch]`: Sets the epoch data for the specified epoch on the verifying chain
@@ -76,13 +89,24 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `verify receipt [txHash]`: Verifies a receipt from the target chain on the verifying chain
 
+## Quick Setup
+
+There is also a shell script in this repository named `setup-relay.sh`. This script helps researchers and developers to quickly setup
+a working version of the relay with default-values and assuming a local Ganache instance. The call to this script is:
+
+```
+sh setup-realy.sh [ganacheAccountPrivateKey] [genesisBlock] [stakeInETH]
+
+// example call
+sh setup-realy.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649dfc3b 11367417 25
+```
 
 ## Configuration
 The relay client uses a configuration file called `ethrelay.yml` file.
 
 The default file looks like this:
 
-    privateKey: <YOUR PRIVATE KEY>
+    privatekey: <YOUR PRIVATE KEY>
     chains:
         0:
             url: mainnet.infura.io
@@ -121,6 +145,12 @@ If you deployed the contracts manually, just add the entries.
 ## Troubleshooting
 #### Dispute causes error: "VM Exception while processing transaction: revert"
 If disputing a certain block causes a generic revert exception, make sure you are running Ganache version >= 2.1.0.
+
+#### Client won't start because of Go problems
+Get sure your Go-path variables like GOHOME, GOPATH und GOBIN are set properly.
+
+#### Client won't work because issues to permissions or projectId (e.g. forbidden: project ID is required)
+If you are using Infura, check that your url and protocol is correct and the permissions are properly set in the Infura admin panel.
 
 ## How to Contribute
 ETH Relay is a research prototype. We welcome anyone to contribute.
