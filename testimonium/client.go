@@ -10,10 +10,12 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"log"
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -807,30 +809,32 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 
 			// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
 			methodId := txData[0:4]
+			methodInputs := txData[4:]
 
-			// compare method-id with abi to ensure correct contracts etc., else fail
-			// TODO: this needs to be changed if the contract changes the submit-method name or their params
-			//  this could be prevented in parsing the contract ABI and make your own signature of the header
-			//  additionally, the parsing of the method params could be automated if we know the exact ABI content
-			if !bytes.Equal(methodId, common.Hex2Bytes("d5107381")) {
-				return nil, fmt.Errorf("signature of called method does not match contract method signature")
+			// load contract ABI
+			testimoniumAbi, err := abi.JSON(strings.NewReader(TestimoniumABI))
+			if err != nil {
+				return nil, err
 			}
 
-			// get the position where the dynamic byte array (byte slice), containing the rlp encoded header, starts
-			// this is encoded in the next 32 bytes after the 4 bytes of the method signature
-			position := new(big.Int)
-			position.SetBytes(txData[4:4 + 32])
+			// recover method from signature and ABI
+			method, err := testimoniumAbi.MethodById(methodId)
+			if err != nil {
+				return nil, err
+			}
 
-			// as the rlp header is a dynamic byte array, we need to know the length of the content which is encoded
-			// in the next 32 bytes - generally, variable content with a prepended length param is appended to the
-			// end of the encoded, in this case it directly follows after the starting position of the first param
-			length := new(big.Int)
-			length.SetBytes(txData[4 + position.Uint64():4 + position.Uint64() + 32])
+			type FunctionInputs struct {
+				RlpHeader []byte
+			}
+			var parameter FunctionInputs
 
-			// get the rlpHeader data from the transaction starting after all params and length params are parsed
-			rlpEncodedBlockHeader := txData[4 + position.Uint64() + 32: 4 + position.Uint64() + 32 + length.Uint64()]
+			// unpack method inputs
+			err = method.Inputs.Unpack(&parameter, methodInputs)
+			if err != nil {
+				return nil, err
+			}
 
-			return rlpEncodedBlockHeader, nil
+			return parameter.RlpHeader, nil
 		}
 	}
 
