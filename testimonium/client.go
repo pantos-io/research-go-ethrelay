@@ -28,8 +28,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/pantos-io/go-testimonium/ethereum/ethash"
-	"github.com/pantos-io/go-testimonium/typedefs"
+	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/typedefs"
 )
 
 type ChainConfig map[string]interface{}

@@ -3,7 +3,7 @@
 package mtree
 
 import (
-	"github.com/pantos-io/go-testimonium/typedefs"
+	"github.com/pantos-io/go-ethrelay/typedefs"
 )
 
 func conventionalWord(data typedefs.Word) ([]byte, []byte) {

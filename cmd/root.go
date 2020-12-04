@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pantos-io/go-testimonium/testimonium"
+	"github.com/pantos-io/go-ethrelay/testimonium"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "go-testimonium",
+	Use:   "go-ethrelay",
 	Short: "The CLI to interact with the Testimonium prototype",
 	Long: `The CLI to interact with the Testimonium prototype.`,
 	// Uncomment the following line if your bare application

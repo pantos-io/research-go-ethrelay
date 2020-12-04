@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/pantos-io/go-testimonium/cmd"
+	"github.com/pantos-io/go-ethrelay/cmd"
 )
 
 func main() {

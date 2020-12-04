@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-testimonium/testimonium"
+	"github.com/pantos-io/go-ethrelay/testimonium"
 	"github.com/spf13/cobra"
 	"log"
 )

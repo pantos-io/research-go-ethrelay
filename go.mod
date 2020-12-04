@@ -1,4 +1,4 @@
-module github.com/pantos-io/go-testimonium
+module github.com/pantos-io/go-ethrelay
 
 go 1.13
 
