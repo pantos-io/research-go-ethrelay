@@ -146,6 +146,18 @@ If you deployed the contracts manually, just add the entries.
 #### Dispute causes error: "VM Exception while processing transaction: revert"
 If disputing a certain block causes a generic revert exception, make sure you are running Ganache version >= 2.1.0.
 
+#### Some Go libraries or dependencies could not be found or have wrong naming/versions
+Maybe you have some old dependencies or versions installed and an error like the following occurs:
+```
+go: github.com/pantos-io/go-ethrelay@v0.1.0: parsing go.mod:
+	module declares its path as: github.com/pantos-io/go-testimonium
+	        but was required as: github.com/pantos-io/go-ethrelay
+```
+Try to clean the modules folder of Go with `go clean -modcache` and install the modules with `go get` again. 
+
+#### go-ethrelay command not found after installing from Github
+Add the GOBIN and/or GOPATH to your PATH-variable. Find more information about GOBIN and GOPATH [here](https://golang.org/cmd/go/#hdr-GOPATH_environment_variable).
+
 #### Client won't start because of Go problems
 Get sure your Go-path variables like GOHOME, GOPATH und GOBIN are set properly.
 
@@ -156,6 +168,11 @@ If you are using Infura, check that your url and protocol is correct and the per
 ETH Relay is a research prototype. We welcome anyone to contribute.
 File a bug report or submit feature requests through the [issue tracker](https://github.com/pantos-io/go-ethrelay/issues). 
 If you want to contribute feel free to submit a pull request.
+
+## Useful resources
+* https://etherscan.io
+* https://goethereumbook.org
+* https://solidity.readthedocs.io/en/v0.5.7
 
 ## Acknowledgement
 The development of this prototype was funded by [Pantos](https://pantos.io/) within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) research project.
