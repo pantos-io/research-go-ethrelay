@@ -3,6 +3,7 @@ module github.com/pantos-io/go-ethrelay
 go 1.13
 
 require (
+    github.com/ethereum/go-ethereum v1.9.9
 	github.com/SmartPool/smartpool-client v0.2.2
 	github.com/VictoriaMetrics/fastcache v1.5.5 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
@@ -14,7 +15,6 @@ require (
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/elastic/gosigar v0.10.5 // indirect
-	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/google/uuid v1.1.1 // indirect
