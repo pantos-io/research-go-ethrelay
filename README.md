@@ -19,8 +19,8 @@ as verifying chain and the main Ethereum chain as target chain.
 Information on how to connect to other blockchains can be found [here](#Configuration)._
 Remark: testimonium was the name of the old relay client and at some points in this repo the old name testimonium is used for things like e.g. the config files.
 
-1. Install the library and CLI with `$ go get github.com/pantos-io/go-ethrelay`.
-Check that the CLI was installed correctly by running `$ go-ethrelay --help`.
+1. Run `git clone https://github.com/pantos-io/go-ethrelay.git` to clone the repository on your local machine and then run `go get` in the go-ethrelay folder to install the library and the CLI.
+Check that the CLI was installed correctly by running `go-ethrelay --help`. In case `go-ethrelay` command is not found, have a look at the [Troubleshooting](#Troubleshooting) section.
 If you want to install the library manually, you can simply clone this repository and run any command in the cloned directory with `go run main.go [command]`.
 
 2. Run `go-ethrelay init` to initialize the client.
@@ -172,7 +172,7 @@ If you want to contribute feel free to submit a pull request.
 ## Useful resources
 * https://etherscan.io
 * https://goethereumbook.org
-* https://solidity.readthedocs.io/en/v0.5.7
+* https://solidity.readthedocs.io/en/v0.5.7 
 
 ## Acknowledgement
 The development of this prototype was funded by [Pantos](https://pantos.io/) within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) research project.
