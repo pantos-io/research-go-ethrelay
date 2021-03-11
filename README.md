@@ -95,10 +95,10 @@ There is also a shell script in this repository named `setup-relay.sh`. This scr
 a working version of the relay with default-values and assuming a local Ganache instance. The call to this script is:
 
 ```
-sh setup-realy.sh [ganacheAccountPrivateKey] [genesisBlock] [stakeInETH]
+sh setup-relay.sh [ganacheAccountPrivateKey] [genesisBlock] [stakeInETH]
 
 // example call
-sh setup-realy.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649dfc3b 11367417 25
+sh setup-relay.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649dfc3b 11367417 25
 ```
 
 ## Configuration
