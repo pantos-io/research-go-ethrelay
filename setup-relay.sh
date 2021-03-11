@@ -47,7 +47,7 @@ go run main.go deploy ethash
 
 go run main.go submit epoch $epoch
 
-go run main.go deploy testimonium --genesis $genesisBlock
+go run main.go deploy ethrelay --genesis $genesisBlock
 
 go run main.go stake deposit $stakeInWei
 
