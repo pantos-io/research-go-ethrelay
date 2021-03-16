@@ -15,9 +15,10 @@
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/viper"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -27,8 +28,8 @@ var deployFlagVerifyingChain uint8
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "Deploys a smart contract (Testimonium or Ethash) on the specified blockchain",
-	Long: `Deploys a smart contract (Testimonium or Ethash) on the specified blockchain`,
+	Short: "Deploys a smart contract (Ethash or ETH Relay) on the specified blockchain",
+	Long:  `Deploys a smart contract (Ethash or ETH Relay) on the specified blockchain`,
 }
 
 func init() {
@@ -46,7 +47,7 @@ func init() {
 }
 
 func updateChainsConfig(deployedAddress common.Address, chainId uint8, key string) {
-	chainsConfig := viper.Get("chains").(map[string]interface {})
+	chainsConfig := viper.Get("chains").(map[string]interface{})
 	deployChainConfig := chainsConfig[strconv.FormatUint(uint64(chainId), 10)].(map[string]interface{})
 	deployChainConfig[key] = deployedAddress.String()
 

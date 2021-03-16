@@ -31,22 +31,23 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initializes the Testimonium client",
-	Long: `This command initializes the Testimonium client. 
+	Short: "Initializes the ETH Relay client",
+	Long: `This command initializes the ETH Relay client. 
 This command sets up the testimonium.yml file in the current directory.
 The file contains connection configurations for the different blockchains, e.g.,
 private key, url, port, etc.
 
 The default testimonium.yml file looks like this:
 
-    privateKey: <YOUR PRIVATE KEY>
     chains:
         0:
+			type: wss
             url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
         1:
+			port: 7545
             type: http
             url: localhost
-            port: 7545
+	privateKey: <YOUR PRIVATE KEY>
 
 Websocket-Connection is required for submitting blocks in live mode.
 Chain ID 0 contains connection configuration for the target chain, which defaults to the main Ethereum chain (via Infura).

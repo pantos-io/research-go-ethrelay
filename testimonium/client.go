@@ -468,7 +468,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Getting sure Testimonium genesis block 0x%s from destination chain %d really exists on source chain %d\n", common.Bytes2Hex(genesis[:]), sourceChain, destinationChain)
+	fmt.Printf("Getting sure ETH Relay genesis block 0x%s from destination chain %d really exists on source chain %d\n", common.Bytes2Hex(genesis[:]), sourceChain, destinationChain)
 
 	// returns an error if genesis was not found
 	_, err = c.chains[sourceChain].client.HeaderByHash(context.Background(), genesis)

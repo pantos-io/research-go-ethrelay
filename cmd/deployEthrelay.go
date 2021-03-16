@@ -21,7 +21,7 @@ import (
 var deployFlagTargetChain uint8
 var deployFlagGenesisNumber uint64
 
-// testimoniumCmd represents the testimonium command
+// ethrelayCmd represents the ethrelay command
 var ethrelayCmd = &cobra.Command{
 	Use:   "ethrelay",
 	Short: "Deploys the ETH Relay smart contract on the specified blockchain",
@@ -41,11 +41,11 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// testimoniumCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// ethrelayCmd.PersistentFlags().String("foo", "", "A help for foo")
 	ethrelayCmd.Flags().Uint8VarP(&deployFlagTargetChain, "target", "t", 0, "The 'target' chain containing the specified genesis block")
 	ethrelayCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the target chain) that should be used as genesis block")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// testimoniumCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// ethrelayCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

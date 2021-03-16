@@ -17,8 +17,8 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go-ethrelay",
-	Short: "The CLI to interact with the Testimonium prototype",
-	Long: `The CLI to interact with the Testimonium prototype.`,
+	Short: "The CLI to interact with the ETH Relay prototype",
+	Long: `The CLI to interact with the ETH Relay prototype.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
