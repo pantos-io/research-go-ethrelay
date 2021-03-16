@@ -5,11 +5,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/spf13/cobra"
 	"log"
 	"math/big"
+	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/spf13/cobra"
 )
 
 var submitFlagSrcChain uint8
@@ -19,34 +22,42 @@ var submitFlagLiveMode bool
 
 // submitCmd represents the submit command
 var submitBlockCmd = &cobra.Command{
-	Use:   "block [blocknumber]",
+	Use:   "block [blockNumber or blockHash]",
 	Short: "Submits a block header from source chain to destination chain",
-	Long: `Queries the given block from the source chain and submits it to the destination chain`,
-	Args: cobra.MaximumNArgs(1),
+	Long:  `Queries the given block from the source chain and submits it to the destination chain`,
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var blockNumber *big.Int = nil
-
-		if len(args) > 0 {
-			var ok bool
-
-			blockNumber = new(big.Int)
-			blockNumber, ok = blockNumber.SetString(args[0], 10)
-
-			if !ok {
-				log.Fatalf("Illegal block number '%s'", args[0])
-			}
-		}
 
 		if submitFlagLiveMode {
 			testimoniumClient = createTestimoniumClient()
 			// TODO: live mode should be variable, outsource this to terminal
-			testimoniumClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5 * time.Minute)
+			testimoniumClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5*time.Minute)
 
 			return
 		}
 
+		var header *types.Header = nil
+		var err error
+
 		testimoniumClient = createTestimoniumClient()
-		header, err := testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
+
+		if len(args) > 0 {
+			if strings.HasPrefix(args[0], "0x") {
+				blockHash := common.HexToHash(args[0])
+				header, err = testimoniumClient.HeaderByHash(blockHash, getFlagChain)
+			} else {
+				var ok bool
+				var blockNumber *big.Int = nil
+				blockNumber = new(big.Int)
+				blockNumber, ok = blockNumber.SetString(args[0], 10)
+
+				if !ok {
+					log.Fatalf("Illegal block number '%s'", args[0])
+				}
+
+				header, err = testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
+			}
+		}
 
 		if err != nil {
 			log.Fatal("Failed to retrieve header: " + err.Error())
