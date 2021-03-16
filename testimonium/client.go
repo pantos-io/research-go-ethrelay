@@ -171,15 +171,15 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 
 		// create testimonium contract instance
 		var testimoniumContract *Testimonium
-		addressHex := chainConfig["testimoniumaddress"]
+		addressHex := chainConfig["ethrelayaddress"]
 		if addressHex != nil {
-			testimoniumAddress := common.HexToAddress(addressHex.(string))
-			testimoniumContract, err = NewTestimonium(testimoniumAddress, ethClient)
+			ethrelayAddress := common.HexToAddress(addressHex.(string))
+			testimoniumContract, err = NewTestimonium(ethrelayAddress, ethClient)
 			if err != nil {
 				fmt.Printf("WARNING: No Testimonium contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
 			} else {
 				chain.testimoniumContract = testimoniumContract
-				chain.testimoniumContractAddress = testimoniumAddress
+				chain.testimoniumContractAddress = ethrelayAddress
 			}
 		}
 

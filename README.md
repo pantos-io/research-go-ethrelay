@@ -33,7 +33,7 @@ It is also possible to generate the file by hand or change the example config fi
 This deploys the contract responsible for verifying the Proof of Work (PoW) of a block.
 
 5. Submit the correct epoch data to the Ethash contract with `go-ethrelay submit epoch <EPOCH_NO>`.
-Depending on which block will be submitted as genesis block to the ETH Relay contract, 
+Depending on which block will be submitted as genesis block to the ETH Relay contract in the following step, 
 the correct epoch data can be calculated as `EPOCH_NO = BLOCK_NO / 30000` floored. This may take a while. 
     > e.g., for genesis block 8084509, the correct epoch data is 269
 
@@ -127,7 +127,7 @@ If no port is defined, it is determined by the default port of the type.
 
 
 If you have already deployed the Ethash and ETH Relay contracts, you might find further entries
-`ethashAddress` and `testimoniumAddress` under a specific chain config:
+`ethashaddress` and `ethrelayaddress` under a specific chain config:
 
     ...
     chains:
@@ -136,8 +136,8 @@ If you have already deployed the Ethash and ETH Relay contracts, you might find 
             type: http
             url: localhost
             port: 8545
-            testimoniumAddress: 0xabc123...
-            ethashAddress: 0x123abc...
+            ethrelayaddress: 0xabc123...
+            ethashaddress: 0x123abc...
 
 These are the addresses that the client uses to interact with the ETH Relay smart contracts.
 If you deployed the contracts manually, just add the entries.

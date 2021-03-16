@@ -24,13 +24,13 @@ var deployFlagGenesisNumber uint64
 // testimoniumCmd represents the testimonium command
 var ethrelayCmd = &cobra.Command{
 	Use:   "ethrelay",
-	Short: "Deploys the Ethrelay smart contract on the specified blockchain",
-	Long:  `Deploys the Ethrelay smart contract on the specified blockchain`,
+	Short: "Deploys the ETH Relay smart contract on the specified blockchain",
+	Long:  `Deploys the ETH Relay smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
 		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagVerifyingChain, deployFlagTargetChain, deployFlagGenesisNumber)
 
-		updateChainsConfig(deployedAddress, deployFlagVerifyingChain, "testimoniumAddress")
+		updateChainsConfig(deployedAddress, deployFlagVerifyingChain, "ethrelayAddress")
 	},
 }
 
