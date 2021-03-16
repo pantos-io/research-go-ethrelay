@@ -27,7 +27,7 @@ If you want to install the library manually, you can simply clone this repositor
 If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the testimonium.yml config file in the current folder.
 It is also possible to generate the file by hand or change the example config file named testimonium.example.yml contained in this repo. 
 
-3. Start Ganache (should start on the default port 7545, if not, change this in the config file)
+3. Start Ganache (should start on the default port 7545, if not, change this in the config file).
 
 4. Deploy the Ethash contract with `go-ethrelay deploy ethash`. 
 This deploys the contract responsible for verifying the Proof of Work (PoW) of a block.
@@ -79,7 +79,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `stake withdraw [amountInWei]`: Withdraws the submitted stake back to the account balance. Remember that stake can be locked in the contract when a block was submitted and you have to wait until it is unlocked again.
 
-`submit block [blocknumber]`: Submits the specified block header from the target chain to the verifying chain
+`submit block [blockNumber or blockHash]`: Submits the specified block header from the target chain to the verifying chain
 
 `submit epoch [epoch]`: Sets the epoch data for the specified epoch on the verifying chain
 
@@ -106,14 +106,15 @@ The relay client uses a configuration file called `testimonium.yml` file.
 
 The default file looks like this:
 
-    privatekey: <YOUR PRIVATE KEY>
     chains:
         0:
-            url: mainnet.infura.io
+            type: wss
+            url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
         1:
+            port: 7545
             type: http
             url: localhost
-            port: 8545
+    privatekey: <YOUR PRIVATE KEY>
 
 Chain ID 0 contains connection configuration for the main Ethereum chain (via Infura).
 Chain ID 1 contains connection configuration for a local chain (e.g., run via Ganache).
@@ -126,18 +127,18 @@ and `port` refers to the port number under which the specific chain is reachable
 If no port is defined, it is determined by the default port of the type.
 
 
-If you have already deployed the Ethash and ETH Relay contracts, you might find further entries
+If you have already deployed the Ethash and ETH Relay contracts, you might find further entries, i.e.
 `ethashaddress` and `ethrelayaddress` under a specific chain config:
 
     ...
     chains:
         ...
         1:
+            ethashaddress: 0x123abc...
+            ethrelayaddress: 0xabc123...
+            port: 7545
             type: http
             url: localhost
-            port: 8545
-            ethrelayaddress: 0xabc123...
-            ethashaddress: 0x123abc...
 
 These are the addresses that the client uses to interact with the ETH Relay smart contracts.
 If you deployed the contracts manually, just add the entries.
