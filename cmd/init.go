@@ -17,10 +17,13 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/pantos-io/go-ethrelay/testimonium"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
+
+	"github.com/pantos-io/go-ethrelay/testimonium"
+	"github.com/spf13/viper"
+
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -51,8 +54,13 @@ Chain ID 1 contains connection configuration for the verifying chain, which defa
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Setting up testimonium.yml...")
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Enter the private key of your account (the account will be used on all chains, input this in hey format starting with '0x...'): ")
+		fmt.Print("Enter the private key of your account (the account will be used on all chains, input this in the format starting with '0x...'): ")
 		privateKey, _ := reader.ReadString('\n')
+
+		if !strings.HasPrefix(privateKey, "0x") {
+			fmt.Println("Entered private key is not starting with '0x'.")
+			return
+		}
 
 		viper.Set("privateKey", privateKey[:len(privateKey)-1])
 
@@ -80,6 +88,8 @@ Chain ID 1 contains connection configuration for the verifying chain, which defa
 				response, _ := reader.ReadString('\n')
 				if response == "Y\n" {
 					fmt.Println("Overwriting...")
+				} else {
+					return
 				}
 			}
 			_ = viper.WriteConfig()
