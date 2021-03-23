@@ -13,8 +13,8 @@ var verifyFlagDestChain uint8
 // verifyCmd represents the verify command
 var verifyCmd = &cobra.Command{
 	Use:   "verify",
-	Short: "Verifies a transaction or a block from the source chain on the destination chain",
-	Long: `Verifies a transaction or a block from the source chain on the destination chain`,
+	Short: "Verifies a transaction or a block from the source chain on the verifying chain",
+	Long:  `Verifies a transaction or a block from the source chain on the verifying chain`,
 }
 
 func init() {

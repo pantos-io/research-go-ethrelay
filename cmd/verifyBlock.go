@@ -18,9 +18,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // verifyBlockCmd represents the block command
@@ -33,8 +34,8 @@ import (
 var verifyBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
 	Short: "Verifies a block",
-	Long: `Gets sure a block with [blockHash] from the source blockchain is also present on the destination blockchain`,
-	Args: cobra.ExactArgs(1),
+	Long:  `Gets sure a block with [blockHash] from the source blockchain is also present on the verifying blockchain`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
@@ -42,11 +43,11 @@ var verifyBlockCmd = &cobra.Command{
 
 		headerExists, err := testimoniumClient.BlockHeaderExists(blockHash, verifyFlagDestChain)
 		if err != nil {
-			log.Fatal("Could not verify block header on destination chain: " + err.Error())
+			log.Fatal("Could not verify block header on verifying chain: " + err.Error())
 		}
 
 		if !headerExists {
-			fmt.Printf("No header stored for block %s on destination chain\n", ShortHexString(args[0]))
+			fmt.Printf("No header stored for block %s on verifying chain\n", ShortHexString(args[0]))
 			return
 		}
 
