@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/pantos-io/go-ethrelay/sha3"
 	"log"
 	"math/big"
 	"os"
@@ -42,6 +43,8 @@ type Chain struct {
 	testimoniumContract        *Testimonium
 	ethashContractAddress      common.Address
 	ethashContract             *ethash.Ethash
+	sha3ContractAddress      common.Address
+	sha3Contract             *sha3.Sha3
 	fullUrl                    string
 }
 
@@ -194,6 +197,20 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 			} else {
 				chain.ethashContract = ethashContract
 				chain.ethashContractAddress = ethashAddress
+			}
+		}
+
+		// create SHA3_512 contract instance
+		var sha3Contract *sha3.Sha3
+		addressHex = chainConfig["sha3address"]
+		if addressHex != nil {
+			sha3Address := common.HexToAddress(addressHex.(string))
+			sha3Contract, err = sha3.NewSha3(sha3Address, ethClient)
+			if err != nil {
+				fmt.Printf("WARNING: No sha3 contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			} else {
+				chain.sha3Contract = sha3Contract
+				chain.sha3ContractAddress = sha3Address
 			}
 		}
 
@@ -1275,7 +1292,38 @@ func (c Client) DeployEthash(destinationChain uint8) (common.Address) {
 
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
 
-	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[destinationChain].client)
+	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[destinationChain].client, c.chains[destinationChain].sha3ContractAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
+
+	receipt, err := awaitTxReceipt(c.chains[destinationChain].client, tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if receipt.Status == 0 {
+		// Transaction failed
+		reason := getFailureReason(c.chains[destinationChain].client, c.account, tx, receipt.BlockNumber)
+		fmt.Printf("Tx failed: %s\n", reason)
+		return common.Address{}
+	}
+
+	fmt.Println("Contract has been deployed at address: ", addr.String())
+
+	return addr
+}
+
+func (c Client) DeploySHA3_512(destinationChain uint8) (common.Address) {
+	if _, exists := c.chains[destinationChain]; !exists {
+		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
+	}
+
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
+
+	addr, tx, _, err := sha3.DeploySha3(auth, c.chains[destinationChain].client)
 	if err != nil {
 		log.Fatal(err)
 	}

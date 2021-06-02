@@ -43,6 +43,8 @@ epoch=$(($genesisBlock / 30000))
 
 printf "${ganacheAccountPrivateKey}\nY\n" | go run main.go init
 
+go run main.go deploy sha3
+
 go run main.go deploy ethash
 
 go run main.go submit epoch $epoch
