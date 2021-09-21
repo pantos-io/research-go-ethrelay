@@ -52,9 +52,9 @@ type Client struct {
 }
 
 type Header struct {
-	Hash                      [32]byte
-	BlockNumber               *big.Int
-	TotalDifficulty           *big.Int
+	Hash            [32]byte
+	BlockNumber     *big.Int
+	TotalDifficulty *big.Int
 }
 
 type FullHeader struct {
@@ -268,7 +268,7 @@ func (c Client) Account() string {
 
 func (c Client) TotalBalance() (*big.Int, error) {
 	var totalBalance = new(big.Int)
-	for k, _ := range c.chains {
+	for k := range c.chains {
 		balance, err := c.Balance(k)
 		if err != nil {
 			return nil, err
@@ -279,7 +279,7 @@ func (c Client) TotalBalance() (*big.Int, error) {
 }
 
 func (c Client) Balance(chainId uint8) (*big.Int, error) {
-	var totalBalance = new(big.Int);
+	var totalBalance = new(big.Int)
 
 	_, exists := c.chains[chainId]
 	if !exists {
@@ -390,7 +390,7 @@ func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error)
 func (c Client) GetLongestChainEndpoint(chain uint8) ([32]byte, error) {
 	_, exists := c.chains[chain]
 	if !exists {
-		fmt.Errorf("chain %s does not exist", chain)
+		return [32]byte{}, fmt.Errorf("chain %s does not exist", chain)
 	}
 
 	return c.chains[chain].testimoniumContract.GetLongestChainEndpoint(nil)
@@ -404,7 +404,7 @@ func (c Client) GetOriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.
 	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
-func (c Client) SubmitHeader(header *types.Header, chain uint8) (error) {
+func (c Client) SubmitHeader(header *types.Header, chain uint8) error {
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
@@ -617,7 +617,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 	}
 }
 
-func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) (error) {
+func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) error {
 	// Check preconditions
 	if _, exists := c.chains[chain]; !exists {
 		log.Fatalf("Chain '%d' does not exist", chain)
@@ -671,7 +671,7 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) (error) {
 		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
 
 		// TODO: this is only 1 special hash value emitted by the contract for too small stake and not a read error code
-		if eventIterator.Event.BlockHash == [32] byte { 0 } {
+		if eventIterator.Event.BlockHash == [32]byte{0} {
 			return errors.New("block was not submitted, reason: too small stake deposited")
 		}
 
@@ -829,7 +829,7 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 			var parameter FunctionInputs
 
 			// unpack method inputs
-			err = method.Inputs.Unpack(&parameter, methodInputs)
+			err = testimoniumAbi.UnpackIntoInterface(&parameter, method.Name, methodInputs)
 			if err != nil {
 				return nil, err
 			}
@@ -949,22 +949,35 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, 
 	}
 
 	// create transactions trie
-	buffer := new(bytes.Buffer)
+	indexBuffer := new(bytes.Buffer)
+	txBuffer := new(bytes.Buffer)
 	merkleTrie := new(trie.Trie)
-	txList := block.Transactions()
-	for i := 0; i < txList.Len(); i++ {
-		buffer.Reset()
-		rlp.Encode(buffer, uint(i))
-		merkleTrie.Update(buffer.Bytes(), txList.GetRlp(i))
+	transactions := block.Transactions()
+
+	for i := 0; i < transactions.Len(); i++ {
+		indexBuffer.Reset()
+		txBuffer.Reset()
+		err = rlp.Encode(indexBuffer, uint(i))
+		if err != nil {
+			return []byte{}, []byte{}, []byte{}, []byte{}, err
+		}
+		transactions.EncodeIndex(i, txBuffer)
+		merkleTrie.Update(indexBuffer.Bytes(), txBuffer.Bytes())
 	}
 
-	// create Merkle proof
-	rlpEncodedTx := txList.GetRlp(int(txReceipt.TransactionIndex))
+	txBuffer.Reset()
+	transactions.EncodeIndex(int(txReceipt.TransactionIndex), txBuffer)
 
-	buffer.Reset()
-	rlp.Encode(buffer, txReceipt.TransactionIndex)
-	path := make([]byte, len(buffer.Bytes()))
-	copy(path, buffer.Bytes())
+	// create Merkle proof
+	rlpEncodedTx := txBuffer.Bytes()
+
+	indexBuffer.Reset()
+	err = rlp.Encode(indexBuffer, txReceipt.TransactionIndex)
+	if err != nil {
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+	path := make([]byte, len(indexBuffer.Bytes()))
+	copy(path, indexBuffer.Bytes())
 
 	merkleIterator := merkleTrie.NodeIterator(nil)
 	var proofNodes [][]byte
@@ -976,15 +989,21 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, 
 		}
 	}
 
-	buffer.Reset()
-	rlp.Encode(buffer, proofNodes)
-	rlpEncodedProofNodes := make([]byte, len(buffer.Bytes()))
-	copy(rlpEncodedProofNodes, buffer.Bytes())
+	indexBuffer.Reset()
+	err = rlp.Encode(indexBuffer, proofNodes)
+	if err != nil {
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+	rlpEncodedProofNodes := make([]byte, len(indexBuffer.Bytes()))
+	copy(rlpEncodedProofNodes, indexBuffer.Bytes())
 
-	buffer.Reset()
-	rlp.Encode(buffer, block.Header())
-	rlpEncodedHeader := make([]byte, len(buffer.Bytes()))
-	copy(rlpEncodedHeader, buffer.Bytes())
+	indexBuffer.Reset()
+	err = rlp.Encode(indexBuffer, block.Header())
+	if err != nil {
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+	rlpEncodedHeader := make([]byte, len(indexBuffer.Bytes()))
+	copy(rlpEncodedHeader, indexBuffer.Bytes())
 
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
@@ -1073,17 +1092,17 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValue
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], feeInWei)
 
 	switch trieValueType {
-		case VALUE_TYPE_TRANSACTION:
-			tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, rlpHeader,
-				noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
-		case VALUE_TYPE_RECEIPT:
-			tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
-				rlpEncodedValue, path, rlpEncodedProofNodes)
-		case VALUE_TYPE_STATE:
-			tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
-				rlpEncodedValue, path, rlpEncodedProofNodes)
-		default:
-			log.Fatal("Unexpected trie value type: ", trieValueType)
+	case VALUE_TYPE_TRANSACTION:
+		tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, rlpHeader,
+			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
+	case VALUE_TYPE_RECEIPT:
+		tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
+			rlpEncodedValue, path, rlpEncodedProofNodes)
+	case VALUE_TYPE_STATE:
+		tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
+			rlpEncodedValue, path, rlpEncodedProofNodes)
+	default:
+		log.Fatal("Unexpected trie value type: ", trieValueType)
 	}
 
 	if err != nil {
@@ -1107,12 +1126,12 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValue
 	var verificationResult *VerificationResult
 
 	switch trieValueType {
-		case VALUE_TYPE_TRANSACTION:
-			verificationResult, err = c.getVerifyTransactionEvent(chain, receipt)
-		case VALUE_TYPE_RECEIPT:
-			verificationResult, err = c.getVerifyReceiptEvent(chain, receipt)
-		case VALUE_TYPE_STATE:
-			verificationResult, err = c.getVerifyStateEvent(chain, receipt)
+	case VALUE_TYPE_TRANSACTION:
+		verificationResult, err = c.getVerifyTransactionEvent(chain, receipt)
+	case VALUE_TYPE_RECEIPT:
+		verificationResult, err = c.getVerifyReceiptEvent(chain, receipt)
+	case VALUE_TYPE_STATE:
+		verificationResult, err = c.getVerifyStateEvent(chain, receipt)
 	}
 
 	if err != nil {
@@ -1222,7 +1241,7 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 	}
 }
 
-func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, genesisBlockNumber uint64) (common.Address) {
+func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, genesisBlockNumber uint64) common.Address {
 	if _, exists := c.chains[destinationChain]; !exists {
 		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
 	}
@@ -1268,7 +1287,7 @@ func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, gen
 	return addr
 }
 
-func (c Client) DeployEthash(destinationChain uint8) (common.Address) {
+func (c Client) DeployEthash(destinationChain uint8) common.Address {
 	if _, exists := c.chains[destinationChain]; !exists {
 		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
 	}
@@ -1402,7 +1421,7 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	receipts := make(chan *types.Receipt)
 
 	go func(chan *types.Receipt) {
-		for ; ; {
+		for {
 			receipt, _ := client.TransactionReceipt(context.Background(), txHash)
 
 			if receipt != nil {

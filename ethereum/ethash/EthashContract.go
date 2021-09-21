@@ -154,7 +154,7 @@ func bindEthash(address common.Address, caller bind.ContractCaller, transactor b
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Ethash *EthashRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Ethash *EthashRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Ethash.Contract.EthashCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -173,7 +173,7 @@ func (_Ethash *EthashRaw) Transact(opts *bind.TransactOpts, method string, param
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Ethash *EthashCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Ethash *EthashCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Ethash.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -192,12 +192,17 @@ func (_Ethash *EthashTransactorRaw) Transact(opts *bind.TransactOpts, method str
 //
 // Solidity: function isEpochDataSet(uint256 epochIndex) view returns(bool)
 func (_Ethash *EthashCaller) IsEpochDataSet(opts *bind.CallOpts, epochIndex *big.Int) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Ethash.contract.Call(opts, out, "isEpochDataSet", epochIndex)
-	return *ret0, err
+	var out []interface{}
+	err := _Ethash.contract.Call(opts, &out, "isEpochDataSet", epochIndex)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // IsEpochDataSet is a free data retrieval call binding the contract method 0xc7b81f4f.
@@ -218,16 +223,18 @@ func (_Ethash *EthashCallerSession) IsEpochDataSet(epochIndex *big.Int) (bool, e
 //
 // Solidity: function verifyPoW(uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 difficulty, uint256[] dataSetLookup, uint256[] witnessForLookup) view returns(uint256, uint256)
 func (_Ethash *EthashCaller) VerifyPoW(opts *bind.CallOpts, blockNumber *big.Int, rlpHeaderHashWithoutNonce [32]byte, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-		ret1 = new(*big.Int)
-	)
-	out := &[]interface{}{
-		ret0,
-		ret1,
+	var out []interface{}
+	err := _Ethash.contract.Call(opts, &out, "verifyPoW", blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty, dataSetLookup, witnessForLookup)
+
+	if err != nil {
+		return *new(*big.Int), *new(*big.Int), err
 	}
-	err := _Ethash.contract.Call(opts, out, "verifyPoW", blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty, dataSetLookup, witnessForLookup)
-	return *ret0, *ret1, err
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	out1 := *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+
+	return out0, out1, err
+
 }
 
 // VerifyPoW is a free data retrieval call binding the contract method 0x29e265df.
@@ -407,5 +414,6 @@ func (_Ethash *EthashFilterer) ParseSetEpochData(log types.Log) (*EthashSetEpoch
 	if err := _Ethash.contract.UnpackLog(event, "SetEpochData", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
