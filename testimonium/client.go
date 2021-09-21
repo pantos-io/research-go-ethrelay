@@ -1358,6 +1358,7 @@ func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
 		header.Extra,
 		header.MixDigest,
 		header.Nonce,
+		header.BaseFee,
 	})
 
 	// be careful when passing byte-array as buffer, the pointer can change if the buffer is used again
@@ -1389,6 +1390,7 @@ func encodeHeaderWithoutNonceToRLP(header *types.Header) ([]byte, error) {
 		header.GasUsed,
 		header.Time,
 		header.Extra,
+		header.BaseFee,
 	})
 
 	return buffer.Bytes(), err
