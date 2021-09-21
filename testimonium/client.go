@@ -623,17 +623,9 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) error {
 		log.Fatalf("Chain '%d' does not exist", chain)
 	}
 
-	// for getting the max. actual gas limit, that's only a workaround for the indeterministic
-	// "now" value in the contract method cleanSubmitList's isUnlocked call as we don't know
-	// the exact timestamp and can't estimate gas precisely
-	lastBlock, err := c.chains[chain].client.BlockByNumber(context.Background(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Submit Transfer Transaction
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
-	auth.GasLimit = lastBlock.GasLimit()
+	//auth.GasLimit = lastBlock.GasLimit()
 	tx, err := c.chains[chain].testimoniumContract.SubmitBlock(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
