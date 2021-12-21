@@ -815,18 +815,13 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 				return nil, err
 			}
 
-			type FunctionInputs struct {
-				RlpHeader []byte
-			}
-			var parameter FunctionInputs
-
 			// unpack method inputs
-			err = testimoniumAbi.UnpackIntoInterface(&parameter, method.Name, methodInputs)
+			parameter, err := method.Inputs.Unpack(methodInputs)
 			if err != nil {
 				return nil, err
 			}
 
-			return parameter.RlpHeader, nil
+			return parameter[0].([]byte), nil
 		}
 	}
 
