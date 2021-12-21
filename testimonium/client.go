@@ -10,13 +10,14 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"log"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -29,6 +30,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
 	"github.com/pantos-io/go-ethrelay/typedefs"
 )
 
@@ -41,7 +43,7 @@ type Chain struct {
 	testimoniumContractAddress common.Address
 	testimoniumContract        *Testimonium
 	ethashContractAddress      common.Address
-	ethashContract             *ethash.Ethash
+	ethashContract             *ethashsol.Ethashsol
 	fullUrl                    string
 }
 
@@ -184,11 +186,11 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 		}
 
 		// create ethash contract instance
-		var ethashContract *ethash.Ethash
+		var ethashContract *ethashsol.Ethashsol
 		addressHex = chainConfig["ethashaddress"]
 		if addressHex != nil {
 			ethashAddress := common.HexToAddress(addressHex.(string))
-			ethashContract, err = ethash.NewEthash(ethashAddress, ethClient)
+			ethashContract, err = ethashsol.NewEthashsol(ethashAddress, ethClient)
 			if err != nil {
 				fmt.Printf("WARNING: No Ethash contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
 			} else {
@@ -1281,7 +1283,7 @@ func (c Client) DeployEthash(destinationChain uint8) common.Address {
 
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
 
-	addr, tx, _, err := ethash.DeployEthash(auth, c.chains[destinationChain].client)
+	addr, tx, _, err := ethashsol.DeployEthashsol(auth, c.chains[destinationChain].client)
 	if err != nil {
 		log.Fatal(err)
 	}
