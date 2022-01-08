@@ -870,7 +870,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
 
-	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
+	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, blockHeaderHashWithoutNonceLength32, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
