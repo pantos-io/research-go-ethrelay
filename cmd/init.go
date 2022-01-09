@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/pantos-io/go-ethrelay/testimonium"
 	"github.com/spf13/viper"
@@ -87,7 +88,8 @@ Chain ID 1 contains connection configuration for the verifying chain, which defa
 				// File already exists
 				fmt.Print("File testimonium.yml already exists. Overwrite? (n/Y):")
 				response, _ := reader.ReadString('\n')
-				if response == "Y\n" {
+				overwrite, _ := regexp.MatchString("^[yY]?\n$", response)
+				if overwrite {
 					fmt.Println("Overwriting...")
 				} else {
 					return
