@@ -844,6 +844,14 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 		log.Fatal(err)
 	}
 
+	// the last thing needed for calling dispute is the parent rlp encoded block header
+	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+
 	// take the encoded block header and encode it without the nonce and the mixed hash
 	blockHeaderWithoutNonce, err := encodeHeaderWithoutNonceToRLP(blockHeader)
 	if err != nil {
@@ -861,14 +869,6 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	blockMetaData := ethash.NewBlockMetaData(blockHeader.Number.Uint64(), blockHeader.Nonce.Uint64(), blockHeaderHashWithoutNonceLength32)
 	dataSetLookUp := blockMetaData.DAGElementArray()
 	witnessForLookup := blockMetaData.DAGProofArray()
-
-	// the last thing needed for calling dispute is the parent rlp encoded block header
-	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
 
 	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, blockHeaderHashWithoutNonceLength32, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
 	if err != nil {
