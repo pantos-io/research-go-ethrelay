@@ -769,7 +769,36 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 	return header
 }
 
-func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
+func getRlpHeaderByHash(disputeChain, sourceChain *Chain, blockHash common.Hash) ([]byte, error) {
+	rlpHeader, err := _getRlpHeaderBySubmitEvent(disputeChain, blockHash)
+
+	if rlpHeader != nil || err != nil {
+		return rlpHeader, err
+	}
+
+	/*
+	 * The following statements handle the edge case where the passed hash is the hash of the genesis block.
+	 * The constructor doesn't emit a SubmitEvent and can't be found by _getRlpHeaderBySubmitEvent.
+	 * Therefore we have to query the header by its hash from the source chain.
+	 */
+	genesisHash, err := disputeChain.testimoniumContract.GetGenesisBlockHash(nil)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(blockHash[:], genesisHash[:]) {
+		return nil, fmt.Errorf("block '%s' is not stored on the relay chain", common.Bytes2Hex(blockHash[:]))
+	}
+
+	header, err := sourceChain.client.HeaderByHash(context.Background(), genesisHash)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return encodeHeaderToRLP(header)
+}
+
+func _getRlpHeaderBySubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
 	eventIterator, err := chain.testimoniumContract.FilterSubmitBlock(nil)
 	if err != nil {
 		return nil, err
@@ -827,13 +856,13 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 		}
 	}
 
-	return nil, fmt.Errorf("no submit event for block '%s' found", common.Bytes2Hex(blockHash[:]))
+	return nil, nil
 }
 
-func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
+func (c Client) DisputeBlock(blockHash [32]byte, disputeChain, sourceChain uint8) {
 	fmt.Println("Disputing block ...")
 
-	rlpEncodedBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHash)
+	rlpEncodedBlockHeader, err := getRlpHeaderByHash(c.chains[disputeChain], c.chains[sourceChain], blockHash)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -845,12 +874,12 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 
 	// the last thing needed for calling dispute is the parent rlp encoded block header
-	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
+	rlpEncodedParentBlockHeader, err := getRlpHeaderByHash(c.chains[disputeChain], c.chains[sourceChain], blockHeader.ParentHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, c.chains[disputeChain], big.NewInt(0))
 
 	// take the encoded block header and encode it without the nonce and the mixed hash
 	blockHeaderWithoutNonce, err := encodeHeaderWithoutNonceToRLP(blockHeader)
@@ -870,27 +899,27 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	dataSetLookUp := blockMetaData.DAGElementArray()
 	witnessForLookup := blockMetaData.DAGProofArray()
 
-	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, blockHeaderHashWithoutNonceLength32, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
+	tx, err := c.chains[disputeChain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, blockHeaderHashWithoutNonceLength32, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.chains[disputeChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.chains[disputeChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return
 	}
 
 	// get RemoveBranch event
-	eventIteratorRemoveBranch, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
+	eventIteratorRemoveBranch, err := c.chains[disputeChain].testimoniumContract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -904,7 +933,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 
 	// get PoW Verification event
-	eventIteratorPoWResult, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
+	eventIteratorPoWResult, err := c.chains[disputeChain].testimoniumContract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
