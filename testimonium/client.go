@@ -107,8 +107,8 @@ Difficulty: %s }`,
 		header.Difficulty.String())
 }
 
-func (t TestimoniumSubmitBlock) String() string {
-	return fmt.Sprintf("SubmitBlockEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
+func (t TestimoniumNewBlock) String() string {
+	return fmt.Sprintf("NewBlockEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
 }
 
 func (event TestimoniumRemoveBranch) String() string {
@@ -648,7 +648,7 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) error {
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterSubmitBlock(&bind.FilterOpts{
+	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterNewBlock(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -769,8 +769,8 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 	return header
 }
 
-func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
-	eventIterator, err := chain.testimoniumContract.FilterSubmitBlock(nil)
+func getRlpHeaderByEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
+	eventIterator, err := chain.testimoniumContract.FilterNewBlock(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -779,10 +779,10 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 	//  evaluation is necessary - neglected in the first case, as the usual case is, that the event is at most the lock period behind,
 	//  because it is not meant to need this for anything else than disputing
 
+	first := true
 	for eventIterator.Next() {
-		// according to the contract, the submit header event has exactly one parameter/data-item that is submitted
-		// as no block-hash can be submitted twice, we found an event if the event data does equal the block-hash
-		if bytes.Equal(eventIterator.Event.Raw.Data, blockHash[:]) {
+		// As no block hash can be submitted twice, we found an event if the event data equals the block hash
+		if bytes.Equal(eventIterator.Event.BlockHash[:], blockHash[:]) {
 
 			// get the hash where the event was emitted
 			txHash := eventIterator.Event.Raw.TxHash
@@ -801,30 +801,43 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 			// get raw abi-encoded bytes of transaction data
 			txData := tx.Data()
 
-			// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
-			methodId := txData[0:4]
-			methodInputs := txData[4:]
-
 			// load contract ABI
 			testimoniumAbi, err := abi.JSON(strings.NewReader(TestimoniumABI))
 			if err != nil {
 				return nil, err
 			}
 
-			// recover method from signature and ABI
-			method, err := testimoniumAbi.MethodById(methodId)
-			if err != nil {
-				return nil, err
+			var method *abi.Method
+			var inputs []byte
+
+			// The constructor is always the first function that emits this event
+			if first {
+				method = &testimoniumAbi.Constructor
+
+				// Constructor arguments are appended to the bytecode of the contract
+				inputs = txData[len(common.FromHex(TestimoniumMetaData.Bin)):]
+			} else {
+				// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
+				id := txData[0:4]
+				inputs = txData[4:]
+
+				// recover method from signature and ABI
+				method, err = testimoniumAbi.MethodById(id)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			// unpack method inputs
-			parameter, err := method.Inputs.Unpack(methodInputs)
+			parameter, err := method.Inputs.Unpack(inputs)
 			if err != nil {
 				return nil, err
 			}
 
 			return parameter[0].([]byte), nil
 		}
+
+		first = false
 	}
 
 	return nil, fmt.Errorf("no submit event for block '%s' found", common.Bytes2Hex(blockHash[:]))
@@ -833,7 +846,7 @@ func getRlpHeaderByTestimoniumSubmitEvent(chain *Chain, blockHash [32]byte) ([]b
 func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	fmt.Println("Disputing block ...")
 
-	rlpEncodedBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHash)
+	rlpEncodedBlockHeader, err := getRlpHeaderByEvent(c.chains[chain], blockHash)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -845,7 +858,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 
 	// the last thing needed for calling dispute is the parent rlp encoded block header
-	rlpEncodedParentBlockHeader, err := getRlpHeaderByTestimoniumSubmitEvent(c.chains[chain], blockHeader.ParentHash)
+	rlpEncodedParentBlockHeader, err := getRlpHeaderByEvent(c.chains[chain], blockHeader.ParentHash)
 	if err != nil {
 		log.Fatal(err)
 	}
