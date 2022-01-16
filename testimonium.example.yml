@@ -1,11 +1,13 @@
 chains:
-  "0":
-    type: wss
-    url: mainnet.infura.io/ws/v3/1e835672adba4a9b934a12a3ec58ebad
-  "1":
-    ethashaddress: 0x9094860c5B746EC0b151eb6673Ec543EeF5cEbc3
-    ethrelayaddress: 0x8B8583022E2922bee495B1c2b0f7BE0e7cac0b3f
-    port: 7545
-    type: http
-    url: localhost
-privatekey: 0x45b5ffd7266ec7131f31f94fa843b99fd270b42d94bf01368ceeb936649dfc3b
+  sources:
+    mainnet:
+      type: wss
+      url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
+  destinations:
+    local:
+      ethashaddress: 0x023a7365a3B02ebCEC6DC96131CD3D9B919e6b89
+      ethrelayaddress: 0xC327736730d0bFCd3380229a0E5C292671cbaD53
+      port: 7545
+      type: http
+      url: localhost
+privatekey: 0xb38a964f368abad5dc4da5f186136258eb258305bc018a12a25d147f0fe40697

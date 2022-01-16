@@ -15,15 +15,13 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
 )
 
-var deployFlagVerifyingChain uint8
+var deployFlagTargetChain string
 
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
@@ -39,20 +37,20 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	deployCmd.PersistentFlags().Uint8VarP(&deployFlagVerifyingChain, "verifying", "v", 1, "The blockchain to which the smart contract is deployed")
+	deployCmd.PersistentFlags().StringVarP(&deployFlagTargetChain, "target", "t", "local", "The blockchain to which the smart contract is deployed")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// deployCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func updateChainsConfig(deployedAddress common.Address, chainId uint8, key string) {
-	chainsConfig := viper.Get("chains").(map[string]interface{})
-	deployChainConfig := chainsConfig[strconv.FormatUint(uint64(chainId), 10)].(map[string]interface{})
+func updateChainsConfig(deployedAddress common.Address, chainId string, key string) {
+	chainsConfig := viper.Get("chains.destinations").(map[string]interface{})
+	deployChainConfig := chainsConfig[chainId].(map[string]interface{})
 	deployChainConfig[key] = deployedAddress.String()
 
-	chainsConfig[strconv.FormatUint(uint64(chainId), 10)] = deployChainConfig
-	viper.Set("chains", chainsConfig)
+	chainsConfig[chainId] = deployChainConfig
+	viper.Set("chains.destinations", chainsConfig)
 
 	_ = viper.WriteConfig()
 }

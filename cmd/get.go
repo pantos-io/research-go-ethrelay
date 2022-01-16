@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var getFlagChain uint8
+var getFlagChain string
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
@@ -24,7 +24,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
-	getCmd.PersistentFlags().Uint8VarP(&getFlagChain, "chain", "c", 0, "chain")
+	getCmd.PersistentFlags().StringVarP(&getFlagChain, "chain", "c", "mainnet", "chain")
 
 
 	// Cobra supports local flags which will only run when this command

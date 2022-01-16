@@ -40,17 +40,27 @@ type ChainsConfig map[uint8]ChainConfig
 
 type Chain struct {
 	client                     *ethclient.Client
-	testimoniumContractAddress common.Address
-	testimoniumContract        *Testimonium
-	ethashContractAddress      common.Address
-	ethashContract             *ethashsol.Ethashsol
 	fullUrl                    string
 }
 
+type SourceChain struct {
+	Chain
+}
+
+type DestinationChain struct {
+	Chain
+	testimonium        	*Testimonium
+	testimoniumAddress	common.Address
+	ethash             	*ethashsol.Ethashsol
+	ethashAddress		common.Address
+}
+
 type Client struct {
-	chains     map[uint8]*Chain
-	account    common.Address
-	privateKey *ecdsa.PrivateKey
+	chains		map[string]*Chain
+	srcChains	map[string]*SourceChain
+	dstChains	map[string]*DestinationChain
+	account    	common.Address
+	privateKey 	*ecdsa.PrivateKey
 }
 
 type Header struct {
@@ -142,64 +152,91 @@ func CreateChainConfig(connectionType string, connectionUrl string, connectionPo
 }
 
 func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
+
+	sources := chainsConfig["sources"].(map[string]interface{})
+	destinations := chainsConfig["destinations"].(map[string]interface{})
+
 	client := new(Client)
-	client.chains = make(map[uint8]*Chain)
+	client.chains = make(map[string]*Chain, len(sources) + len(destinations))
+	client.srcChains = make(map[string]*SourceChain, len(sources))
+	client.dstChains = make(map[string]*DestinationChain, len(destinations))
 
-	for k, v := range chainsConfig {
-		chainId, err := strconv.ParseInt(k, 10, 8)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		chainConfig := v.(map[string]interface{})
-
+	fillInCommonProps := func(chain *Chain, chainConfig map[string]interface{}) error {
 		// create client connection
 		var ethClient *ethclient.Client
 		fullUrl, err := createConnectionUrl(chainConfig)
 		if err != nil {
-			fmt.Printf("WARNING: Could not read url specified for chain %d (%s)\n", chainId, err)
-			continue
+			return fmt.Errorf("could not read url specified: %s", err);
 		}
-
+	
 		ethClient, err = ethclient.Dial(fullUrl)
 		if err != nil {
-			fmt.Printf("WARNING: Cannot connect to chain %d (%s): %s\n", chainId, fullUrl, err)
-			continue // --> even if we cannot connect to this chain, we still try to connect to the other ones
+			// --> even if we cannot connect to this chain, we still try to connect to the other ones
+			return fmt.Errorf("cannot connect to chain at %s: %s", fullUrl, err)
 		}
-
-		chain := new(Chain)
+	
 		chain.client = ethClient
 		chain.fullUrl = fullUrl
+	
+		return nil;
+	}
 
-		// create testimonium contract instance
-		var testimoniumContract *Testimonium
+	for chainId, v := range sources {
+		chainConfig := v.(map[string]interface{})
+		srcChain := new(SourceChain)
+
+		fillInCommonProps(&srcChain.Chain, chainConfig)
+
+		if _, exists := client.chains[chainId]; exists {
+			fmt.Printf("WARNING: Duplicate chain ID '%s', overwriting previous configuration\n", chainId)
+		}
+
+		client.chains[chainId] = &srcChain.Chain
+		client.srcChains[chainId] = srcChain
+	}
+
+	for chainId, v := range destinations {
+		chainConfig := v.(map[string]interface{})
+		dstChain := new(DestinationChain)
+
+		fillInCommonProps(&dstChain.Chain, chainConfig)
+
+		// Create ETH Relay contract instance
 		addressHex := chainConfig["ethrelayaddress"]
-		if addressHex != nil {
+		if addressHex == nil {
+			fmt.Printf("WARNING: Address for ETH Relay instance for chain '%s' not configured\n", chainId)
+		} else {
 			ethrelayAddress := common.HexToAddress(addressHex.(string))
-			testimoniumContract, err = NewTestimonium(ethrelayAddress, ethClient)
-			if err != nil {
-				fmt.Printf("WARNING: No Testimonium contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			testimoniumContract, err := NewTestimonium(ethrelayAddress, dstChain.client)
+			if err == nil {
+				dstChain.testimonium = testimoniumContract
+				dstChain.testimoniumAddress = ethrelayAddress
 			} else {
-				chain.testimoniumContract = testimoniumContract
-				chain.testimoniumContractAddress = ethrelayAddress
+				fmt.Printf("WARNING: No ETH Relay contract deployed on chain '%s' at address %s: %s\n", chainId, addressHex, err)
 			}
 		}
 
-		// create ethash contract instance
-		var ethashContract *ethashsol.Ethashsol
+		// Create Ethash contract instance
 		addressHex = chainConfig["ethashaddress"]
-		if addressHex != nil {
+		if addressHex == nil {
+			fmt.Printf("WARNING: Address for Ethash instance for chain '%s' not configured\n", chainId)
+		} else {
 			ethashAddress := common.HexToAddress(addressHex.(string))
-			ethashContract, err = ethashsol.NewEthashsol(ethashAddress, ethClient)
-			if err != nil {
-				fmt.Printf("WARNING: No Ethash contract deployed at address %s on chain %d (%s)\n", addressHex, chainId, fullUrl)
+			ethashContract, err := ethashsol.NewEthashsol(ethashAddress, dstChain.client)
+			if err == nil {
+				dstChain.ethash = ethashContract
+				dstChain.ethashAddress = ethashAddress
 			} else {
-				chain.ethashContract = ethashContract
-				chain.ethashContractAddress = ethashAddress
+				fmt.Printf("WARNING: No Ethash contract deployed on chain '%s' at address %s: %s\n", chainId, addressHex, err)
 			}
 		}
 
-		client.chains[uint8(chainId)] = chain
+		if _, exists := client.chains[chainId]; exists {
+			fmt.Printf("WARNING: Duplicate chain ID '%s', overwriting previous configuration\n", chainId)
+		}
+
+		client.chains[chainId] = &dstChain.Chain
+		client.dstChains[chainId] = dstChain
 	}
 
 	// get public address
@@ -253,8 +290,8 @@ func createConnectionUrl(chainConfig map[string]interface{}) (string, error) {
 	return fullUrl, nil
 }
 
-func (c Client) Chains() []uint8 {
-	keys := make([]uint8, len(c.chains))
+func (c Client) Chains() []string {
+	keys := make([]string, len(c.srcChains))
 
 	i := 0
 	for k := range c.chains {
@@ -280,12 +317,11 @@ func (c Client) TotalBalance() (*big.Int, error) {
 	return totalBalance, nil
 }
 
-func (c Client) Balance(chainId uint8) (*big.Int, error) {
+func (c Client) Balance(chainId string) (*big.Int, error) {
 	var totalBalance = new(big.Int)
 
-	_, exists := c.chains[chainId]
-	if !exists {
-		return nil, fmt.Errorf("chain %s does not exist", chainId)
+	if _, exists := c.chains[chainId]; !exists {
+		return nil, fmt.Errorf("Chain '%s' does not exist", chainId)
 	}
 
 	balance, err := c.chains[chainId].client.BalanceAt(context.Background(), c.account, nil)
@@ -298,12 +334,11 @@ func (c Client) Balance(chainId uint8) (*big.Int, error) {
 	return totalBalance, nil
 }
 
-func (c Client) GetStake(chainId uint8) (*big.Int, error) {
-	_, exists := c.chains[chainId]
-	if !exists {
-		return nil, fmt.Errorf("chain %s does not exist", chainId)
+func (c Client) GetStake(chainId string) (*big.Int, error) {
+	if _, exists := c.dstChains[chainId]; !exists {
+		return nil, fmt.Errorf("destionation chain '%s' does not exist", chainId)
 	}
-	stake, err := c.chains[chainId].testimoniumContract.GetStake(
+	stake, err := c.dstChains[chainId].testimonium.GetStake(
 		&bind.CallOpts{
 			From: c.account,
 		})
@@ -313,15 +348,14 @@ func (c Client) GetStake(chainId uint8) (*big.Int, error) {
 	return stake, nil
 }
 
-func (c Client) DepositStake(chainId uint8, amountInWei *big.Int) error {
-	_, exists := c.chains[chainId]
-	if !exists {
-		return fmt.Errorf("chain %s does not exist", chainId)
+func (c Client) DepositStake(chainId string, amountInWei *big.Int) error {
+	if _, exists := c.dstChains[chainId]; !exists {
+		return fmt.Errorf("destination chain '%s' does not exist", chainId)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], amountInWei)
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[chainId].Chain, amountInWei)
 
-	_, err := c.chains[chainId].testimoniumContract.DepositStake(auth, amountInWei)
+	_, err := c.dstChains[chainId].testimonium.DepositStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
@@ -331,22 +365,21 @@ func (c Client) DepositStake(chainId uint8, amountInWei *big.Int) error {
 	return nil
 }
 
-func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
-	_, exists := c.chains[chainId]
-	if !exists {
-		return fmt.Errorf("chain %s does not exist", chainId)
+func (c Client) WithdrawStake(chainId string, amountInWei *big.Int) error {
+	if _, exists := c.dstChains[chainId]; !exists {
+		return fmt.Errorf("destination chain '%s' does not exist", chainId)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chainId], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[chainId].Chain, big.NewInt(0))
 
-	tx, err := c.chains[chainId].testimoniumContract.WithdrawStake(auth, amountInWei)
+	tx, err := c.dstChains[chainId].testimonium.WithdrawStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
 
 	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[chainId].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[chainId].client, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -354,11 +387,11 @@ func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
 	if receipt.Status == 0 {
 		// Transaction failed
 		reason := getFailureReason(c.chains[chainId].client, c.account, tx, receipt.BlockNumber)
-		return fmt.Errorf("Tx failed: %s\n", reason)
+		return fmt.Errorf("tx failed: %s", reason)
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chainId].testimoniumContract.TestimoniumFilterer.FilterWithdrawStake(&bind.FilterOpts{
+	eventIterator, err := c.dstChains[chainId].testimonium.TestimoniumFilterer.FilterWithdrawStake(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -380,55 +413,60 @@ func (c Client) WithdrawStake(chainId uint8, amountInWei *big.Int) error {
 	return errors.New("uncaught error")
 }
 
-func (c Client) BlockHeaderExists(blockHash [32]byte, chain uint8) (bool, error) {
-	_, exists := c.chains[chain]
-	if !exists {
-		return false, fmt.Errorf("chain %s does not exist", chain)
+func (c Client) BlockHeaderExists(blockHash [32]byte, chain string) (bool, error) {
+	if _, exists := c.dstChains[chain]; !exists {
+		return false, fmt.Errorf("destination chain '%s' does not exist", chain)
 	}
 
-	return c.chains[chain].testimoniumContract.IsHeaderStored(nil, blockHash)
+	return c.dstChains[chain].testimonium.IsHeaderStored(nil, blockHash)
 }
 
-func (c Client) GetLongestChainEndpoint(chain uint8) ([32]byte, error) {
-	_, exists := c.chains[chain]
-	if !exists {
-		return [32]byte{}, fmt.Errorf("chain %s does not exist", chain)
+func (c Client) GetLongestChainEndpoint(chain string) ([32]byte, error) {
+	if _, exists := c.dstChains[chain]; !exists {
+		return [32]byte{}, fmt.Errorf("destination chain '%s' does not exist", chain)
 	}
 
-	return c.chains[chain].testimoniumContract.GetLongestChainEndpoint(nil)
+	return c.dstChains[chain].testimonium.GetLongestChainEndpoint(nil)
 }
 
-func (c Client) GetBlockHeader(blockHash [32]byte, chain uint8) (Header, error) {
-	return c.chains[chain].testimoniumContract.GetHeader(nil, blockHash)
+func (c Client) GetBlockHeader(blockHash [32]byte, chain string) (Header, error) {
+	if _, exists := c.dstChains[chain]; !exists {
+		return Header{}, fmt.Errorf("destination chain '%s' does not exist", chain)
+	}
+	
+	return c.dstChains[chain].testimonium.GetHeader(nil, blockHash)
 }
 
-func (c Client) GetOriginalBlockHeader(blockHash [32]byte, chain uint8) (*types.Block, error) {
-	return c.chains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
+func (c Client) GetOriginalBlockHeader(blockHash [32]byte, chain string) (*types.Block, error) {
+	if _, exists := c.srcChains[chain]; !exists {
+		return nil, fmt.Errorf("source chain '%s' does not exist", chain)
+	}
+
+	return c.srcChains[chain].client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
-func (c Client) SubmitHeader(header *types.Header, chain uint8) error {
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+func (c Client) SubmitHeader(header *types.Header, chain string) error {
+	if _, exists := c.dstChains[chain]; !exists {
+		return fmt.Errorf("destination chain '%s' does not exist", chain)
 	}
 
 	fmt.Printf("Submitting block: \nNo: %s\nHash: %s\n", header.Number.String(), header.Hash().String())
 
 	rlpHeader, err := encodeHeaderToRLP(header)
 	if err != nil {
-		log.Fatal("Failed to encode header to RLP: " + err.Error())
+		return fmt.Errorf("failed to encode header to RLP: %s", err)
 	}
 
 	return c.SubmitRLPHeader(rlpHeader, chain)
 }
 
-func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lockTime time.Duration) {
-	// Check preconditions
-	if _, exists := c.chains[destinationChain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", destinationChain)
+func (c Client) SubmitHeaderLive(dstChain string, srcChain string, lockTime time.Duration) error {
+	if _, exists := c.dstChains[dstChain]; !exists {
+		return fmt.Errorf("destination chain '%s' does not exist", dstChain)
 	}
 
-	if _, exists := c.chains[sourceChain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", sourceChain)
+	if _, exists := c.srcChains[srcChain]; !exists {
+		return fmt.Errorf("source chain '%s' does not exist", srcChain)
 	}
 
 	/*
@@ -465,15 +503,15 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 	// if in the backwards search more than log2(n) blocks are stored, a binary search is always faster, so maybe
 	// implement a binary search as default here
 
-	genesis, err := c.chains[destinationChain].testimoniumContract.GetGenesisBlockHash(nil)
+	genesis, err := c.dstChains[dstChain].testimonium.GetGenesisBlockHash(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Getting sure ETH Relay genesis block 0x%s from destination chain %d really exists on source chain %d\n", common.Bytes2Hex(genesis[:]), sourceChain, destinationChain)
+	fmt.Printf("Getting sure ETH Relay genesis block 0x%s from destination chain '%s' really exists on source chain '%s'\n", common.Bytes2Hex(genesis[:]), srcChain, dstChain)
 
 	// returns an error if genesis was not found
-	_, err = c.chains[sourceChain].client.HeaderByHash(context.Background(), genesis)
+	_, err = c.srcChains[srcChain].client.HeaderByHash(context.Background(), genesis)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -487,14 +525,14 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 	// find the most recent block that was already submitted
 	for {
 		// get newest, longest header from source chain
-		header, err = c.HeaderByNumber(blockNumber, sourceChain)
+		header, err = c.HeaderByNumber(blockNumber, srcChain)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("\nSearching for block No. %s from source chain %d on destination chain %d", header.Number.String(), sourceChain, destinationChain)
+		fmt.Printf("\nSearching for block No. %s from source chain '%s' on destination chain '%s'", header.Number.String(), srcChain, dstChain)
 
-		isHeaderStored, err := c.chains[destinationChain].testimoniumContract.IsHeaderStored(nil, header.Hash())
+		isHeaderStored, err := c.dstChains[dstChain].testimonium.IsHeaderStored(nil, header.Hash())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -510,12 +548,12 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 
 	fmt.Printf("\n\nlatest block No. submitted to destination chain: %s\n\n", header.Number.String())
 
-	requiredStake, err := c.chains[destinationChain].testimoniumContract.GetRequiredStakePerBlock(nil)
+	requiredStake, err := c.dstChains[dstChain].testimonium.GetRequiredStakePerBlock(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	stake, err := c.GetStake(destinationChain)
+	stake, err := c.GetStake(dstChain)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -542,7 +580,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
 
 				if waitingTime > 0 {
-					fmt.Printf("all stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
+					fmt.Printf("All stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
 					time.Sleep(waitingTime)
 				}
 
@@ -552,15 +590,15 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 			// increase by one as we only want blocks that are new
 			blockNumber.Add(blockNumber, one)
 
-			header, err := c.HeaderByNumber(blockNumber, sourceChain)
+			header, err := c.HeaderByNumber(blockNumber, srcChain)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Println("Stake queue-length: ", len(queue), "\n")
+			fmt.Println("Stake queue-length:", len(queue))
 
 			// TODO: a check for enough free/unlocked stake is required here, though a time based workaround is already implemented
-			err = c.SubmitHeader(header, destinationChain)
+			err = c.SubmitHeader(header, dstChain)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -569,7 +607,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 			queue = append(queue, time.Now().Add(time.Second))
 
 			// get newest, longest header from source chain
-			header, err = c.HeaderByNumber(nil, sourceChain)
+			header, err = c.HeaderByNumber(nil, srcChain)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -585,7 +623,7 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 
 	headers := make(chan *types.Header)
 
-	sub, err := c.chains[sourceChain].client.SubscribeNewHead(context.Background(), headers)
+	sub, err := c.srcChains[srcChain].client.SubscribeNewHead(context.Background(), headers)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -600,16 +638,16 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
 
 				if waitingTime > 0 {
-					fmt.Printf("all stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
+					fmt.Printf("All stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
 					time.Sleep(waitingTime)
 				}
 
 				queue = queue[1:]
 			}
 
-			fmt.Println("Stake queue-length: ", len(queue), "\n")
+			fmt.Println("Stake queue-length: ", len(queue))
 
-			err = c.SubmitHeader(header, destinationChain)
+			err = c.SubmitHeader(header, dstChain)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -619,36 +657,36 @@ func (c Client) SubmitHeaderLive(destinationChain uint8, sourceChain uint8, lock
 	}
 }
 
-func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) error {
+func (c Client) SubmitRLPHeader(rlpHeader []byte, chain string) error {
 	// Check preconditions
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+	if _, exists := c.dstChains[chain]; !exists {
+		log.Fatalf("Destination chain '%s' does not exist", chain)
 	}
 
 	// Submit Transfer Transaction
 	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
 	//auth.GasLimit = lastBlock.GasLimit()
-	tx, err := c.chains[chain].testimoniumContract.SubmitBlock(auth, rlpHeader)
+	tx, err := c.dstChains[chain].testimonium.SubmitBlock(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.dstChains[chain].client, c.account, tx, receipt.BlockNumber)
 		// fmt.Printf("Tx failed: %s\n", reason)
 		return errors.New(reason)
 	}
 
 	// Transaction is successful
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterNewBlock(&bind.FilterOpts{
+	eventIterator, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterNewBlock(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -675,25 +713,25 @@ func (c Client) SubmitRLPHeader(rlpHeader []byte, chain uint8) error {
 	return errors.New("uncaught error")
 }
 
-func (c Client) BlockByHash(blockHash common.Hash, chain uint8) (*types.Block, error) {
+func (c Client) BlockByHash(blockHash common.Hash, chain string) (*types.Block, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.BlockByHash(context.Background(), blockHash)
 }
 
-func (c Client) BlockByNumber(blockNumber uint64, chain uint8) (*types.Block, error) {
+func (c Client) BlockByNumber(blockNumber uint64, chain string) (*types.Block, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.BlockByNumber(context.Background(), new(big.Int).SetUint64(blockNumber))
 }
 
-func (c Client) HeaderByNumber(blockNumber *big.Int, chain uint8) (*types.Header, error) {
+func (c Client) HeaderByNumber(blockNumber *big.Int, chain string) (*types.Header, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.HeaderByNumber(context.Background(), blockNumber)
@@ -711,9 +749,9 @@ func toBlockNumArg(number *big.Int) string {
 	return hexutil.EncodeBig(number)
 }
 
-func (c Client) TotalDifficulty(blockNumber *big.Int, chain uint8) (*big.Int, error) {
+func (c Client) TotalDifficulty(blockNumber *big.Int, chain string) (*big.Int, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	client, err := rpc.Dial(c.chains[chain].fullUrl)
@@ -735,31 +773,31 @@ func (c Client) TotalDifficulty(blockNumber *big.Int, chain uint8) (*big.Int, er
 	return diff, nil
 }
 
-func (c Client) HeaderByHash(blockHash common.Hash, chain uint8) (*types.Header, error) {
+func (c Client) HeaderByHash(blockHash common.Hash, chain string) (*types.Header, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.HeaderByHash(context.Background(), blockHash)
 }
 
-func (c Client) Transaction(txHash common.Hash, chain uint8) (*types.Transaction, bool, error) {
+func (c Client) Transaction(txHash common.Hash, chain string) (*types.Transaction, bool, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.TransactionByHash(context.Background(), txHash)
 }
 
-func (c Client) TransactionReceipt(txHash common.Hash, chain uint8) (*types.Receipt, error) {
+func (c Client) TransactionReceipt(txHash common.Hash, chain string) (*types.Receipt, error) {
 	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+		log.Fatalf("Chain '%s' does not exist", chain)
 	}
 
 	return c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
 }
 
-func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header {
+func (c Client) RandomizeHeader(header *types.Header, chain string) *types.Header {
 	temp := header.TxHash
 
 	header.TxHash = header.ReceiptHash
@@ -769,8 +807,8 @@ func (c Client) RandomizeHeader(header *types.Header, chain uint8) *types.Header
 	return header
 }
 
-func getRlpHeaderByEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
-	eventIterator, err := chain.testimoniumContract.FilterNewBlock(nil)
+func getRlpHeaderByEvent(chain *DestinationChain, blockHash [32]byte) ([]byte, error) {
+	eventIterator, err := chain.testimonium.FilterNewBlock(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -843,10 +881,10 @@ func getRlpHeaderByEvent(chain *Chain, blockHash [32]byte) ([]byte, error) {
 	return nil, fmt.Errorf("no submit event for block '%s' found", common.Bytes2Hex(blockHash[:]))
 }
 
-func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
-	fmt.Println("Disputing block ...")
+func (c Client) DisputeBlock(blockHash [32]byte, chain string) {
+	fmt.Println("Disputing block...")
 
-	rlpEncodedBlockHeader, err := getRlpHeaderByEvent(c.chains[chain], blockHash)
+	rlpEncodedBlockHeader, err := getRlpHeaderByEvent(c.dstChains[chain], blockHash)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -858,12 +896,12 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 
 	// the last thing needed for calling dispute is the parent rlp encoded block header
-	rlpEncodedParentBlockHeader, err := getRlpHeaderByEvent(c.chains[chain], blockHeader.ParentHash)
+	rlpEncodedParentBlockHeader, err := getRlpHeaderByEvent(c.dstChains[chain], blockHeader.ParentHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[chain].Chain, big.NewInt(0))
 
 	// take the encoded block header and encode it without the nonce and the mixed hash
 	blockHeaderWithoutNonce, err := encodeHeaderWithoutNonceToRLP(blockHeader)
@@ -883,27 +921,27 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	dataSetLookUp := blockMetaData.DAGElementArray()
 	witnessForLookup := blockMetaData.DAGProofArray()
 
-	tx, err := c.chains[chain].testimoniumContract.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
+	tx, err := c.dstChains[chain].testimonium.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.dstChains[chain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return
 	}
 
 	// get RemoveBranch event
-	eventIteratorRemoveBranch, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
+	eventIteratorRemoveBranch, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -917,7 +955,7 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 
 	// get PoW Verification event
-	eventIteratorPoWResult, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
+	eventIteratorPoWResult, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -931,21 +969,21 @@ func (c Client) DisputeBlock(blockHash [32]byte, chain uint8) {
 	}
 }
 
-func (c Client) GetRequiredVerificationFee(chain uint8) (*big.Int, error) {
-	return c.chains[chain].testimoniumContract.GetRequiredVerificationFee(nil)
+func (c Client) GetRequiredVerificationFee(chain string) (*big.Int, error) {
+	return c.dstChains[chain].testimonium.GetRequiredVerificationFee(nil)
 }
 
-func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, []byte, []byte, []byte, error) {
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain string) ([]byte, []byte, []byte, []byte, error) {
+	if _, exists := c.srcChains[chain]; !exists {
+		log.Fatalf("Source chain '%s' does not exist", chain)
 	}
 
-	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
+	txReceipt, err := c.srcChains[chain].client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
 
-	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
+	block, err := c.srcChains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
@@ -1010,17 +1048,17 @@ func (c Client) GenerateMerkleProofForTx(txHash [32]byte, chain uint8) ([]byte, 
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]byte, []byte, []byte, []byte, error) {
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain string) ([]byte, []byte, []byte, []byte, error) {
+	if _, exists := c.srcChains[chain]; !exists {
+		log.Fatalf("source chain '%s' does not exist", chain)
 	}
 
-	txReceipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), txHash)
+	txReceipt, err := c.srcChains[chain].client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
 
-	block, err := c.chains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
+	block, err := c.srcChains[chain].client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
@@ -1034,7 +1072,7 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]b
 	for i := 0; i < block.Transactions().Len(); i++ {
 		tx := block.Body().Transactions[i]
 
-		receipt, err := c.chains[chain].client.TransactionReceipt(context.Background(), tx.Hash())
+		receipt, err := c.srcChains[chain].client.TransactionReceipt(context.Background(), tx.Hash())
 		if err != nil {
 			return []byte{}, []byte{}, []byte{}, []byte{}, err
 		}
@@ -1084,24 +1122,24 @@ func (c Client) GenerateMerkleProofForReceipt(txHash [32]byte, chain uint8) ([]b
 }
 
 func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValueType TrieValueType, rlpEncodedValue []byte, path []byte,
-	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain uint8) {
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+	rlpEncodedProofNodes []byte, noOfConfirmations uint8, chain string) {
+	if _, exists := c.dstChains[chain]; !exists {
+		log.Fatalf("Destionation chain '%s' does not exist", chain)
 	}
 
 	var tx *types.Transaction
 	var err error
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], feeInWei)
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[chain].Chain, feeInWei)
 
 	switch trieValueType {
 	case VALUE_TYPE_TRANSACTION:
-		tx, err = c.chains[chain].testimoniumContract.VerifyTransaction(auth, feeInWei, rlpHeader,
+		tx, err = c.dstChains[chain].testimonium.VerifyTransaction(auth, feeInWei, rlpHeader,
 			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
 	case VALUE_TYPE_RECEIPT:
-		tx, err = c.chains[chain].testimoniumContract.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
+		tx, err = c.dstChains[chain].testimonium.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
 			rlpEncodedValue, path, rlpEncodedProofNodes)
 	case VALUE_TYPE_STATE:
-		tx, err = c.chains[chain].testimoniumContract.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
+		tx, err = c.dstChains[chain].testimonium.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
 			rlpEncodedValue, path, rlpEncodedProofNodes)
 	default:
 		log.Fatal("Unexpected trie value type: ", trieValueType)
@@ -1113,14 +1151,14 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValue
 
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[chain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.dstChains[chain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return
 	}
@@ -1143,8 +1181,8 @@ func (c Client) VerifyMerkleProof(feeInWei *big.Int, rlpHeader []byte, trieValue
 	fmt.Printf("Tx successful: %s\n", verificationResult.String())
 }
 
-func (c Client) getVerifyTransactionEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyTransaction(
+func (c Client) getVerifyTransactionEvent(chain string, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterVerifyTransaction(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,
@@ -1161,8 +1199,8 @@ func (c Client) getVerifyTransactionEvent(chain uint8, receipt *types.Receipt) (
 	return nil, fmt.Errorf("no event found")
 }
 
-func (c Client) getVerifyReceiptEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyReceipt(
+func (c Client) getVerifyReceiptEvent(chain string, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterVerifyReceipt(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,
@@ -1179,8 +1217,8 @@ func (c Client) getVerifyReceiptEvent(chain uint8, receipt *types.Receipt) (*Ver
 	return nil, fmt.Errorf("no event found")
 }
 
-func (c Client) getVerifyStateEvent(chain uint8, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.chains[chain].testimoniumContract.TestimoniumFilterer.FilterVerifyState(
+func (c Client) getVerifyStateEvent(chain string, receipt *types.Receipt) (*VerificationResult, error) {
+	eventIterator, err := c.dstChains[chain].testimonium.TestimoniumFilterer.FilterVerifyState(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,
@@ -1197,9 +1235,9 @@ func (c Client) getVerifyStateEvent(chain uint8, receipt *types.Receipt) (*Verif
 	return nil, fmt.Errorf("no event found")
 }
 
-func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
-	if _, exists := c.chains[chain]; !exists {
-		log.Fatalf("Chain '%d' does not exist", chain)
+func (c Client) SetEpochData(epochData typedefs.EpochData, chain string) {
+	if _, exists := c.dstChains[chain]; !exists {
+		log.Fatalf("Destination chain '%s' does not exist", chain)
 	}
 
 	nodes := []*big.Int{}
@@ -1217,22 +1255,22 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 				continue
 			}
 
-			auth := prepareTransaction(c.account, c.privateKey, c.chains[chain], big.NewInt(0))
+			auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[chain].Chain, big.NewInt(0))
 
-			tx, err := c.chains[chain].ethashContract.SetEpochData(auth, epochData.Epoch, epochData.FullSizeIn128Resolution,
+			tx, err := c.dstChains[chain].ethash.SetEpochData(auth, epochData.Epoch, epochData.FullSizeIn128Resolution,
 				epochData.BranchDepth, nodes, start, mnlen)
 			if err != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-			receipt, err := awaitTxReceipt(c.chains[chain].client, tx.Hash())
+			receipt, err := awaitTxReceipt(c.dstChains[chain].client, tx.Hash())
 			if err != nil {
 				log.Fatal(err)
 			}
 			if receipt.Status == 0 {
 				// Transaction failed
-				reason := getFailureReason(c.chains[chain].client, c.account, tx, receipt.BlockNumber)
+				reason := getFailureReason(c.dstChains[chain].client, c.account, tx, receipt.BlockNumber)
 				fmt.Printf("Tx failed: %s\n", reason)
 				return
 			}
@@ -1243,20 +1281,20 @@ func (c Client) SetEpochData(epochData typedefs.EpochData, chain uint8) {
 	}
 }
 
-func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, genesisBlockNumber uint64) common.Address {
-	if _, exists := c.chains[destinationChain]; !exists {
-		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
+func (c Client) DeployTestimonium(dstChain string, srcChain string, genesisBlockNumber uint64) common.Address {
+	if _, exists := c.dstChains[dstChain]; !exists {
+		log.Fatalf("Destination chain '%s' does not exist", dstChain)
 	}
-	if _, exists := c.chains[sourceChain]; !exists {
-		log.Fatalf("Source chain '%d' does not exist", sourceChain)
+	if _, exists := c.srcChains[srcChain]; !exists {
+		log.Fatalf("Source chain '%s' does not exist", srcChain)
 	}
 
-	header, err := c.HeaderByNumber(new(big.Int).SetUint64(genesisBlockNumber), sourceChain)
+	header, err := c.HeaderByNumber(new(big.Int).SetUint64(genesisBlockNumber), srcChain)
 	if err != nil {
 		log.Fatal("Failed to retrieve header from source chain: " + err.Error())
 	}
 
-	totalDifficulty, err := c.TotalDifficulty(new(big.Int).SetUint64(genesisBlockNumber), sourceChain)
+	totalDifficulty, err := c.TotalDifficulty(new(big.Int).SetUint64(genesisBlockNumber), srcChain)
 	if err != nil {
 		log.Fatalf("Failed to retrieve total difficulty of block %d: %s", genesisBlockNumber, err)
 	}
@@ -1266,21 +1304,21 @@ func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, gen
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[dstChain].Chain, big.NewInt(0))
 
-	addr, tx, _, err := DeployTestimonium(auth, c.chains[destinationChain].client, rlpHeader, totalDifficulty, c.chains[destinationChain].ethashContractAddress)
+	addr, tx, _, err := DeployTestimonium(auth, c.dstChains[dstChain].client, rlpHeader, totalDifficulty, c.dstChains[dstChain].ethashAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[destinationChain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[dstChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[destinationChain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.dstChains[dstChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return common.Address{}
 	}
@@ -1289,28 +1327,28 @@ func (c Client) DeployTestimonium(destinationChain uint8, sourceChain uint8, gen
 	return addr
 }
 
-func (c Client) DeployEthash(destinationChain uint8) common.Address {
-	if _, exists := c.chains[destinationChain]; !exists {
-		log.Fatalf("DestinationChain chain '%d' does not exist", destinationChain)
+func (c Client) DeployEthash(dstChain string) common.Address {
+	if _, exists := c.dstChains[dstChain]; !exists {
+		log.Fatalf("Destination chain '%s' does not exist", dstChain)
 	}
 
-	auth := prepareTransaction(c.account, c.privateKey, c.chains[destinationChain], big.NewInt(0))
+	auth := prepareTransaction(c.account, c.privateKey, &c.dstChains[dstChain].Chain, big.NewInt(0))
 
-	addr, tx, _, err := ethashsol.DeployEthashsol(auth, c.chains[destinationChain].client)
+	addr, tx, _, err := ethashsol.DeployEthashsol(auth, c.dstChains[dstChain].client)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
 
-	receipt, err := awaitTxReceipt(c.chains[destinationChain].client, tx.Hash())
+	receipt, err := awaitTxReceipt(c.dstChains[dstChain].client, tx.Hash())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if receipt.Status == 0 {
 		// Transaction failed
-		reason := getFailureReason(c.chains[destinationChain].client, c.account, tx, receipt.BlockNumber)
+		reason := getFailureReason(c.dstChains[dstChain].client, c.account, tx, receipt.BlockNumber)
 		fmt.Printf("Tx failed: %s\n", reason)
 		return common.Address{}
 	}

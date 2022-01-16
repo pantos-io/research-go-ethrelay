@@ -5,13 +5,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"log"
 	"math"
 	"math/big"
+
+	"github.com/spf13/cobra"
 )
 
-var stakeFlagChain uint8
+var stakeFlagChain string
 
 // stakeCmd represents the stake command
 var stakeCmd = &cobra.Command{
@@ -42,7 +43,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	stakeCmd.PersistentFlags().Uint8Var(&stakeFlagChain, "chain", 1, "chain")
+	stakeCmd.PersistentFlags().StringVar(&stakeFlagChain, "chain", "local", "chain")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

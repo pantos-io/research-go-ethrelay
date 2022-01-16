@@ -8,7 +8,6 @@ import (
 	"log"
 	"math"
 	"math/big"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -27,11 +26,7 @@ var balanceCmd = &cobra.Command{
 
 		testimoniumClient = createTestimoniumClient()
 		if len(args) > 0 {
-			chainId, err := strconv.ParseInt(args[0], 10, 8)
-			if err != nil {
-				log.Fatal(err)
-			}
-			balance, err := testimoniumClient.Balance(uint8(chainId))
+			balance, err := testimoniumClient.Balance(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -42,14 +37,14 @@ var balanceCmd = &cobra.Command{
 		if detailFlag {
 			totalBalance := big.NewInt(0)
 			for _, chainId := range testimoniumClient.Chains() {
-				balance, err := testimoniumClient.Balance(uint8(chainId))
+				balance, err := testimoniumClient.Balance(chainId)
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Printf("Chain %d: %.4f ETH\n", chainId, getDecimal(balance, 18))
+				fmt.Printf("Chain '%s': %.4f ETH\n", chainId, getDecimal(balance, 18))
 				totalBalance = totalBalance.Add(totalBalance, balance)
 			}
-			fmt.Printf("Total  : ")
+			fmt.Printf("Total: ")
 		}
 		balance, err := testimoniumClient.TotalBalance()
 		if err != nil {

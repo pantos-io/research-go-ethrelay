@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var submitFlagSrcChain uint8
+var submitFlagSrcChain string
 var submitFlagRandomize bool
 var submitFlagParent string
 var submitFlagLiveMode bool
@@ -73,7 +73,7 @@ var submitBlockCmd = &cobra.Command{
 			header = testimoniumClient.RandomizeHeader(header, submitFlagSrcChain)
 		}
 
-		fmt.Printf("Submitting block %s of chain %d to chain %d...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
+		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 
@@ -96,7 +96,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	submitBlockCmd.Flags().BoolVarP(&submitFlagLiveMode, "live", "l", false, "live mode (continuously submits most recent block headers)")
-	submitBlockCmd.Flags().Uint8Var(&submitFlagSrcChain, "target", 0, "target chain")
+	submitBlockCmd.Flags().StringVar(&submitFlagSrcChain, "source", "mainnet", "source chain")
 	submitBlockCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block")
 	submitBlockCmd.Flags().StringVarP(&submitFlagParent, "parent", "p", "", "set parent explicitly")
 }

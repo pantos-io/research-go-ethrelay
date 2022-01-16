@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var verifyFlagSrcChain uint8
-var verifyFlagDestChain uint8
+var verifyFlagSrcChain string
+var verifyFlagDestChain string
 
 // verifyCmd represents the verify command
 var verifyCmd = &cobra.Command{
@@ -26,8 +26,8 @@ func init() {
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagSrcChain, "target", 0, "target chain")
-	verifyCmd.PersistentFlags().Uint8Var(&verifyFlagDestChain, "chain", 1, "verifying chain")
+	verifyCmd.PersistentFlags().StringVar(&verifyFlagSrcChain, "source", "mainnet", "source chain")
+	verifyCmd.PersistentFlags().StringVar(&verifyFlagDestChain, "destination", "local", "destination chain")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

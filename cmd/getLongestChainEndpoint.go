@@ -6,13 +6,12 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 )
 
-var testimoniumContractChain uint8
+var testimoniumContractChain string
 
 // getLongestChainEndpointCmd represents the block command
 var getLongestChainEndpointCmd = &cobra.Command{
@@ -25,15 +24,15 @@ var getLongestChainEndpointCmd = &cobra.Command{
 
 		blockHash, err := testimoniumClient.GetLongestChainEndpoint(testimoniumContractChain)
 		if err != nil {
-			log.Fatal("Failed to retrieve longest chain blockHash from chain " + strconv.Itoa(int(testimoniumContractChain)) + ":" + err.Error())
+			log.Fatalf("Failed to retrieve longest chain blockHash from chain '%s': %s", testimoniumContractChain, err)
 		}
 
-		fmt.Printf("LongestChainEndpointBlockHash: %s\n", common.BytesToHash(blockHash[:]).String())
+		fmt.Println("LongestChainEndpointBlockHash: ", common.BytesToHash(blockHash[:]).String())
 	},
 }
 
 func init() {
 	getCmd.AddCommand(getLongestChainEndpointCmd)
 
-	getLongestChainEndpointCmd.PersistentFlags().Uint8VarP(&testimoniumContractChain, "verifying", "v", 1, "The blockchain where the contract was deployed")
+	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&testimoniumContractChain, "verifying", "v", "local", "The blockchain where the contract was deployed")
 }

@@ -36,23 +36,25 @@ var initCmd = &cobra.Command{
 	Long: `This command initializes the ETH Relay client. 
 This command sets up the testimonium.yml file in the current directory.
 The file contains connection configurations for the different blockchains, e.g.,
-private key, url, port, etc.
+private key, URL, port, etc.
 
 The default testimonium.yml file looks like this:
 
-    chains:
-        0:
-			type: wss
-            url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
-        1:
-			port: 7545
-            type: http
-            url: localhost
+	chains:
+		sources:
+  			mainnet:
+				type: wss
+				url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
+		destinations:
+  			local:
+				port: 7545
+				type: http
+				url: localhost
 	privateKey: <YOUR PRIVATE KEY>
 
 Websocket-Connection is required for submitting blocks in live mode.
-Chain ID 0 contains connection configuration for the target chain, which defaults to the main Ethereum chain (via Infura).
-Chain ID 1 contains connection configuration for the verifying chain, which defaults to a local chain (e.g., run via Ganache).`,
+Chains under "sources" contain connection configurations for the source chains, defaulting to the main Ethereum chain (via Infura).
+Chains under "destinations" contain connection configurations for the verifying chains, defaulting to a local chain (e.g. via Ganache).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Setting up testimonium.yml...")
 		reader := bufio.NewReader(os.Stdin)
@@ -66,13 +68,18 @@ Chain ID 1 contains connection configuration for the verifying chain, which defa
 
 		viper.Set("privateKey", privateKey[:len(privateKey)-1])
 
-		chainsConfig := make(map[uint8]interface{})
+		chainsConfig := make(map[string]interface{})
+		sources := make(map[string]interface{})
+		destinations := make(map[string]interface{})
 
 		mainnetConfig := testimonium.CreateChainConfig("wss", "mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad", 0)
-		chainsConfig[0] = mainnetConfig
+		sources["mainnet"] = mainnetConfig
 
-		ganacheConfig := testimonium.CreateChainConfig("http", "localhost", 7545)
-		chainsConfig[1] = ganacheConfig
+		localConfig := testimonium.CreateChainConfig("http", "localhost", 7545)
+		destinations["local"] = localConfig
+
+		chainsConfig["sources"] = sources
+		chainsConfig["destinations"] = destinations
 
 		viper.Set("chains", chainsConfig)
 

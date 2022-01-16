@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deployFlagTargetChain uint8
+var deployFlagSourceChain string
 var deployFlagGenesisNumber uint64
 
 // ethrelayCmd represents the ethrelay command
@@ -28,9 +28,9 @@ var ethrelayCmd = &cobra.Command{
 	Long:  `Deploys the ETH Relay smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		testimoniumClient = createTestimoniumClient()
-		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagVerifyingChain, deployFlagTargetChain, deployFlagGenesisNumber)
+		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagTargetChain, deployFlagSourceChain, deployFlagGenesisNumber)
 
-		updateChainsConfig(deployedAddress, deployFlagVerifyingChain, "ethrelayAddress")
+		updateChainsConfig(deployedAddress, deployFlagTargetChain, "ethrelayAddress")
 	},
 }
 
@@ -42,8 +42,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// ethrelayCmd.PersistentFlags().String("foo", "", "A help for foo")
-	ethrelayCmd.Flags().Uint8VarP(&deployFlagTargetChain, "target", "t", 0, "The 'target' chain containing the specified genesis block")
-	ethrelayCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the target chain) that should be used as genesis block")
+	ethrelayCmd.Flags().StringVarP(&deployFlagSourceChain, "source", "s", "mainnet", "The source chain containing the specified genesis block")
+	ethrelayCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the source chain) that should be used as genesis block")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

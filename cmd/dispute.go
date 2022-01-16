@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var disputeFlagChain uint8
+var disputeFlagChain string
 
 // disputeCmd represents the dispute command
 var disputeCmd = &cobra.Command{
@@ -42,5 +42,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// disputeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	disputeCmd.Flags().Uint8VarP(&disputeFlagChain, "chain", "c", 1, "the disputed chain ID")
+	disputeCmd.Flags().StringVarP(&disputeFlagChain, "chain", "c", "local", "the disputed chain ID")
 }
