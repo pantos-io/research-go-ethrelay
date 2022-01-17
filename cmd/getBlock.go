@@ -67,16 +67,16 @@ func init() {
 }
 
 func printHeader(header *types.Header) {
-	fmt.Printf("Hash: %s\n", header.Hash().String())
-	fmt.Printf("Number: %s\n", header.Number.String())
+	fmt.Printf("Hash: %s\n", header.Hash())
+	fmt.Printf("Number: %s\n", header.Number)
 	fmt.Printf("Nonce: %d\n", header.Nonce.Uint64())
-	fmt.Printf("StateRoot: %s\n", header.Root.String())
-	fmt.Printf("TxHash: %s\n", header.TxHash.String())
-	fmt.Printf("ReceiptHash: %s\n", header.ReceiptHash.String())
+	fmt.Printf("StateRoot: %s\n", header.Root)
+	fmt.Printf("TxHash: %s\n", header.TxHash)
+	fmt.Printf("ReceiptHash: %s\n", header.ReceiptHash)
 }
 
 func printBlock(block *types.Block) {
-	fmt.Printf("Hash: %s\n", block.Hash().String())
+	fmt.Printf("Hash: %s\n", block.Hash())
 	fmt.Printf("Number: %d\n", block.Number())
 	fmt.Printf("Nonce: %d\n", block.Nonce())
 	fmt.Printf("Transaction Count: %d\n", len(block.Transactions()))
@@ -85,6 +85,6 @@ func printBlock(block *types.Block) {
 func printTransactions(block *types.Block) {
 	fmt.Printf("Transactions:\n")
 	for index, tx := range(block.Transactions()) {
-		fmt.Printf("%d: %s\n", index, tx.Hash().String())
+		fmt.Printf("%d: %s\n", index, tx.Hash())
 	}
 }

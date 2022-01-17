@@ -402,7 +402,7 @@ func (c Client) GetOriginalBlockHeader(chainId string, blockHash common.Hash) (*
 }
 
 func (c Client) SubmitHeader(chainId string, header *types.Header) error {
-	fmt.Printf("Submitting block: \nNo: %s\nHash: %s\n", header.Number.String(), header.Hash().String())
+	fmt.Printf("Submitting block: \nNo: %s\nHash: %s\n", header.Number, header.Hash())
 
 	rlpHeader, err := encodeHeaderToRLP(header)
 	if err != nil {
@@ -476,7 +476,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 			log.Fatal(err)
 		}
 
-		fmt.Printf("\nSearching for block No. %s from source chain '%s' on destination chain '%s'", header.Number.String(), srcChainId, dstChainId)
+		fmt.Printf("\nSearching for block No. %s from source chain '%s' on destination chain '%s'", header.Number, srcChainId, dstChainId)
 
 		isHeaderStored, err := dstChain.testimonium.IsHeaderStored(nil, header.Hash())
 		if err != nil {
@@ -492,7 +492,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 		blockNumber.Sub(blockNumber, one)
 	}
 
-	fmt.Printf("\n\nlatest block No. submitted to destination chain: %s\n\n", header.Number.String())
+	fmt.Printf("\n\nlatest block No. submitted to destination chain: %s\n\n", header.Number)
 
 	requiredStake, err := dstChain.testimonium.GetRequiredStakePerBlock(nil)
 	if err != nil {
@@ -855,7 +855,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	}
 
 	if eventIteratorRemoveBranch.Next() {
-		fmt.Printf("Tx successful: %s\n", eventIteratorRemoveBranch.Event.String())
+		fmt.Printf("Tx successful: %s\n", eventIteratorRemoveBranch.Event)
 	}
 
 	// get PoW Verification event
@@ -869,7 +869,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	}
 
 	if eventIteratorPoWResult.Next() {
-		fmt.Printf("Tx successful: %s\n", eventIteratorPoWResult.Event.String())
+		fmt.Printf("Tx successful: %s\n", eventIteratorPoWResult.Event)
 	}
 }
 
@@ -1074,7 +1074,7 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Tx successful: %s\n", verificationResult.String())
+	fmt.Printf("Tx successful: %s\n", verificationResult)
 }
 
 func (c Client) getVerifyTransactionEvent(chainId string, receipt *types.Receipt) (*VerificationResult, error) {
@@ -1210,7 +1210,7 @@ func (c Client) DeployTestimonium(dstChainId string, srcChainId string, genesisB
 		return common.Address{}
 	}
 
-	fmt.Println("Contract has been deployed at address: ", addr.String())
+	fmt.Println("Contract has been deployed at address", addr)
 	return addr
 }
 
@@ -1237,7 +1237,7 @@ func (c Client) DeployEthash(chainId string) common.Address {
 		return common.Address{}
 	}
 
-	fmt.Println("Contract has been deployed at address: ", addr.String())
+	fmt.Println("Contract has been deployed at address", addr)
 
 	return addr
 }

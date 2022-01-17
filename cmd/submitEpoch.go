@@ -37,7 +37,7 @@ var submitEpochCmd = &cobra.Command{
 
 		if jsonFlag {
 			writeEpochAsJson(epochData, epoch)
-			fmt.Printf("Wrote epoch data to %s.json\n", epoch.String())
+			fmt.Printf("Wrote epoch data to %s.json\n", epoch)
 			return
 		}
 		testimoniumClient = createTestimoniumClient()
@@ -64,14 +64,14 @@ func init() {
 
 
 func writeEpochAsJson(epochData typedefs.EpochData, epoch *big.Int) {
-	f, err := os.Create(fmt.Sprintf("./%s.json", epoch.String()))
+	f, err := os.Create(fmt.Sprintf("./%s.json", epoch))
 	checkError(err)
 	defer f.Close()
 
 	_, err = fmt.Fprint(f, "{\n")
-	_, err = fmt.Fprintf(f, "  \"epoch\": \"%s\",\n", epochData.Epoch.String())
-	_, err = fmt.Fprintf(f, "  \"fullSizeIn128Resolution\": \"%s\",\n", epochData.FullSizeIn128Resolution.String())
-	_, err = fmt.Fprintf(f, "  \"branchDepth\": \"%s\",\n", epochData.BranchDepth.String())
+	_, err = fmt.Fprintf(f, "  \"epoch\": \"%s\",\n", epochData.Epoch)
+	_, err = fmt.Fprintf(f, "  \"fullSizeIn128Resolution\": \"%s\",\n", epochData.FullSizeIn128Resolution)
+	_, err = fmt.Fprintf(f, "  \"branchDepth\": \"%s\",\n", epochData.BranchDepth)
 	_, err = fmt.Fprintf(f, "  \"merkleNodes\": ",)
 	writeElementsToFile(f, epochData.MerkleNodes)
 	_, err = fmt.Fprint(f, "\n}")
@@ -88,12 +88,12 @@ func writeElementsToFile(file *os.File, arr []*big.Int) {
 	_, err := fmt.Fprintf(file, "[")
 	checkError(err)
 	if len(arr) > 0 {
-		_, err = fmt.Fprintf(file, "\"%s\"", arr[0].String())
+		_, err = fmt.Fprintf(file, "\"%s\"", arr[0])
 		checkError(err)
 	}
 
 	for i := 1; i < len(arr); i++ {
-		_, err = fmt.Fprintf(file, ", \"%s\"", arr[i].String())
+		_, err = fmt.Fprintf(file, ", \"%s\"", arr[i])
 		checkError(err)
 	}
 	_, err = fmt.Fprintf(file, "]")

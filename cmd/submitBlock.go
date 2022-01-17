@@ -73,7 +73,7 @@ var submitBlockCmd = &cobra.Command{
 			header = testimoniumClient.RandomizeHeader(submitFlagSrcChain, header)
 		}
 
-		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
+		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number, submitFlagSrcChain, submitFlagDestChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 

@@ -59,8 +59,8 @@ func init() {
 }
 
 func printTransaction(tx *types.Transaction) {
-	fmt.Printf("Hash: %s\n", tx.Hash().String())
-	fmt.Printf("To: %s\n", tx.To().String())
+	fmt.Printf("Hash: %s\n", tx.Hash())
+	fmt.Printf("To: %s\n", tx.To())
 	fmt.Printf("Nonce: %d\n", tx.Nonce())
 	fmt.Printf("Value: %d\n", tx.Value())
 	fmt.Printf("GasPrice: %d\n", tx.GasPrice())
@@ -68,12 +68,12 @@ func printTransaction(tx *types.Transaction) {
 }
 
 func printTransactionReceipt(receipt *types.Receipt) {
-	fmt.Printf("TxHash: %s\n", receipt.TxHash.String())
-	fmt.Printf("BlockHash: %s\n", receipt.BlockHash.String())
+	fmt.Printf("TxHash: %s\n", receipt.TxHash)
+	fmt.Printf("BlockHash: %s\n", receipt.BlockHash)
 	fmt.Printf("Status: %d\n", receipt.Status)
 	fmt.Printf("BlockNumber: %d\n", receipt.BlockNumber)
 	fmt.Printf("GasUsed: %d\n", receipt.GasUsed)
 	fmt.Printf("CumulativeGasUsed: %d\n", receipt.CumulativeGasUsed)
 	fmt.Printf("TransactionIndex: %d\n", receipt.TransactionIndex)
-	fmt.Printf("ContractAddress: %s\n", receipt.ContractAddress.String())
+	fmt.Printf("ContractAddress: %s\n", receipt.ContractAddress)
 }

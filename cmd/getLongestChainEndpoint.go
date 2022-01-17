@@ -27,7 +27,7 @@ var getLongestChainEndpointCmd = &cobra.Command{
 			log.Fatalf("Failed to retrieve longest chain blockHash from chain '%s': %s", testimoniumContractChain, err)
 		}
 
-		fmt.Println("LongestChainEndpointBlockHash: ", common.BytesToHash(blockHash[:]).String())
+		fmt.Println("LongestChainEndpointBlockHash:", common.BytesToHash(blockHash[:]))
 	},
 }
 
