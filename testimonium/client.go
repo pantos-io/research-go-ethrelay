@@ -17,9 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -29,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
+
 	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
 	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
 	"github.com/pantos-io/go-ethrelay/typedefs"
@@ -76,16 +76,39 @@ const (
 	ValueTypeState
 )
 
+type PoWValidationResult int
+const (
+	PoWValid		= 0
+	PoWEpoch		= 1
+	PoWDifficulty	= 2
+)
+
 func (event TestimoniumRemoveBranch) String() string {
-	return fmt.Sprintf("RemoveBranchEvent: { Root: %s }", common.BytesToHash(event.Root[:]).String())
+	return fmt.Sprintf("branch with root hash %s removed", common.BytesToHash(event.Root[:]))
 }
 
 func (event TestimoniumPoWValidationResult) String() string {
-	return fmt.Sprintf("PoWValidationResultEvent: { returnCode: %d, errorInfo: %d }", event.ReturnCode, event.ErrorInfo)
+	switch event.ReturnCode.Int64() {
+	case PoWValid:
+		return "PoW was successfully validated"
+	case PoWEpoch:
+		return fmt.Sprintf("epoch data for epoch %d not set", event.ErrorInfo)
+	case PoWDifficulty:
+		return fmt.Sprintf("calculated difficulty of %d too low", event.ErrorInfo)
+	default:
+		return fmt.Sprintf("PoWValidationResultEvent: { returnCode: %d, errorInfo: %d }", event.ReturnCode, event.ErrorInfo)
+	}
 }
 
 func (result VerificationResult) String() string {
-	return fmt.Sprintf("VerificationResult: { returnCode: %d }", result.returnCode)
+	switch result.returnCode {
+	case 0:
+		return "Merkle Proof verified"
+	case 1:
+		return "failed to verify Merkle Proof"
+	default:
+		return fmt.Sprintf("VerificationResult: { returnCode: %d }", result.returnCode)
+	}
 }
 
 func CreateChainConfig(connectionType string, connectionUrl string, connectionPort uint64) map[string]interface{} {
