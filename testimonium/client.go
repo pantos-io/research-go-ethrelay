@@ -34,10 +34,6 @@ import (
 	"github.com/pantos-io/go-ethrelay/typedefs"
 )
 
-type ChainConfig map[string]interface{}
-
-type ChainsConfig map[uint8]ChainConfig
-
 type Chain struct {
 	client                     *ethclient.Client
 	fullUrl                    string
