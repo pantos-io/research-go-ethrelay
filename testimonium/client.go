@@ -345,8 +345,6 @@ func (c Client) DepositStake(chainId string, amountInWei *big.Int) error {
 		return err
 	}
 
-	// fmt.Printf("Tx submitted: %s\n", tx.Hash().Hex())
-
 	return nil
 }
 
@@ -381,8 +379,6 @@ func (c Client) WithdrawStake(chainId string, amountInWei *big.Int) error {
 	}
 
 	if eventIterator.Next() {
-		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
-
 		if eventIterator.Event.WithdrawnStake.Cmp(amountInWei) != 0 {
 			return errors.New("withdraw not successful, reason: more than 'amount' stake is locked in contract")
 		}
@@ -640,8 +636,6 @@ func (c Client) SubmitRLPHeader(chainId string, rlpHeader []byte) error {
 	//  to other nodes within a usage - this may also be the case on every other transaction call
 	//  workaround: check that the transaction from eventIterator's event is the same as the submitted transaction above
 	if eventIterator.Next() {
-		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
-
 		// TODO: this is only 1 special hash value emitted by the contract for too small stake and not a read error code
 		if (eventIterator.Event.BlockHash == common.Hash{}) {
 			return errors.New("block was not submitted, reason: too small stake deposited")
