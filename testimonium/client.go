@@ -70,11 +70,10 @@ type VerificationResult struct {
 }
 
 type TrieValueType int
-
 const (
-	VALUE_TYPE_TRANSACTION TrieValueType = 0
-	VALUE_TYPE_RECEIPT     TrieValueType = 1
-	VALUE_TYPE_STATE       TrieValueType = 2
+	ValueTypeTransaction TrieValueType = iota
+	ValueTypeReceipt
+	ValueTypeState
 )
 
 func (t TestimoniumNewBlock) String() string {
@@ -1020,13 +1019,13 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, feeInWei)
 
 	switch trieValueType {
-	case VALUE_TYPE_TRANSACTION:
+	case ValueTypeTransaction:
 		tx, err = chain.testimonium.VerifyTransaction(auth, feeInWei, rlpHeader,
 			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
-	case VALUE_TYPE_RECEIPT:
+	case ValueTypeReceipt:
 		tx, err = chain.testimonium.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
 			rlpEncodedValue, path, rlpEncodedProofNodes)
-	case VALUE_TYPE_STATE:
+	case ValueTypeState:
 		tx, err = chain.testimonium.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
 			rlpEncodedValue, path, rlpEncodedProofNodes)
 	default:
@@ -1054,11 +1053,11 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 	var verificationResult *VerificationResult
 
 	switch trieValueType {
-	case VALUE_TYPE_TRANSACTION:
+	case ValueTypeTransaction:
 		verificationResult, err = c.getVerifyTransactionEvent(chainId, receipt)
-	case VALUE_TYPE_RECEIPT:
+	case ValueTypeReceipt:
 		verificationResult, err = c.getVerifyReceiptEvent(chainId, receipt)
-	case VALUE_TYPE_STATE:
+	case ValueTypeState:
 		verificationResult, err = c.getVerifyStateEvent(chainId, receipt)
 	}
 

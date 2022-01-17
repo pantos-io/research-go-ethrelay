@@ -56,7 +56,7 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.VALUE_TYPE_TRANSACTION,
+		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeTransaction,
 			rlpEncodedTx, path, rlpEncodedProofNodes, noOfConfirmations)
 	},
 }
