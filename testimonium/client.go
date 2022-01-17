@@ -65,22 +65,6 @@ type Header struct {
 	TotalDifficulty *big.Int
 }
 
-type FullHeader struct {
-	Parent                    common.Hash
-	UncleHash                 common.Hash
-	StateRoot                 common.Hash
-	TransactionsRoot          common.Hash
-	ReceiptsRoot              common.Hash
-	BlockNumber               *big.Int
-	GasLimit                  *big.Int
-	GasUsed                   *big.Int
-	RlpHeaderHashWithoutNonce common.Hash
-	Timestamp                 *big.Int
-	Nonce                     *big.Int
-	Difficulty                *big.Int
-	ExtraData                 *byte
-}
-
 type VerificationResult struct {
 	returnCode uint8
 }
@@ -92,26 +76,6 @@ const (
 	VALUE_TYPE_RECEIPT     TrieValueType = 1
 	VALUE_TYPE_STATE       TrieValueType = 2
 )
-
-func (header FullHeader) String() string {
-	return fmt.Sprintf(`BlockHeader: {
-Parent: %s,
-StateRoot: %s,
-TransactionsRoot: %s,
-ReceiptsRoot: %s,
-BlockNumber: %s,
-RlpHeaderHashWithoutNonce: %s,
-Nonce: %s,
-Difficulty: %s }`,
-		common.Bytes2Hex(header.Parent[:]),
-		common.Bytes2Hex(header.StateRoot[:]),
-		common.Bytes2Hex(header.TransactionsRoot[:]),
-		common.Bytes2Hex(header.ReceiptsRoot[:]),
-		header.BlockNumber.String(),
-		common.Bytes2Hex(header.RlpHeaderHashWithoutNonce[:]),
-		header.Nonce.String(),
-		header.Difficulty.String())
-}
 
 func (t TestimoniumNewBlock) String() string {
 	return fmt.Sprintf("NewBlockEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
