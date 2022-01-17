@@ -60,21 +60,21 @@ type Client struct {
 }
 
 type Header struct {
-	Hash            [32]byte
+	Hash            common.Hash
 	BlockNumber     *big.Int
 	TotalDifficulty *big.Int
 }
 
 type FullHeader struct {
-	Parent                    [32]byte
-	UncleHash                 [32]byte
-	StateRoot                 [32]byte
-	TransactionsRoot          [32]byte
-	ReceiptsRoot              [32]byte
+	Parent                    common.Hash
+	UncleHash                 common.Hash
+	StateRoot                 common.Hash
+	TransactionsRoot          common.Hash
+	ReceiptsRoot              common.Hash
 	BlockNumber               *big.Int
 	GasLimit                  *big.Int
 	GasUsed                   *big.Int
-	RlpHeaderHashWithoutNonce [32]byte
+	RlpHeaderHashWithoutNonce common.Hash
 	Timestamp                 *big.Int
 	Nonce                     *big.Int
 	Difficulty                *big.Int
@@ -415,15 +415,15 @@ func (c Client) WithdrawStake(chainId string, amountInWei *big.Int) error {
 	return errors.New("uncaught error")
 }
 
-func (c Client) BlockHeaderExists(chainId string, blockHash [32]byte) (bool, error) {
+func (c Client) BlockHeaderExists(chainId string, blockHash common.Hash) (bool, error) {
 	return c.DstChain(chainId).testimonium.IsHeaderStored(nil, blockHash)
 }
 
-func (c Client) GetLongestChainEndpoint(chainId string) ([32]byte, error) {
+func (c Client) GetLongestChainEndpoint(chainId string) (common.Hash, error) {
 	return c.DstChain(chainId).testimonium.GetLongestChainEndpoint(nil)
 }
 
-func (c Client) GetOriginalBlockHeader(chainId string, blockHash [32]byte) (*types.Block, error) {
+func (c Client) GetOriginalBlockHeader(chainId string, blockHash common.Hash) (*types.Block, error) {
 	return c.SrcChain(chainId).client.BlockByHash(context.Background(), common.BytesToHash(blockHash[:]))
 }
 
@@ -665,7 +665,7 @@ func (c Client) SubmitRLPHeader(chainId string, rlpHeader []byte) error {
 		// fmt.Printf("Tx successful: %s\n", eventIterator.Event.String())
 
 		// TODO: this is only 1 special hash value emitted by the contract for too small stake and not a read error code
-		if eventIterator.Event.BlockHash == [32]byte{0} {
+		if (eventIterator.Event.BlockHash == common.Hash{}) {
 			return errors.New("block was not submitted, reason: too small stake deposited")
 		}
 
@@ -737,7 +737,7 @@ func (c Client) RandomizeHeader(chainId string, header *types.Header) *types.Hea
 	return header
 }
 
-func getRlpHeaderByEvent(chain *DestinationChain, blockHash [32]byte) ([]byte, error) {
+func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte, error) {
 	eventIterator, err := chain.testimonium.FilterNewBlock(nil)
 	if err != nil {
 		return nil, err
@@ -811,7 +811,7 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash [32]byte) ([]byte, e
 	return nil, fmt.Errorf("no submit event for block '%s' found", common.Bytes2Hex(blockHash[:]))
 }
 
-func (c Client) DisputeBlock(chainId string, blockHash [32]byte) {
+func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	chain := c.DstChain(chainId)
 
 	fmt.Println("Disputing block...")
@@ -845,7 +845,7 @@ func (c Client) DisputeBlock(chainId string, blockHash [32]byte) {
 	blockHeaderHashWithoutNonce := crypto.Keccak256(blockHeaderWithoutNonce)
 
 	// keccak256 returns a dynamic byte array, but we need a 32 byte fixed size byte array for the ethash block meta data
-	var blockHeaderHashWithoutNonceLength32 [32]byte
+	var blockHeaderHashWithoutNonceLength32 common.Hash
 	copy(blockHeaderHashWithoutNonceLength32[:], blockHeaderHashWithoutNonce)
 
 	// get DAG and compute dataSetLookup and witnessForLookup
@@ -905,7 +905,7 @@ func (c Client) GetRequiredVerificationFee(chainId string) (*big.Int, error) {
 	return c.DstChain(chainId).testimonium.GetRequiredVerificationFee(nil)
 }
 
-func (c Client) GenerateMerkleProofForTx(chainId string, txHash [32]byte) ([]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]byte, []byte, []byte, []byte, error) {
 	chain := c.SrcChain(chainId)
 	txReceipt, err := chain.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
@@ -977,7 +977,7 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash [32]byte) ([]byt
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
-func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash [32]byte) ([]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash) ([]byte, []byte, []byte, []byte, error) {
 	chain := c.SrcChain(chainId)
 	txReceipt, err := chain.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {

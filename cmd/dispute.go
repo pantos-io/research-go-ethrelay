@@ -20,7 +20,7 @@ var disputeCmd = &cobra.Command{
 		blockHash := common.HexToHash(args[0])
 
 		// copy dynamic byte array to fixed length byte array
-		var blockHashBytes32 [32]byte
+		var blockHashBytes32 common.Hash
 		blockHashBytes := blockHash.Bytes()
 		copy(blockHashBytes32[:], blockHashBytes)
 

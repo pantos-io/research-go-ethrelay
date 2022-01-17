@@ -5,14 +5,15 @@ package ethash
 import (
 	"bufio"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/mtree"
-	"github.com/pantos-io/go-ethrelay/typedefs"
 	"io"
 	"log"
 	"math/big"
 	"os"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/pantos-io/go-ethrelay/mtree"
+	"github.com/pantos-io/go-ethrelay/typedefs"
 )
 
 type BlockMetaData struct {
@@ -263,7 +264,7 @@ func (s *BlockMetaData) DAGProofArray() []*big.Int {
 	return result
 }
 
-func NewBlockMetaData(blockNumber uint64, nonce uint64, rlpHeaderHashWithoutNonce [32]byte) *BlockMetaData {
+func NewBlockMetaData(blockNumber uint64, nonce uint64, rlpHeaderHashWithoutNonce common.Hash) *BlockMetaData {
 	return &BlockMetaData{
 		blockNumber,
 		nonce,
