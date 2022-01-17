@@ -76,10 +76,6 @@ const (
 	ValueTypeState
 )
 
-func (t TestimoniumNewBlock) String() string {
-	return fmt.Sprintf("NewBlockEvent: { Hash: %s }", common.BytesToHash(t.BlockHash[:]).String())
-}
-
 func (event TestimoniumRemoveBranch) String() string {
 	return fmt.Sprintf("RemoveBranchEvent: { Root: %s }", common.BytesToHash(event.Root[:]).String())
 }
@@ -90,10 +86,6 @@ func (event TestimoniumPoWValidationResult) String() string {
 
 func (result VerificationResult) String() string {
 	return fmt.Sprintf("VerificationResult: { returnCode: %d }", result.returnCode)
-}
-
-func (event TestimoniumWithdrawStake) String() string {
-	return fmt.Sprintf("TestimoniumWithdrawStakeEvent: { client: %s, withdrawnStake: %d }", common.Bytes2Hex(event.Client.Bytes()), event.WithdrawnStake)
 }
 
 func CreateChainConfig(connectionType string, connectionUrl string, connectionPort uint64) map[string]interface{} {
