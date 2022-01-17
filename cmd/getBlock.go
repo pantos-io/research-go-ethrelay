@@ -5,10 +5,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 var headerFlag bool
@@ -27,7 +28,7 @@ var getBlockCmd = &cobra.Command{
 		if headerFlag {
 			// if only the header should be printed
 
-			header, err := testimoniumClient.HeaderByHash(blockHash, getFlagChain)
+			header, err := testimoniumClient.HeaderByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
 			}
@@ -36,7 +37,7 @@ var getBlockCmd = &cobra.Command{
 		} else {
 			// else the full header will be printed
 
-			block, err := testimoniumClient.BlockByHash(blockHash, getFlagChain)
+			block, err := testimoniumClient.BlockByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve block: " + err.Error())
 			}

@@ -6,11 +6,12 @@ package cmd
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-ethrelay/testimonium"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
 )
 
 var noOfConfirmations uint8
@@ -31,7 +32,7 @@ This information gets sent to the verifying chain, where not only the existence 
 
 		testimoniumClient = createTestimoniumClient()
 
-		rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(txHash, verifyFlagSrcChain)
+		rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
@@ -55,8 +56,8 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(feesInWei, rlpHeader, testimonium.VALUE_TYPE_TRANSACTION, rlpEncodedTx, path,
-			rlpEncodedProofNodes, noOfConfirmations, verifyFlagDestChain)
+		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.VALUE_TYPE_TRANSACTION,
+			rlpEncodedTx, path, rlpEncodedProofNodes, noOfConfirmations)
 	},
 }
 

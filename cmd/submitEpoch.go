@@ -5,10 +5,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
-	"github.com/pantos-io/go-ethrelay/typedefs"
 	"math/big"
 	"os"
+
+	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/typedefs"
 
 	"log"
 
@@ -40,7 +41,7 @@ var submitEpochCmd = &cobra.Command{
 			return
 		}
 		testimoniumClient = createTestimoniumClient()
-		testimoniumClient.SetEpochData(epochData, submitFlagDestChain)
+		testimoniumClient.SetEpochData(submitFlagDestChain, epochData)
 	},
 }
 

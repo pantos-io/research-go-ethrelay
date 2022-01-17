@@ -44,7 +44,7 @@ var submitBlockCmd = &cobra.Command{
 		if len(args) > 0 {
 			if strings.HasPrefix(args[0], "0x") {
 				blockHash := common.HexToHash(args[0])
-				header, err = testimoniumClient.HeaderByHash(blockHash, getFlagChain)
+				header, err = testimoniumClient.HeaderByHash(getFlagChain, blockHash)
 			} else {
 				var ok bool
 				var blockNumber *big.Int = nil
@@ -55,7 +55,7 @@ var submitBlockCmd = &cobra.Command{
 					log.Fatalf("Illegal block number '%s'", args[0])
 				}
 
-				header, err = testimoniumClient.HeaderByNumber(blockNumber, submitFlagSrcChain)
+				header, err = testimoniumClient.HeaderByNumber(submitFlagSrcChain, blockNumber)
 			}
 		}
 
@@ -70,14 +70,14 @@ var submitBlockCmd = &cobra.Command{
 
 		if submitFlagRandomize {
 			fmt.Printf("Randomizing header...\n")
-			header = testimoniumClient.RandomizeHeader(header, submitFlagSrcChain)
+			header = testimoniumClient.RandomizeHeader(submitFlagSrcChain, header)
 		}
 
 		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number.String(), submitFlagSrcChain, submitFlagDestChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 
-		err = testimoniumClient.SubmitHeader(header, submitFlagDestChain)
+		err = testimoniumClient.SubmitHeader(submitFlagDestChain, header)
 		if err != nil {
 			log.Fatal("Failed to submit header: " + err.Error())
 		}

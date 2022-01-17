@@ -26,7 +26,7 @@ var disputeCmd = &cobra.Command{
 
 		// call disputeBlock in the testimonium client library
 		testimoniumClient = createTestimoniumClient()
-		testimoniumClient.DisputeBlock(blockHash, disputeFlagChain)
+		testimoniumClient.DisputeBlock(disputeFlagChain, blockHash)
 	},
 }
 

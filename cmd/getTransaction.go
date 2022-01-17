@@ -5,10 +5,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 var receiptFlag bool
@@ -26,7 +27,7 @@ var getTransactionCmd = &cobra.Command{
 		testimoniumClient = createTestimoniumClient()
 
 		if receiptFlag {
-			txReceipt, err := testimoniumClient.TransactionReceipt(txHash, getFlagChain)
+			txReceipt, err := testimoniumClient.TransactionReceipt(getFlagChain, txHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve transaction receipt: " + err.Error())
 			}
@@ -34,7 +35,7 @@ var getTransactionCmd = &cobra.Command{
 			return
 		}
 
-		tx, _, err := testimoniumClient.Transaction(txHash, getFlagChain)
+		tx, _, err := testimoniumClient.Transaction(getFlagChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to retrieve transaction: " + err.Error())
 		}

@@ -41,7 +41,7 @@ var verifyBlockCmd = &cobra.Command{
 
 		testimoniumClient = createTestimoniumClient()
 
-		headerExists, err := testimoniumClient.BlockHeaderExists(blockHash, verifyFlagDestChain)
+		headerExists, err := testimoniumClient.BlockHeaderExists(verifyFlagDestChain, blockHash)
 		if err != nil {
 			log.Fatal("Could not verify block header on verifying chain: " + err.Error())
 		}
@@ -51,7 +51,7 @@ var verifyBlockCmd = &cobra.Command{
 			return
 		}
 
-		_, err = testimoniumClient.GetOriginalBlockHeader(blockHash, verifyFlagSrcChain)
+		_, err = testimoniumClient.GetOriginalBlockHeader(verifyFlagSrcChain, blockHash)
 		if err != nil {
 			log.Fatal("Could not get original block on source chain: " + err.Error())
 		}
