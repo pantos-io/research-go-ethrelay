@@ -6,10 +6,10 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"math"
-	"math/big"
 
 	"github.com/spf13/cobra"
+
+	"github.com/pantos-io/go-ethrelay/ethereum/utils"
 )
 
 var stakeFlagChain string
@@ -26,11 +26,7 @@ var stakeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		var stakeInEth = new(big.Float)
-		stakeInEth = stakeInEth.SetInt(stakeInWei)
-		stakeInEth = new(big.Float).Quo(stakeInEth, big.NewFloat(math.Pow10(18)))
-
-		fmt.Printf("Stake balance: %s ETH\n", stakeInEth.String())
+		fmt.Printf("Stake balance: %s ETH\n", utils.WeiToEther(stakeInWei))
 	},
 }
 

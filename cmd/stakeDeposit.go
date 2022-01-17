@@ -5,10 +5,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"log"
-	"math"
 	"math/big"
+
+	"github.com/spf13/cobra"
+
+	"github.com/pantos-io/go-ethrelay/ethereum/utils"
 )
 
 // stakeDepositCmd represents the command 'stake deposit <amount>'
@@ -30,11 +32,7 @@ var stakeDepositCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		var stakeInEth = new(big.Float)
-		stakeInEth = stakeInEth.SetInt(amountInWei)
-		stakeInEth = new(big.Float).Quo(stakeInEth, big.NewFloat(math.Pow10(18)))
-
-		fmt.Printf("Successfully deposited stake: %s ETH\n", stakeInEth.String())
+		fmt.Printf("Successfully deposited stake: %s ETH\n", utils.WeiToEther(amountInWei))
 	},
 }
 
