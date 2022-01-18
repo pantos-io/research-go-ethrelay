@@ -922,7 +922,7 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
-	path := make([]byte, len(indexBuffer.Bytes()))
+	path := make([]byte, indexBuffer.Len())
 	copy(path, indexBuffer.Bytes())
 
 	merkleIterator := merkleTrie.NodeIterator(nil)
@@ -940,7 +940,7 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
-	rlpEncodedProofNodes := make([]byte, len(indexBuffer.Bytes()))
+	rlpEncodedProofNodes := make([]byte, indexBuffer.Len())
 	copy(rlpEncodedProofNodes, indexBuffer.Bytes())
 
 	indexBuffer.Reset()
@@ -948,7 +948,7 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]
 	if err != nil {
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
-	rlpEncodedHeader := make([]byte, len(indexBuffer.Bytes()))
+	rlpEncodedHeader := make([]byte, indexBuffer.Len())
 	copy(rlpEncodedHeader, indexBuffer.Bytes())
 
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
