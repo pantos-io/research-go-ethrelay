@@ -903,7 +903,12 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]
 			return []byte{}, []byte{}, []byte{}, []byte{}, err
 		}
 		transactions.EncodeIndex(i, txBuffer)
-		merkleTrie.Update(indexBuffer.Bytes(), txBuffer.Bytes())
+
+		// Trie.Update() requires immutability of the value as long as it's stored in the data structure
+		encodedTx := make([]byte, txBuffer.Len())
+		copy(encodedTx, txBuffer.Bytes())
+
+		merkleTrie.Update(indexBuffer.Bytes(), encodedTx)
 	}
 
 	txBuffer.Reset()
