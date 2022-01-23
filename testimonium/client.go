@@ -954,6 +954,18 @@ func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]
 	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
 }
 
+func receiptsByTransactions(ctx context.Context, c *ethclient.Client, transactions []*types.Transaction) (types.Receipts, error) {
+	receipts := make([]*types.Receipt, len(transactions))
+	for i := 0; i < len(receipts); i++ {
+		receipt, err := c.TransactionReceipt(ctx, transactions[i].Hash())
+		if err != nil {
+			return nil, err
+		}
+		receipts[i] = receipt
+	}
+	return receipts, nil
+}
+
 func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash) ([]byte, []byte, []byte, []byte, error) {
 	chain := c.SrcChain(chainId)
 	txReceipt, err := chain.client.TransactionReceipt(context.Background(), txHash)
@@ -966,6 +978,11 @@ func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash
 		return []byte{}, []byte{}, []byte{}, []byte{}, err
 	}
 
+	receipts, err := receiptsByTransactions(context.Background(), chain.client, block.Transactions())
+	if err != nil {
+		return []byte{}, []byte{}, []byte{}, []byte{}, err
+	}
+
 	var path []byte
 	var rlpEncodedReceipt []byte
 
@@ -973,22 +990,15 @@ func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash
 	buffer := new(bytes.Buffer)
 	merkleTrie := new(trie.Trie)
 	for i := 0; i < block.Transactions().Len(); i++ {
-		tx := block.Body().Transactions[i]
-
-		receipt, err := chain.client.TransactionReceipt(context.Background(), tx.Hash())
-		if err != nil {
-			return []byte{}, []byte{}, []byte{}, []byte{}, err
-		}
-
 		buffer.Reset()
-		receipt.EncodeRLP(buffer)
+		receipts.EncodeIndex(i, buffer)
 		encodedReceipt := make([]byte, len(buffer.Bytes()))
 		copy(encodedReceipt, buffer.Bytes())
 
 		buffer.Reset()
 		rlp.Encode(buffer, uint(i))
 
-		if txReceipt.TxHash == receipt.TxHash {
+		if txReceipt.TxHash == receipts[i].TxHash {
 			path = make([]byte, len(buffer.Bytes()))
 			copy(path, buffer.Bytes())
 
