@@ -26,7 +26,7 @@ This information gets sent to the verifying chain, where not only the existence 
 
 		testimoniumClient = createTestimoniumClient()
 
-		rlpHeader, rlpEncodedReceipt, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForReceipt(verifyFlagSrcChain, txHash)
+		rlpHeader, proof, err := testimoniumClient.GenerateMerkleProofForReceipt(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
@@ -36,8 +36,7 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeReceipt,
-			rlpEncodedReceipt, path, rlpEncodedProofNodes, noOfConfirmations)
+		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeReceipt, proof, noOfConfirmations)
 	},
 }
 

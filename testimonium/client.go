@@ -27,7 +27,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
 	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
@@ -877,81 +876,29 @@ func (c Client) GetRequiredVerificationFee(chainId string) (*big.Int, error) {
 	return c.DstChain(chainId).testimonium.GetRequiredVerificationFee(nil)
 }
 
-func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]byte, *MerkleProof, error) {
 	chain := c.SrcChain(chainId)
 	txReceipt, err := chain.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
 
 	block, err := chain.client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
 
-	// create transactions trie
-	indexBuffer := new(bytes.Buffer)
-	txBuffer := new(bytes.Buffer)
-	merkleTrie := new(trie.Trie)
-	transactions := block.Transactions()
-
-	for i := 0; i < transactions.Len(); i++ {
-		indexBuffer.Reset()
-		txBuffer.Reset()
-		err = rlp.Encode(indexBuffer, uint(i))
-		if err != nil {
-			return []byte{}, []byte{}, []byte{}, []byte{}, err
-		}
-		transactions.EncodeIndex(i, txBuffer)
-
-		// Trie.Update() requires immutability of the value as long as it's stored in the data structure
-		encodedTx := make([]byte, txBuffer.Len())
-		copy(encodedTx, txBuffer.Bytes())
-
-		merkleTrie.Update(indexBuffer.Bytes(), encodedTx)
-	}
-
-	txBuffer.Reset()
-	transactions.EncodeIndex(int(txReceipt.TransactionIndex), txBuffer)
-
-	// create Merkle proof
-	rlpEncodedTx := txBuffer.Bytes()
-
-	indexBuffer.Reset()
-	err = rlp.Encode(indexBuffer, txReceipt.TransactionIndex)
+	rlpEncodedHeader, err := rlp.EncodeToBytes(block.Header())
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
-	}
-	path := make([]byte, indexBuffer.Len())
-	copy(path, indexBuffer.Bytes())
-
-	merkleIterator := merkleTrie.NodeIterator(nil)
-	var proofNodes [][]byte
-	for merkleIterator.Next(true) {
-		if merkleIterator.Leaf() && bytes.Equal(merkleIterator.LeafKey(), path) {
-			// leaf node representing tx has been found --> create Merkle proof
-			proofNodes = merkleIterator.LeafProof()
-			break
-		}
+		return []byte{}, nil, err
 	}
 
-	indexBuffer.Reset()
-	err = rlp.Encode(indexBuffer, proofNodes)
+	proof, err := NewMerkleProof(block.Transactions(), txReceipt.TransactionIndex)
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
-	rlpEncodedProofNodes := make([]byte, indexBuffer.Len())
-	copy(rlpEncodedProofNodes, indexBuffer.Bytes())
 
-	indexBuffer.Reset()
-	err = rlp.Encode(indexBuffer, block.Header())
-	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
-	}
-	rlpEncodedHeader := make([]byte, indexBuffer.Len())
-	copy(rlpEncodedHeader, indexBuffer.Bytes())
-
-	return rlpEncodedHeader, rlpEncodedTx, path, rlpEncodedProofNodes, nil
+	return rlpEncodedHeader, proof, nil
 }
 
 func receiptsByTransactions(ctx context.Context, c *ethclient.Client, transactions []*types.Transaction) (types.Receipts, error) {
@@ -966,76 +913,38 @@ func receiptsByTransactions(ctx context.Context, c *ethclient.Client, transactio
 	return receipts, nil
 }
 
-func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash) ([]byte, []byte, []byte, []byte, error) {
+func (c Client) GenerateMerkleProofForReceipt(chainId string, txHash common.Hash) ([]byte, *MerkleProof, error) {
 	chain := c.SrcChain(chainId)
 	txReceipt, err := chain.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
 
 	block, err := chain.client.BlockByHash(context.Background(), txReceipt.BlockHash)
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
 
 	receipts, err := receiptsByTransactions(context.Background(), chain.client, block.Transactions())
 	if err != nil {
-		return []byte{}, []byte{}, []byte{}, []byte{}, err
+		return []byte{}, nil, err
 	}
 
-	var path []byte
-	var rlpEncodedReceipt []byte
-
-	// create receipts trie
-	buffer := new(bytes.Buffer)
-	merkleTrie := new(trie.Trie)
-	for i := 0; i < block.Transactions().Len(); i++ {
-		buffer.Reset()
-		receipts.EncodeIndex(i, buffer)
-		encodedReceipt := make([]byte, len(buffer.Bytes()))
-		copy(encodedReceipt, buffer.Bytes())
-
-		buffer.Reset()
-		rlp.Encode(buffer, uint(i))
-
-		if txReceipt.TxHash == receipts[i].TxHash {
-			path = make([]byte, len(buffer.Bytes()))
-			copy(path, buffer.Bytes())
-
-			rlpEncodedReceipt = make([]byte, len(encodedReceipt))
-			copy(rlpEncodedReceipt, encodedReceipt)
-		}
-
-		merkleTrie.Update(buffer.Bytes(), encodedReceipt)
+	rlpEncodedHeader, err := rlp.EncodeToBytes(block.Header())
+	if err != nil {
+		return []byte{}, nil, err
 	}
 
-	// create Merkle proof
-
-	merkleIterator := merkleTrie.NodeIterator(nil)
-	var proofNodes [][]byte
-	for merkleIterator.Next(true) {
-		if merkleIterator.Leaf() && bytes.Equal(merkleIterator.LeafKey(), path) {
-			// leaf node representing tx has been found --> create Merkle proof
-			proofNodes = merkleIterator.LeafProof()
-			break
-		}
+	proof, err := NewMerkleProof(receipts, txReceipt.TransactionIndex)
+	if err != nil {
+		return []byte{}, nil, err
 	}
 
-	buffer.Reset()
-	rlp.Encode(buffer, proofNodes)
-	rlpEncodedProofNodes := make([]byte, len(buffer.Bytes()))
-	copy(rlpEncodedProofNodes, buffer.Bytes())
-
-	buffer.Reset()
-	rlp.Encode(buffer, block.Header())
-	rlpEncodedHeader := make([]byte, len(buffer.Bytes()))
-	copy(rlpEncodedHeader, buffer.Bytes())
-
-	return rlpEncodedHeader, rlpEncodedReceipt, path, rlpEncodedProofNodes, nil
+	return rlpEncodedHeader, proof, nil
 }
 
 func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader []byte, trieValueType TrieValueType,
-	rlpEncodedValue []byte, path []byte, rlpEncodedProofNodes []byte, noOfConfirmations uint8) {
+	proof *MerkleProof, noOfConfirmations uint8) {
 
 	var tx *types.Transaction
 	var err error
@@ -1045,13 +954,13 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 	switch trieValueType {
 	case ValueTypeTransaction:
 		tx, err = chain.testimonium.VerifyTransaction(auth, feeInWei, rlpHeader,
-			noOfConfirmations, rlpEncodedValue, path, rlpEncodedProofNodes)
+			noOfConfirmations, proof.Value, proof.Path, proof.Nodes)
 	case ValueTypeReceipt:
 		tx, err = chain.testimonium.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
-			rlpEncodedValue, path, rlpEncodedProofNodes)
+			proof.Value, proof.Path, proof.Nodes)
 	case ValueTypeState:
 		tx, err = chain.testimonium.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
-			rlpEncodedValue, path, rlpEncodedProofNodes)
+			proof.Value, proof.Path, proof.Nodes)
 	default:
 		log.Fatal("Unexpected trie value type: ", trieValueType)
 	}

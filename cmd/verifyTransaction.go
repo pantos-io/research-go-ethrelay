@@ -32,7 +32,7 @@ This information gets sent to the verifying chain, where not only the existence 
 
 		testimoniumClient = createTestimoniumClient()
 
-		rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes, err := testimoniumClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
+		rlpHeader, proof, err := testimoniumClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
@@ -44,7 +44,7 @@ This information gets sent to the verifying chain, where not only the existence 
 			hexEncodedTxHash := make([]byte, hex.EncodedLen(len(txHash)))
 			hex.Encode(hexEncodedTxHash, txHash[:])
 
-			writeMerkleProofAsJson(hexEncodedTxHash, rlpHeader, rlpEncodedTx, path, rlpEncodedProofNodes)
+			writeMerkleProofAsJson(hexEncodedTxHash, rlpHeader, proof)
 
 			fmt.Printf("Wrote merkle proof to 0x%s.json\n", hexEncodedTxHash)
 
@@ -56,12 +56,11 @@ This information gets sent to the verifying chain, where not only the existence 
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeTransaction,
-			rlpEncodedTx, path, rlpEncodedProofNodes, noOfConfirmations)
+		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeTransaction, proof, noOfConfirmations)
 	},
 }
 
-func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, tx []byte, path []byte, nodes []byte) {
+func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, proof *testimonium.MerkleProof) {
 	f, err := os.Create(fmt.Sprintf("./0x%s.json", fileName))
 
 	if err != nil {
@@ -70,23 +69,11 @@ func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, tx []byte, path [
 
 	defer f.Close()
 
-	hexEncodedRlpHeader := make([]byte, hex.EncodedLen(len(rlpHeader)))
-	hex.Encode(hexEncodedRlpHeader, rlpHeader)
-
-	hexEncodedTx := make([]byte, hex.EncodedLen(len(tx)))
-	hex.Encode(hexEncodedTx, tx)
-
-	hexEncodedPath := make([]byte, hex.EncodedLen(len(path)))
-	hex.Encode(hexEncodedPath, path)
-
-	hexEncodedNodes := make([]byte, hex.EncodedLen(len(nodes)))
-	hex.Encode(hexEncodedNodes, nodes)
-
 	_, err = fmt.Fprint(f, "{\n")
-	_, err = fmt.Fprintf(f, "  \"rlpHeader\": \"0x%s\",\n", hexEncodedRlpHeader)
-	_, err = fmt.Fprintf(f, "  \"rlpEncodedTx\": \"0x%s\",\n", hexEncodedTx)
-	_, err = fmt.Fprintf(f, "  \"path\": \"0x%s\",\n", hexEncodedPath)
-	_, err = fmt.Fprintf(f, "  \"rlpEncodedNodes\": \"0x%s\"\n", hexEncodedNodes)
+	_, err = fmt.Fprintf(f, "  \"rlpHeader\": \"0x%s\",\n", common.Bytes2Hex(rlpHeader))
+	_, err = fmt.Fprintf(f, "  \"rlpEncodedTx\": \"0x%s\",\n", common.Bytes2Hex(proof.Value))
+	_, err = fmt.Fprintf(f, "  \"path\": \"0x%s\",\n", common.Bytes2Hex(proof.Path))
+	_, err = fmt.Fprintf(f, "  \"rlpEncodedNodes\": \"0x%s\"\n", common.Bytes2Hex(proof.Nodes))
 	_, err = fmt.Fprint(f, "\n}")
 
 	if err != nil {
