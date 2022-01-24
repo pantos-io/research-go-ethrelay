@@ -4,11 +4,8 @@
 package cmd
 
 import (
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pantos-io/go-ethrelay/ethrelay"
@@ -42,13 +39,8 @@ This information gets sent to the destination chain, where not only the existenc
 		//  maybe it is better to introduce a new command for this behaviour as it is quite confusing to
 		//  call verifyTransaction and no transaction is verified
 		if jsonFlag {
-			hexEncodedTxHash := make([]byte, hex.EncodedLen(len(txHash)))
-			hex.Encode(hexEncodedTxHash, txHash[:])
-
-			writeMerkleProofAsJson(hexEncodedTxHash, rlpHeader, proof)
-
-			fmt.Printf("Wrote merkle proof to 0x%s.json\n", hexEncodedTxHash)
-
+			fileName := writeToJson(fmt.Sprint("tx_", txHash), proof)
+			fmt.Println("Wrote merkle proof to", fileName)
 			return
 		}
 
@@ -59,26 +51,6 @@ This information gets sent to the destination chain, where not only the existenc
 
 		ethrelayClient.VerifyMerkleProof(verifyFlagDstChain, feesInWei, rlpHeader, ethrelay.ValueTypeTransaction, proof, noOfConfirmations)
 	},
-}
-
-func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, proof *ethrelay.MerkleProof) {
-	f, err := os.Create(fmt.Sprintf("./0x%s.json", fileName))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-
-	bytes, err := json.MarshalIndent(proof, "", "\t")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = f.Write(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func init() {

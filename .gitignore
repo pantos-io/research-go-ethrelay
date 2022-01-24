@@ -111,3 +111,4 @@ ethereum/.DS_Store
 
 /ethrelay.yml
 /epoch_*.json
+/tx_*.json

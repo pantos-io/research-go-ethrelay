@@ -4,13 +4,10 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"os"
 
 	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
-	"github.com/pantos-io/go-ethrelay/typedefs"
 
 	"log"
 
@@ -37,7 +34,7 @@ var submitEpochCmd = &cobra.Command{
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
 
 		if jsonFlag {
-			fileName := writeEpochAsJson(epochData, epoch)
+			fileName := writeToJson(epoch.String(), epochData)
 			fmt.Println("Wrote epoch data to", fileName)
 			return
 		}
@@ -45,7 +42,6 @@ var submitEpochCmd = &cobra.Command{
 		ethrelayClient.SetEpochData(submitFlagDstChain, epochData)
 	},
 }
-
 
 func init() {
 	submitCmd.AddCommand(submitEpochCmd)
@@ -61,25 +57,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// disputeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-
-func writeEpochAsJson(epochData typedefs.EpochData, epoch *big.Int) string {
-	f, err := os.Create(fmt.Sprintf("./epoch_%s.json", epoch))
-	checkError(err)
-	defer f.Close()
-
-	bytes, err := json.MarshalIndent(epochData, "", "\t")
-	checkError(err)
-
-	_, err = f.Write(bytes)
-	checkError(err)
-
-	return f.Name()
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
