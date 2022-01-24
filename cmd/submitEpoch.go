@@ -40,8 +40,8 @@ var submitEpochCmd = &cobra.Command{
 			fmt.Printf("Wrote epoch data to %s.json\n", epoch)
 			return
 		}
-		testimoniumClient = createTestimoniumClient()
-		testimoniumClient.SetEpochData(submitFlagDestChain, epochData)
+		ethrelayClient = createEthrelayClient()
+		ethrelayClient.SetEpochData(submitFlagDestChain, epochData)
 	},
 }
 

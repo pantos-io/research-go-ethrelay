@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 )
 
 func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte, error) {
-	eventIterator, err := chain.testimonium.FilterNewBlock(nil)
+	eventIterator, err := chain.ethrelay.FilterNewBlock(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte
 			txData := tx.Data()
 
 			// load contract ABI
-			testimoniumAbi, err := abi.JSON(strings.NewReader(TestimoniumABI))
+			ethrelayAbi, err := abi.JSON(strings.NewReader(EthrelayABI))
 			if err != nil {
 				return nil, err
 			}
@@ -58,17 +58,17 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte
 
 			// The constructor is always the first function that emits this event
 			if first {
-				method = &testimoniumAbi.Constructor
+				method = &ethrelayAbi.Constructor
 
 				// Constructor arguments are appended to the bytecode of the contract
-				inputs = txData[len(common.FromHex(TestimoniumMetaData.Bin)):]
+				inputs = txData[len(common.FromHex(EthrelayMetaData.Bin)):]
 			} else {
 				// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
 				id := txData[0:4]
 				inputs = txData[4:]
 
 				// recover method from signature and ABI
-				method, err = testimoniumAbi.MethodById(id)
+				method, err = ethrelayAbi.MethodById(id)
 				if err != nil {
 					return nil, err
 				}
@@ -131,7 +131,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	dataSetLookUp := blockMetaData.DAGElementArray()
 	witnessForLookup := blockMetaData.DAGProofArray()
 
-	tx, err := chain.testimonium.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
+	tx, err := chain.ethrelay.DisputeBlockHeader(auth, rlpEncodedBlockHeader, rlpEncodedParentBlockHeader, dataSetLookUp, witnessForLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	}
 
 	// get RemoveBranch event
-	eventIteratorRemoveBranch, err := chain.testimonium.TestimoniumFilterer.FilterRemoveBranch(&bind.FilterOpts{
+	eventIteratorRemoveBranch, err := chain.ethrelay.EthrelayFilterer.FilterRemoveBranch(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,
@@ -165,7 +165,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	}
 
 	// get PoW Verification event
-	eventIteratorPoWResult, err := chain.testimonium.TestimoniumFilterer.FilterPoWValidationResult(&bind.FilterOpts{
+	eventIteratorPoWResult, err := chain.ethrelay.EthrelayFilterer.FilterPoWValidationResult(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,

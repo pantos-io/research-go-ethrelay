@@ -27,8 +27,8 @@ var ethrelayCmd = &cobra.Command{
 	Short: "Deploys the ETH Relay smart contract on the specified blockchain",
 	Long:  `Deploys the ETH Relay smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		testimoniumClient = createTestimoniumClient()
-		deployedAddress := testimoniumClient.DeployTestimonium(deployFlagTargetChain, deployFlagSourceChain, deployFlagGenesisNumber)
+		ethrelayClient = createEthrelayClient()
+		deployedAddress := ethrelayClient.DeployEthrelay(deployFlagTargetChain, deployFlagSourceChain, deployFlagGenesisNumber)
 
 		updateChainsConfig(deployedAddress, deployFlagTargetChain, "ethrelayAddress")
 	},

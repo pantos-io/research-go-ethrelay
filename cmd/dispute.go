@@ -24,9 +24,8 @@ var disputeCmd = &cobra.Command{
 		blockHashBytes := blockHash.Bytes()
 		copy(blockHashBytes32[:], blockHashBytes)
 
-		// call disputeBlock in the testimonium client library
-		testimoniumClient = createTestimoniumClient()
-		testimoniumClient.DisputeBlock(disputeFlagChain, blockHash)
+		ethrelayClient = createEthrelayClient()
+		ethrelayClient.DisputeBlock(disputeFlagChain, blockHash)
 	},
 }
 

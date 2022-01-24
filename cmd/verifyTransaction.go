@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/testimonium"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -30,9 +30,9 @@ This information gets sent to the verifying chain, where not only the existence 
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
 
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
-		rlpHeader, proof, err := testimoniumClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
+		rlpHeader, proof, err := ethrelayClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
@@ -51,16 +51,16 @@ This information gets sent to the verifying chain, where not only the existence 
 			return
 		}
 
-		feesInWei, err := testimoniumClient.GetRequiredVerificationFee(verifyFlagDestChain)
+		feesInWei, err := ethrelayClient.GetRequiredVerificationFee(verifyFlagDestChain)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeTransaction, proof, noOfConfirmations)
+		ethrelayClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, ethrelay.ValueTypeTransaction, proof, noOfConfirmations)
 	},
 }
 
-func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, proof *testimonium.MerkleProof) {
+func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, proof *ethrelay.MerkleProof) {
 	f, err := os.Create(fmt.Sprintf("./0x%s.json", fileName))
 
 	if err != nil {

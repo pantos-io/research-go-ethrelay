@@ -17,15 +17,14 @@ You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://
 _The following setup will take you through the deployment of ETH Relay with a local Ethereum blockchain (Ganache)
 as verifying chain and the main Ethereum chain as target chain.
 Information on how to connect to other blockchains can be found [here](#Configuration)._
-Remark: testimonium was the name of the old relay client and at some points in this repo the old name testimonium is used for things like e.g. the config files.
 
 1. Run `git clone https://github.com/pantos-io/go-ethrelay.git` to clone the repository on your local machine and then run `go get` in the go-ethrelay folder to install the library and the CLI.
 Check that the CLI was installed correctly by running `go-ethrelay --help`. In case `go-ethrelay` command is not found, have a look at the [Troubleshooting](#Troubleshooting) section.
 If you want to install the library manually, you can simply clone this repository and run any command in the cloned directory with `go run main.go [command]`.
 
 2. Run `go-ethrelay init` to initialize the client.
-If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the testimonium.yml config file in the current folder.
-It is also possible to generate the file by hand or change the example config file named testimonium.example.yml contained in this repo. 
+If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the ethrelay.yml config file in the current folder.
+It is also possible to generate the file by hand or change the example config file named ethrelay.example.yml contained in this repo. 
 
 3. Start Ganache (should start on the default port 7545, if not, change this in the config file).
 
@@ -53,7 +52,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 ---
 
-`init`: Initializes the client by creating a testimonium.yml file in the current directory that acts as config file for all command calls.
+`init`: Initializes the client by creating a ethrelay.yml file in the current directory that acts as config file for all command calls.
 
 `account`: Prints the address of the current account
 
@@ -102,7 +101,7 @@ sh setup-relay.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649d
 ```
 
 ## Configuration
-The relay client uses a configuration file called `testimonium.yml` file.
+The relay client uses a configuration file called `ethrelay.yml` file.
 
 The default file looks like this:
 

@@ -23,12 +23,12 @@ var getBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
 		if headerFlag {
 			// if only the header should be printed
 
-			header, err := testimoniumClient.HeaderByHash(getFlagChain, blockHash)
+			header, err := ethrelayClient.HeaderByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
 			}
@@ -37,7 +37,7 @@ var getBlockCmd = &cobra.Command{
 		} else {
 			// else the full header will be printed
 
-			block, err := testimoniumClient.BlockByHash(getFlagChain, blockHash)
+			block, err := ethrelayClient.BlockByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve block: " + err.Error())
 			}

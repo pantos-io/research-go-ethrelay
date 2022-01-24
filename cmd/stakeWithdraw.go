@@ -19,7 +19,7 @@ var stakeWithdrawCmd = &cobra.Command{
 	Short: "Withdraws the specified amount of Wei.",
 	Long: `Withdraws the specified amount of Wei, i.e., the client's stake is decreased by the specified amount'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
 		amountInWei := new(big.Int)
 		amountInWei, ok := amountInWei.SetString(args[0], 10)
@@ -27,7 +27,7 @@ var stakeWithdrawCmd = &cobra.Command{
 			log.Fatal("Can not parse amountInWei parameter")
 		}
 
-		err := testimoniumClient.WithdrawStake(stakeFlagChain, amountInWei)
+		err := ethrelayClient.WithdrawStake(stakeFlagChain, amountInWei)
 		if err != nil {
 			log.Fatal(err)
 		}

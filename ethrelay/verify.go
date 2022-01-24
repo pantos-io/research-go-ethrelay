@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (result VerificationResult) String() string {
 }
 
 func (c Client) BlockHeaderExists(chainId string, blockHash common.Hash) (bool, error) {
-	return c.DstChain(chainId).testimonium.IsHeaderStored(nil, blockHash)
+	return c.DstChain(chainId).ethrelay.IsHeaderStored(nil, blockHash)
 }
 
 func (c Client) GetOriginalBlockHeader(chainId string, blockHash common.Hash) (*types.Block, error) {
@@ -37,7 +37,7 @@ func (c Client) GetOriginalBlockHeader(chainId string, blockHash common.Hash) (*
 }
 
 func (c Client) GetRequiredVerificationFee(chainId string) (*big.Int, error) {
-	return c.DstChain(chainId).testimonium.GetRequiredVerificationFee(nil)
+	return c.DstChain(chainId).ethrelay.GetRequiredVerificationFee(nil)
 }
 
 func (c Client) GenerateMerkleProofForTx(chainId string, txHash common.Hash) ([]byte, *MerkleProof, error) {
@@ -117,13 +117,13 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 
 	switch trieValueType {
 	case ValueTypeTransaction:
-		tx, err = chain.testimonium.VerifyTransaction(auth, feeInWei, rlpHeader,
+		tx, err = chain.ethrelay.VerifyTransaction(auth, feeInWei, rlpHeader,
 			noOfConfirmations, proof.Value, proof.Path, proof.Nodes)
 	case ValueTypeReceipt:
-		tx, err = chain.testimonium.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
+		tx, err = chain.ethrelay.VerifyReceipt(auth, feeInWei, rlpHeader, noOfConfirmations,
 			proof.Value, proof.Path, proof.Nodes)
 	case ValueTypeState:
-		tx, err = chain.testimonium.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
+		tx, err = chain.ethrelay.VerifyState(auth, feeInWei, rlpHeader, noOfConfirmations,
 			proof.Value, proof.Path, proof.Nodes)
 	default:
 		log.Fatal("Unexpected trie value type: ", trieValueType)
@@ -166,7 +166,7 @@ func (c Client) VerifyMerkleProof(chainId string, feeInWei *big.Int, rlpHeader [
 }
 
 func (c Client) getVerifyTransactionEvent(chainId string, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.DstChain(chainId).testimonium.TestimoniumFilterer.FilterVerifyTransaction(
+	eventIterator, err := c.DstChain(chainId).ethrelay.EthrelayFilterer.FilterVerifyTransaction(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,
@@ -184,7 +184,7 @@ func (c Client) getVerifyTransactionEvent(chainId string, receipt *types.Receipt
 }
 
 func (c Client) getVerifyReceiptEvent(chainId string, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.DstChain(chainId).testimonium.TestimoniumFilterer.FilterVerifyReceipt(
+	eventIterator, err := c.DstChain(chainId).ethrelay.EthrelayFilterer.FilterVerifyReceipt(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,
@@ -202,7 +202,7 @@ func (c Client) getVerifyReceiptEvent(chainId string, receipt *types.Receipt) (*
 }
 
 func (c Client) getVerifyStateEvent(chainId string, receipt *types.Receipt) (*VerificationResult, error) {
-	eventIterator, err := c.DstChain(chainId).testimonium.TestimoniumFilterer.FilterVerifyState(
+	eventIterator, err := c.DstChain(chainId).ethrelay.EthrelayFilterer.FilterVerifyState(
 		&bind.FilterOpts{
 			Start:   receipt.BlockNumber.Uint64(),
 			End:     nil,

@@ -29,9 +29,9 @@ var submitBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if submitFlagLiveMode {
-			testimoniumClient = createTestimoniumClient()
+			ethrelayClient = createEthrelayClient()
 			// TODO: live mode should be variable, outsource this to terminal
-			testimoniumClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5*time.Minute)
+			ethrelayClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5*time.Minute)
 
 			return
 		}
@@ -39,12 +39,12 @@ var submitBlockCmd = &cobra.Command{
 		var header *types.Header = nil
 		var err error
 
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
 		if len(args) > 0 {
 			if strings.HasPrefix(args[0], "0x") {
 				blockHash := common.HexToHash(args[0])
-				header, err = testimoniumClient.HeaderByHash(getFlagChain, blockHash)
+				header, err = ethrelayClient.HeaderByHash(getFlagChain, blockHash)
 			} else {
 				var ok bool
 				var blockNumber *big.Int = nil
@@ -55,7 +55,7 @@ var submitBlockCmd = &cobra.Command{
 					log.Fatalf("Illegal block number '%s'", args[0])
 				}
 
-				header, err = testimoniumClient.HeaderByNumber(submitFlagSrcChain, blockNumber)
+				header, err = ethrelayClient.HeaderByNumber(submitFlagSrcChain, blockNumber)
 			}
 		}
 
@@ -70,14 +70,14 @@ var submitBlockCmd = &cobra.Command{
 
 		if submitFlagRandomize {
 			fmt.Printf("Randomizing header...\n")
-			header = testimoniumClient.RandomizeHeader(submitFlagSrcChain, header)
+			header = ethrelayClient.RandomizeHeader(submitFlagSrcChain, header)
 		}
 
 		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number, submitFlagSrcChain, submitFlagDestChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 
-		err = testimoniumClient.SubmitHeader(submitFlagDestChain, header)
+		err = ethrelayClient.SubmitHeader(submitFlagDestChain, header)
 		if err != nil {
 			log.Fatal("Failed to submit header: " + err.Error())
 		}

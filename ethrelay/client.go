@@ -1,8 +1,8 @@
 // This file contains functions called by the various commands. These functions are used to interact with smart contracts
-// (Ethash, Testimonium)
+// (Ethash, Ethrelay)
 // Authors: Marten Sigwart, Philipp Frauenthaler
 
-package testimonium
+package ethrelay
 
 import (
 	"bytes"
@@ -38,8 +38,8 @@ type SourceChain struct {
 
 type DestinationChain struct {
 	Chain
-	testimonium        	*Testimonium
-	testimoniumAddress	common.Address
+	ethrelay        	*Ethrelay
+	ethrelayAddress	common.Address
 	ethash             	*ethashsol.Ethashsol
 	ethashAddress		common.Address
 }
@@ -72,11 +72,11 @@ const (
 	PoWDifficulty	= 2
 )
 
-func (event TestimoniumRemoveBranch) String() string {
+func (event EthrelayRemoveBranch) String() string {
 	return fmt.Sprintf("branch with root hash %s removed", common.BytesToHash(event.Root[:]))
 }
 
-func (event TestimoniumPoWValidationResult) String() string {
+func (event EthrelayPoWValidationResult) String() string {
 	switch event.ReturnCode.Int64() {
 	case PoWValid:
 		return "PoW was successfully validated"
@@ -159,10 +159,10 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 			fmt.Printf("WARNING: Address for ETH Relay instance for chain '%s' not configured\n", chainId)
 		} else {
 			ethrelayAddress := common.HexToAddress(addressHex.(string))
-			testimoniumContract, err := NewTestimonium(ethrelayAddress, dstChain.client)
+			ethrelayContract, err := NewEthrelay(ethrelayAddress, dstChain.client)
 			if err == nil {
-				dstChain.testimonium = testimoniumContract
-				dstChain.testimoniumAddress = ethrelayAddress
+				dstChain.ethrelay = ethrelayContract
+				dstChain.ethrelayAddress = ethrelayAddress
 			} else {
 				fmt.Printf("WARNING: No ETH Relay contract deployed on chain '%s' at address %s: %s\n", chainId, addressHex, err)
 			}
@@ -420,7 +420,7 @@ func awaitTxReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receip
 	}
 
 	//query := ethereum.FilterQuery{
-	//	Addresses: []common.Address{chain.testimoniumContractAddress},
+	//	Addresses: []common.Address{chain.ethrelayContractAddress},
 	//}
 	//
 	//logs := make(chan types.Log)

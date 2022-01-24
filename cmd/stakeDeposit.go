@@ -19,7 +19,7 @@ var stakeDepositCmd = &cobra.Command{
 	Short: "Deposits the specified amount of Wei.",
 	Long: `Deposits the specified amount of Wei, i.e., the client's stake is increased by the specified amount'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
 		amountInWei := new(big.Int)
 		amountInWei, ok := amountInWei.SetString(args[0], 10)
@@ -27,7 +27,7 @@ var stakeDepositCmd = &cobra.Command{
 			log.Fatal("Can not parse amountInWei parameter")
 		}
 
-		err := testimoniumClient.DepositStake(stakeFlagChain, amountInWei)
+		err := ethrelayClient.DepositStake(stakeFlagChain, amountInWei)
 		if err != nil {
 			log.Fatal(err)
 		}

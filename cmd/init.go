@@ -21,7 +21,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/pantos-io/go-ethrelay/testimonium"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/viper"
 
 	"strings"
@@ -34,11 +34,11 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initializes the ETH Relay client",
 	Long: `This command initializes the ETH Relay client. 
-This command sets up the testimonium.yml file in the current directory.
+This command sets up the ethrelay.yml file in the current directory.
 The file contains connection configurations for the different blockchains, e.g.,
 private key, URL, port, etc.
 
-The default testimonium.yml file looks like this:
+The default ethrelay.yml file looks like this:
 
 	chains:
 		sources:
@@ -56,7 +56,7 @@ Websocket-Connection is required for submitting blocks in live mode.
 Chains under "sources" contain connection configurations for the source chains, defaulting to the main Ethereum chain (via Infura).
 Chains under "destinations" contain connection configurations for the verifying chains, defaulting to a local chain (e.g. via Ganache).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Setting up testimonium.yml...")
+		fmt.Println("Setting up ethrelay.yml...")
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter the private key of your account (the account will be used on all chains, input this in the format starting with '0x...'): ")
 		privateKey, _ := reader.ReadString('\n')
@@ -72,10 +72,10 @@ Chains under "destinations" contain connection configurations for the verifying 
 		sources := make(map[string]interface{})
 		destinations := make(map[string]interface{})
 
-		mainnetConfig := testimonium.CreateChainConfig("wss", "mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad", 0)
+		mainnetConfig := ethrelay.CreateChainConfig("wss", "mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad", 0)
 		sources["mainnet"] = mainnetConfig
 
-		localConfig := testimonium.CreateChainConfig("http", "localhost", 7545)
+		localConfig := ethrelay.CreateChainConfig("http", "localhost", 7545)
 		destinations["local"] = localConfig
 
 		chainsConfig["sources"] = sources
@@ -86,14 +86,14 @@ Chains under "destinations" contain connection configurations for the verifying 
 		err := viper.SafeWriteConfig()
 		if err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				err := ioutil.WriteFile("./testimonium.yml", []byte(""), 0644)
+				err := ioutil.WriteFile("./ethrelay.yml", []byte(""), 0644)
 				if err != nil {
 					fmt.Printf("Unable to write file: %v", err)
 					return
 				}
 			} else {
 				// File already exists
-				fmt.Print("File testimonium.yml already exists. Overwrite? (n/Y):")
+				fmt.Print("File ethrelay.yml already exists. Overwrite? (n/Y):")
 				response, _ := reader.ReadString('\n')
 				overwrite, _ := regexp.MatchString("^[yY]?\n$", response)
 				if overwrite {
@@ -104,7 +104,7 @@ Chains under "destinations" contain connection configurations for the verifying 
 			}
 			_ = viper.WriteConfig()
 		}
-		fmt.Println("Created testimonium.yml.")
+		fmt.Println("Created ethrelay.yml.")
 	},
 }
 

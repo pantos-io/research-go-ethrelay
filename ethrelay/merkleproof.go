@@ -1,6 +1,6 @@
 // Adopted from https://github.com/soberm/ccsc/blob/4114220216ff59978809086d081c8e7eccc37a07/ccsc_go/pkg/ccsc/merkleproof.go
 
-package testimonium
+package ethrelay
 
 import (
 	"bytes"

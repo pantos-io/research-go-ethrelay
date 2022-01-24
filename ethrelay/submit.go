@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func (c Client) SubmitHeader(chainId string, header *types.Header) error {
 func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime time.Duration) error {
 	/*
 		there is much more to care about here:
-		- 	if the genesis block of the testimonium contract is not on the current main chain,
+		- 	if the genesis block of the ethrelay contract is not on the current main chain,
 			it is unpossible to find a block from where we can start submitting new blocks.
 			this should be taken into account when creating a contract by selecting a genesis block
 			far enough in the past that is ensured to not get into this scenario. the best case would be
@@ -45,9 +45,9 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 			can be deployed in the cloud and run in a very cheap and cost-intensive way.
 		-	at the very first time the search and submit-phase takes a very long time because first one
 			has to go back all the blocks and than submit all single blocks. here, the only way this could
-			be enhanced is batch processing, which the testimonium contract already supports and some kind of
+			be enhanced is batch processing, which the ethrelay contract already supports and some kind of
 			binary search to effectively search for the latest submitted block which is part of the longest chain
-			and part in the testimonium contract
+			and part in the ethrelay contract
 		-	there may be not enough stake to deposit all blocks so one have to wait until the blocks are unlocked and
 			the stake is freed again.
 		-	another one has already submitted the block between finding this block with the search and submitting the block
@@ -62,7 +62,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 
 	dstChain, srcChain := c.DstChain(dstChainId), c.SrcChain(srcChainId)
 
-	genesis, err := dstChain.testimonium.GetGenesisBlockHash(nil)
+	genesis, err := dstChain.ethrelay.GetGenesisBlockHash(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 
 		fmt.Printf("\nSearching for block No. %s from source chain '%s' on destination chain '%s'", header.Number, srcChainId, dstChainId)
 
-		isHeaderStored, err := dstChain.testimonium.IsHeaderStored(nil, header.Hash())
+		isHeaderStored, err := dstChain.ethrelay.IsHeaderStored(nil, header.Hash())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -107,7 +107,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 
 	fmt.Printf("\n\nlatest block No. submitted to destination chain: %s\n\n", header.Number)
 
-	requiredStake, err := dstChain.testimonium.GetRequiredStakePerBlock(nil)
+	requiredStake, err := dstChain.ethrelay.GetRequiredStakePerBlock(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -220,7 +220,7 @@ func (c Client) SubmitRLPHeader(chainId string, rlpHeader []byte) error {
 	chain := c.DstChain(chainId)
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, big.NewInt(0))
 
-	tx, err := chain.testimonium.SubmitBlock(auth, rlpHeader)
+	tx, err := chain.ethrelay.SubmitBlock(auth, rlpHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func (c Client) SubmitRLPHeader(chainId string, rlpHeader []byte) error {
 		return errors.New(reason)
 	}
 
-	eventIterator, err := chain.testimonium.TestimoniumFilterer.FilterNewBlock(&bind.FilterOpts{
+	eventIterator, err := chain.ethrelay.EthrelayFilterer.FilterNewBlock(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var testimoniumContractChain string
+var ethrelayContractChain string
 
 // getLongestChainEndpointCmd represents the block command
 var getLongestChainEndpointCmd = &cobra.Command{
@@ -20,11 +20,11 @@ var getLongestChainEndpointCmd = &cobra.Command{
 	Long: `Retrieves the blockhash of the longest chain on a verifying endpoint`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
-		blockHash, err := testimoniumClient.GetLongestChainEndpoint(testimoniumContractChain)
+		blockHash, err := ethrelayClient.GetLongestChainEndpoint(ethrelayContractChain)
 		if err != nil {
-			log.Fatalf("Failed to retrieve longest chain blockHash from chain '%s': %s", testimoniumContractChain, err)
+			log.Fatalf("Failed to retrieve longest chain blockHash from chain '%s': %s", ethrelayContractChain, err)
 		}
 
 		fmt.Println("LongestChainEndpointBlockHash:", common.BytesToHash(blockHash[:]))
@@ -34,5 +34,5 @@ var getLongestChainEndpointCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getLongestChainEndpointCmd)
 
-	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&testimoniumContractChain, "verifying", "v", "local", "The blockchain where the contract was deployed")
+	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&ethrelayContractChain, "verifying", "v", "local", "The blockchain where the contract was deployed")
 }

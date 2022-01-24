@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 )
 
 func (c Client) GetStake(chainId string) (*big.Int, error) {
-	stake, err := c.DstChain(chainId).testimonium.GetStake(
+	stake, err := c.DstChain(chainId).ethrelay.GetStake(
 		&bind.CallOpts{
 			From: c.account,
 		})
@@ -23,7 +23,7 @@ func (c Client) DepositStake(chainId string, amountInWei *big.Int) error {
 	chain := c.DstChain(chainId)
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, amountInWei)
 
-	_, err := chain.testimonium.DepositStake(auth, amountInWei)
+	_, err := chain.ethrelay.DepositStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (c Client) WithdrawStake(chainId string, amountInWei *big.Int) error {
 	chain := c.DstChain(chainId)
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, big.NewInt(0))
 
-	tx, err := chain.testimonium.WithdrawStake(auth, amountInWei)
+	tx, err := chain.ethrelay.WithdrawStake(auth, amountInWei)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (c Client) WithdrawStake(chainId string, amountInWei *big.Int) error {
 	}
 
 	// Transaction is successful
-	eventIterator, err := chain.testimonium.TestimoniumFilterer.FilterWithdrawStake(&bind.FilterOpts{
+	eventIterator, err := chain.ethrelay.EthrelayFilterer.FilterWithdrawStake(&bind.FilterOpts{
 		Start:   receipt.BlockNumber.Uint64(),
 		End:     nil,
 		Context: nil,

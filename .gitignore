@@ -3,7 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=go,intellij
 
 .idea/
-testimonium.yml
+ethrelay.yml
 
 ### Go ###
 # Binaries for programs and plugins

@@ -235,7 +235,7 @@ func (_Ethashsol *EthashsolCallerSession) IsEpochDataSet(epochIndex *big.Int) (b
 // VerifyPoW is a free data retrieval call binding the contract method 0x29e265df.
 //
 // Solidity: function verifyPoW(uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 difficulty, uint256[] dataSetLookup, uint256[] witnessForLookup) view returns(uint256, uint256)
-func (_Ethashsol *EthashsolCaller) VerifyPoW(opts *bind.CallOpts, blockNumber *big.Int, rlpHeaderHashWithoutNonce common.Hash, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
+func (_Ethashsol *EthashsolCaller) VerifyPoW(opts *bind.CallOpts, blockNumber *big.Int, rlpHeaderHashWithoutNonce [32]byte, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
 	var out []interface{}
 	err := _Ethashsol.contract.Call(opts, &out, "verifyPoW", blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty, dataSetLookup, witnessForLookup)
 
@@ -253,14 +253,14 @@ func (_Ethashsol *EthashsolCaller) VerifyPoW(opts *bind.CallOpts, blockNumber *b
 // VerifyPoW is a free data retrieval call binding the contract method 0x29e265df.
 //
 // Solidity: function verifyPoW(uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 difficulty, uint256[] dataSetLookup, uint256[] witnessForLookup) view returns(uint256, uint256)
-func (_Ethashsol *EthashsolSession) VerifyPoW(blockNumber *big.Int, rlpHeaderHashWithoutNonce common.Hash, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
+func (_Ethashsol *EthashsolSession) VerifyPoW(blockNumber *big.Int, rlpHeaderHashWithoutNonce [32]byte, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
 	return _Ethashsol.Contract.VerifyPoW(&_Ethashsol.CallOpts, blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty, dataSetLookup, witnessForLookup)
 }
 
 // VerifyPoW is a free data retrieval call binding the contract method 0x29e265df.
 //
 // Solidity: function verifyPoW(uint256 blockNumber, bytes32 rlpHeaderHashWithoutNonce, uint256 nonce, uint256 difficulty, uint256[] dataSetLookup, uint256[] witnessForLookup) view returns(uint256, uint256)
-func (_Ethashsol *EthashsolCallerSession) VerifyPoW(blockNumber *big.Int, rlpHeaderHashWithoutNonce common.Hash, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
+func (_Ethashsol *EthashsolCallerSession) VerifyPoW(blockNumber *big.Int, rlpHeaderHashWithoutNonce [32]byte, nonce *big.Int, difficulty *big.Int, dataSetLookup []*big.Int, witnessForLookup []*big.Int) (*big.Int, *big.Int, error) {
 	return _Ethashsol.Contract.VerifyPoW(&_Ethashsol.CallOpts, blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty, dataSetLookup, witnessForLookup)
 }
 

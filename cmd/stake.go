@@ -20,8 +20,8 @@ var stakeCmd = &cobra.Command{
 	Short: "Shows the stake stored on the specified chain",
 	Long: `Shows the stake stored on the specified chain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		testimoniumClient = createTestimoniumClient()
-		stakeInWei, err := testimoniumClient.GetStake(stakeFlagChain)
+		ethrelayClient = createEthrelayClient()
+		stakeInWei, err := ethrelayClient.GetStake(stakeFlagChain)
 		if err != nil {
 			log.Fatal(err)
 		}

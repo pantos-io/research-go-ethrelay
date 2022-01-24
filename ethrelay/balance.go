@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"context"

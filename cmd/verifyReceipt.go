@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/testimonium"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -24,19 +24,19 @@ This information gets sent to the verifying chain, where not only the existence 
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
 
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 
-		rlpHeader, proof, err := testimoniumClient.GenerateMerkleProofForReceipt(verifyFlagSrcChain, txHash)
+		rlpHeader, proof, err := ethrelayClient.GenerateMerkleProofForReceipt(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
 
-		feesInWei, err := testimoniumClient.GetRequiredVerificationFee(verifyFlagDestChain)
+		feesInWei, err := ethrelayClient.GetRequiredVerificationFee(verifyFlagDestChain)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		testimoniumClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, testimonium.ValueTypeReceipt, proof, noOfConfirmations)
+		ethrelayClient.VerifyMerkleProof(verifyFlagDestChain, feesInWei, rlpHeader, ethrelay.ValueTypeReceipt, proof, noOfConfirmations)
 	},
 }
 

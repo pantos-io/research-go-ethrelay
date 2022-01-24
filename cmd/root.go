@@ -5,9 +5,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pantos-io/go-ethrelay/testimonium"
 	"os"
 
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
-var testimoniumClient *testimonium.Client
+var ethrelayClient *ethrelay.Client
 
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -42,7 +42,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/testimonium.yml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/ethrelay.yml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -55,9 +55,9 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Search config in current directory with name "testimonium" (without extension).
+		// Search config in current directory with name "ethrelay" (without extension).
 		viper.AddConfigPath(".")
-		viper.SetConfigName("testimonium")
+		viper.SetConfigName("ethrelay")
 		viper.SetConfigType("yml")
 	}
 
@@ -67,7 +67,7 @@ func initConfig() {
 
 }
 
-func createTestimoniumClient() (*testimonium.Client) {
+func createEthrelayClient() (*ethrelay.Client) {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Can't read config file:", err)
@@ -76,5 +76,5 @@ func createTestimoniumClient() (*testimonium.Client) {
 	chainsConfig := viper.Get("chains").(map[string]interface{})
 	privateKey := viper.Get("privateKey").(string)
 
-	return testimonium.NewClient(privateKey, chainsConfig)
+	return ethrelay.NewClient(privateKey, chainsConfig)
 }

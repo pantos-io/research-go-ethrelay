@@ -24,9 +24,9 @@ var balanceCmd = &cobra.Command{
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		testimoniumClient = createTestimoniumClient()
+		ethrelayClient = createEthrelayClient()
 		if len(args) > 0 {
-			balance, err := testimoniumClient.Balance(args[0])
+			balance, err := ethrelayClient.Balance(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -36,8 +36,8 @@ var balanceCmd = &cobra.Command{
 
 		if detailFlag {
 			totalBalance := big.NewInt(0)
-			for _, chainId := range testimoniumClient.Chains() {
-				balance, err := testimoniumClient.Balance(chainId)
+			for _, chainId := range ethrelayClient.Chains() {
+				balance, err := ethrelayClient.Balance(chainId)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -46,7 +46,7 @@ var balanceCmd = &cobra.Command{
 			}
 			fmt.Printf("Total: ")
 		}
-		balance, err := testimoniumClient.TotalBalance()
+		balance, err := ethrelayClient.TotalBalance()
 		if err != nil {
 			log.Fatal(err)
 		}

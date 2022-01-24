@@ -1,4 +1,4 @@
-package testimonium
+package ethrelay
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
 )
 
-func (c Client) DeployTestimonium(dstChainId string, srcChainId string, genesisBlockNumber uint64) common.Address {
+func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBlockNumber uint64) common.Address {
 	header, err := c.HeaderByNumber(srcChainId, new(big.Int).SetUint64(genesisBlockNumber))
 	if err != nil {
 		log.Fatal("Failed to retrieve header from source chain: " + err.Error())
@@ -32,7 +32,7 @@ func (c Client) DeployTestimonium(dstChainId string, srcChainId string, genesisB
 	dstChain := c.DstChain(dstChainId)
 	auth := prepareTransaction(c.account, c.privateKey, &dstChain.Chain, big.NewInt(0))
 
-	addr, tx, _, err := DeployTestimonium(auth, dstChain.client, rlpHeader, totalDifficulty, dstChain.ethashAddress)
+	addr, tx, _, err := DeployEthrelay(auth, dstChain.client, rlpHeader, totalDifficulty, dstChain.ethashAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
