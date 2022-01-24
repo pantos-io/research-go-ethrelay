@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var submitFlagDestChain string
+var submitFlagDstChain string
 
 // verifyCmd represents the verify command
 var submitCmd = &cobra.Command{
 	Use:   "submit",
-	Short: "Submits a block of the target chain or epoch data to the verifying chain",
-	Long: `Submits a block of the target chain or epoch data to the verifying chain`,
+	Short: "Submits a block or epoch data of a source chain to a destination chain",
+	Long: "Submits a block or epoch data of a source chain to a destination chain",
 }
 
 func init() {
@@ -25,7 +25,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	submitCmd.PersistentFlags().StringVar(&submitFlagDestChain, "destination", "local", "verifying chain")
+	submitCmd.PersistentFlags().StringVarP(&submitFlagDstChain, "destination", "d", "local", "a destination chain to which to submit data to")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

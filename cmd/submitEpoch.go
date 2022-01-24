@@ -21,8 +21,8 @@ var jsonFlag bool
 // submitEpochCmd represents the command for setting epoch data (Ethash contract)
 var submitEpochCmd = &cobra.Command{
 	Use:   "epoch [epoch]",
-	Short: "Sets the epoch data for the specified epoch on the verifying chain",
-	Long: `Sets the epoch data for the specified epoch on the verifying chain`,
+	Short: "Sets the epoch data for the specified epoch on a destination chain",
+	Long: "Sets the epoch data for the specified epoch on a destination chain",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var epoch *big.Int = nil
@@ -41,7 +41,7 @@ var submitEpochCmd = &cobra.Command{
 			return
 		}
 		ethrelayClient = createEthrelayClient()
-		ethrelayClient.SetEpochData(submitFlagDestChain, epochData)
+		ethrelayClient.SetEpochData(submitFlagDstChain, epochData)
 	},
 }
 

@@ -40,21 +40,21 @@ private key, URL, port, etc.
 
 The default ethrelay.yml file looks like this:
 
-	chains:
-		sources:
-  			mainnet:
-				type: wss
-				url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
-		destinations:
-  			local:
-				port: 7545
-				type: http
-				url: localhost
-	privateKey: <YOUR PRIVATE KEY>
+chains:
+  sources:
+    mainnet:
+      type: wss
+      url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
+  destinations:
+    local:
+      port: 7545
+      type: http
+      url: localhost
+privatekey: 0x0
 
 Websocket-Connection is required for submitting blocks in live mode.
 Chains under "sources" contain connection configurations for the source chains, defaulting to the main Ethereum chain (via Infura).
-Chains under "destinations" contain connection configurations for the verifying chains, defaulting to a local chain (e.g. via Ganache).`,
+Chains under "destinations" contain connection configurations for the destination chains, defaulting to a local chain (e.g. via Ganache).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Setting up ethrelay.yml...")
 		reader := bufio.NewReader(os.Stdin)

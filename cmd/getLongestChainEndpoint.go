@@ -16,8 +16,8 @@ var ethrelayContractChain string
 // getLongestChainEndpointCmd represents the block command
 var getLongestChainEndpointCmd = &cobra.Command{
 	Use:   "longestchainendpoint",
-	Short: "Retrieves the blockhash of the longest chain on a verifying endpoint",
-	Long: `Retrieves the blockhash of the longest chain on a verifying endpoint`,
+	Short: "Retrieves the blockhash of the longest chain on a destination blockchain",
+	Long: `Retrieves the blockhash of the longest chain on a destination blockchain`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		ethrelayClient = createEthrelayClient()
@@ -34,5 +34,5 @@ var getLongestChainEndpointCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getLongestChainEndpointCmd)
 
-	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&ethrelayContractChain, "verifying", "v", "local", "The blockchain where the contract was deployed")
+	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&ethrelayContractChain, "destination", "d", "local", "A blockchain where ETH Relay is deployed")
 }

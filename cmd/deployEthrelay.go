@@ -28,9 +28,9 @@ var ethrelayCmd = &cobra.Command{
 	Long:  `Deploys the ETH Relay smart contract on the specified blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ethrelayClient = createEthrelayClient()
-		deployedAddress := ethrelayClient.DeployEthrelay(deployFlagTargetChain, deployFlagSourceChain, deployFlagGenesisNumber)
+		deployedAddress := ethrelayClient.DeployEthrelay(deployFlagDstChain, deployFlagSourceChain, deployFlagGenesisNumber)
 
-		updateChainsConfig(deployedAddress, deployFlagTargetChain, "ethrelayAddress")
+		updateChainsConfig(deployedAddress, deployFlagDstChain, "ethrelayAddress")
 	},
 }
 

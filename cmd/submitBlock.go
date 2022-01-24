@@ -23,15 +23,15 @@ var submitFlagLiveMode bool
 // submitCmd represents the submit command
 var submitBlockCmd = &cobra.Command{
 	Use:   "block [blockNumber or blockHash]",
-	Short: "Submits a block header from source chain to verifying chain",
-	Long:  `Queries the given block from the source chain and submits it to the verifying chain`,
+	Short: "Submits a block header from a source chain to a destination chain",
+	Long:  `Queries the given block from a source chain and submits it to a destination chain`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if submitFlagLiveMode {
 			ethrelayClient = createEthrelayClient()
 			// TODO: live mode should be variable, outsource this to terminal
-			ethrelayClient.SubmitHeaderLive(submitFlagDestChain, submitFlagSrcChain, 5*time.Minute)
+			ethrelayClient.SubmitHeaderLive(submitFlagDstChain, submitFlagSrcChain, 5*time.Minute)
 
 			return
 		}
@@ -73,11 +73,11 @@ var submitBlockCmd = &cobra.Command{
 			header = ethrelayClient.RandomizeHeader(submitFlagSrcChain, header)
 		}
 
-		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number, submitFlagSrcChain, submitFlagDestChain)
+		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number, submitFlagSrcChain, submitFlagDstChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 
-		err = ethrelayClient.SubmitHeader(submitFlagDestChain, header)
+		err = ethrelayClient.SubmitHeader(submitFlagDstChain, header)
 		if err != nil {
 			log.Fatal("Failed to submit header: " + err.Error())
 		}

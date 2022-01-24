@@ -14,7 +14,6 @@ import (
 
 var headerFlag bool
 
-// verifyBlockCmd represents the block command
 var getBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
 	Short: "Retrieves a block",

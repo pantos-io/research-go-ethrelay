@@ -28,26 +28,26 @@ import (
 // TODO: this command only compares the hashes and checks for existence on the respective chain, not for equality
 //  even though a tampering is hard to achieve, this does not mean the blocks are equal
 // 	another unlikely misbehaviour of this command is occurs if one tries to verify a block to kick off a dispute
-// 	- here it is possible that a block is valid on the verifying chain and can't be disputed by participants,
+// 	- here it is possible that a block is valid on the destination chain and can't be disputed by participants,
 //  however, this would means that an "attacker" can produce blocks in a faster way than the source blockchain
 //  and is for that reason very unlikely
 var verifyBlockCmd = &cobra.Command{
 	Use:   "block [blockHash]",
 	Short: "Verifies a block",
-	Long:  `Gets sure a block with [blockHash] from the source blockchain is also present on the verifying blockchain`,
+	Long:  `Gets sure a block with [blockHash] from a source blockchain is also present on a destination blockchain`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
 		ethrelayClient = createEthrelayClient()
 
-		headerExists, err := ethrelayClient.BlockHeaderExists(verifyFlagDestChain, blockHash)
+		headerExists, err := ethrelayClient.BlockHeaderExists(verifyFlagDstChain, blockHash)
 		if err != nil {
-			log.Fatal("Could not verify block header on verifying chain: " + err.Error())
+			log.Fatal("Could not verify block header on destination chain: " + err.Error())
 		}
 
 		if !headerExists {
-			fmt.Printf("No header stored for block %s on verifying chain\n", ShortHexString(args[0]))
+			fmt.Printf("No header stored for block %s on destination chain\n", ShortHexString(args[0]))
 			return
 		}
 

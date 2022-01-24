@@ -3,8 +3,8 @@
 This project contains a Go-library and a command-line interface (CLI) to interact with the [ETH Relay](https://github.com/pantos-io/ethrelay) prototype.
 
 ETH Relay enables the cross-blockchain verification of transactions.
-This makes it possible that a "verifying" (destination) blockchain can verify if a certain transaction (or receipt, or state) is included
-in a different "target" (source) blockchain without relying or trusting a third-party.
+This makes it possible that a destination blockchain can verify if a certain transaction (or receipt, or state) is included
+in a different source blockchain without relying or trusting a third-party.
 
 Detailed information about how the prototype works can be found [here](https://dsg.tuwien.ac.at/projects/tast/pub/tast-white-paper-6.pdf).
 
@@ -19,7 +19,7 @@ You need to have [Golang](https://golang.org/doc/install) and [Ganache](https://
 ## Get Started
 
 _The following setup will take you through the deployment of ETH Relay with a local Ethereum blockchain (Ganache)
-as verifying chain and the main Ethereum chain as target chain.
+as the destination chain and the main Ethereum chain as the source chain.
 Information on how to connect to other blockchains can be found [here](#Configuration)._
 
 1. Run `git clone https://github.com/pantos-io/go-ethrelay.git` to clone the repository on your local machine and then run `go get` in the go-ethrelay folder to install the library and the CLI.
@@ -42,10 +42,10 @@ the correct epoch data can be calculated as `EPOCH_NO = BLOCK_NO / 30000` floore
 
 6. Deploy the ETH Relay contract with `go-ethrelay deploy ethrelay --genesis <BLOCK_NO>`.
 This deploys the contract responsible for the verification of transactions (or receipts, or state).
-The `genesis` parameter specifies the first block of the target chain which will be submitted to
+The `genesis` parameter specifies the first block of the source chain which will be submitted to
 the ETH Relay contract. Verifications will be possible for all subsequent blocks.
 
-ETH Relay is now setup. In order to submit blocks, a stake has to be submitted first. After you deposited some stake, you can submit block data from the target chain to the verifying chain,
+ETH Relay is now setup. In order to submit blocks, a stake has to be submitted first. After you deposited some stake, you can submit block data from the source chain to the destination chain,
 and request verifications of transactions, and dispute illegal blocks.
 
 ## Usage
@@ -62,9 +62,9 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `balance`: Prints the balance of the current account
 
-`deploy ethash`: Deploys the Ethash smart contract on the verifying chain
+`deploy ethash`: Deploys the Ethash smart contract on a destination chain
 
-`deploy ethrelay`: Deploys the ETH Relay contract on the verifying chain
+`deploy ethrelay`: Deploys the ETH Relay contract on a destination chain
 
 `dispute [blockHash]`: Disputes the submitted block header with the specified hash
 
@@ -72,9 +72,9 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `get transaction [txHash]`: Retrieves the transaction with the specified hash
 
-`get longestchainendpoint`: Retrieves the most recent block hash of the longest chain in the eth relay contract on the verifying chain
+`get longestchainendpoint`: Retrieves the most recent block hash of the longest chain in the ETH Relay contract on a destination chain
 
-`stake`: Retrieves the amount of stake deposited in the relay-contract on the verifying chain
+`stake`: Retrieves the amount of stake deposited in the relay-contract on a destination chain
 
 `stake deposit [amountInWei]`: Deposits amountInWei stake of the account balance in the contract
 
@@ -82,15 +82,15 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `stake withdraw [amountInWei]`: Withdraws the submitted stake back to the account balance. Remember that stake can be locked in the contract when a block was submitted and you have to wait until it is unlocked again.
 
-`submit block [blockNumber or blockHash]`: Submits the specified block header from the target chain to the verifying chain
+`submit block [blockNumber or blockHash]`: Submits the specified block header from a source chain to a destination chain
 
-`submit epoch [epoch]`: Sets the epoch data for the specified epoch on the verifying chain
+`submit epoch [epoch]`: Sets the epoch data for the specified epoch on a destination chain
 
-`verify block [blockHash]`: Verifies a block from the target chain on the verifying chain
+`verify block [blockHash]`: Verifies a block from the source chain on a destination chain
 
-`verify transaction [txHash]`: Verifies a transaction from the target chain on the verifying chain
+`verify transaction [txHash]`: Verifies a transaction from the source chain on a destination chain
 
-`verify receipt [txHash]`: Verifies a receipt from the target chain on the verifying chain
+`verify receipt [txHash]`: Verifies a receipt from the source chain on a destination chain
 
 ## Quick Setup
 
