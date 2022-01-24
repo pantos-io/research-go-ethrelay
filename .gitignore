@@ -2,9 +2,6 @@
 # Created by https://www.gitignore.io/api/go,intellij
 # Edit at https://www.gitignore.io/?templates=go,intellij
 
-.idea/
-ethrelay.yml
-
 ### Go ###
 # Binaries for programs and plugins
 *.exe
@@ -111,3 +108,6 @@ fabric.properties
 ethereum/.DS_Store
 
 # End of https://www.gitignore.io/api/go,intellij
+
+/ethrelay.yml
+/epoch_*.json

@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -36,8 +37,8 @@ var submitEpochCmd = &cobra.Command{
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
 
 		if jsonFlag {
-			writeEpochAsJson(epochData, epoch)
-			fmt.Printf("Wrote epoch data to %s.json\n", epoch)
+			fileName := writeEpochAsJson(epochData, epoch)
+			fmt.Println("Wrote epoch data to", fileName)
 			return
 		}
 		ethrelayClient = createEthrelayClient()
@@ -63,39 +64,22 @@ func init() {
 }
 
 
-func writeEpochAsJson(epochData typedefs.EpochData, epoch *big.Int) {
-	f, err := os.Create(fmt.Sprintf("./%s.json", epoch))
+func writeEpochAsJson(epochData typedefs.EpochData, epoch *big.Int) string {
+	f, err := os.Create(fmt.Sprintf("./epoch_%s.json", epoch))
 	checkError(err)
 	defer f.Close()
 
-	_, err = fmt.Fprint(f, "{\n")
-	_, err = fmt.Fprintf(f, "  \"epoch\": \"%s\",\n", epochData.Epoch)
-	_, err = fmt.Fprintf(f, "  \"fullSizeIn128Resolution\": \"%s\",\n", epochData.FullSizeIn128Resolution)
-	_, err = fmt.Fprintf(f, "  \"branchDepth\": \"%s\",\n", epochData.BranchDepth)
-	_, err = fmt.Fprintf(f, "  \"merkleNodes\": ",)
-	writeElementsToFile(f, epochData.MerkleNodes)
-	_, err = fmt.Fprint(f, "\n}")
+	bytes, err := json.MarshalIndent(epochData, "", "\t")
 	checkError(err)
+
+	_, err = f.Write(bytes)
+	checkError(err)
+
+	return f.Name()
 }
 
 func checkError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func writeElementsToFile(file *os.File, arr []*big.Int) {
-	_, err := fmt.Fprintf(file, "[")
-	checkError(err)
-	if len(arr) > 0 {
-		_, err = fmt.Fprintf(file, "\"%s\"", arr[0])
-		checkError(err)
-	}
-
-	for i := 1; i < len(arr); i++ {
-		_, err = fmt.Fprintf(file, ", \"%s\"", arr[i])
-		checkError(err)
-	}
-	_, err = fmt.Fprintf(file, "]")
-	checkError(err)
 }
