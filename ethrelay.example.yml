@@ -5,9 +5,7 @@ chains:
       url: mainnet.infura.io/ws/v3/1e835672adba4b9b930a12a3ec58ebad
   destinations:
     local:
-      ethashaddress: 0x023a7365a3B02ebCEC6DC96131CD3D9B919e6b89
-      ethrelayaddress: 0xC327736730d0bFCd3380229a0E5C292671cbaD53
       port: 7545
       type: http
       url: localhost
-privatekey: 0xb38a964f368abad5dc4da5f186136258eb258305bc018a12a25d147f0fe40697
+privatekey: 0x0
