@@ -170,9 +170,10 @@ File a bug report or submit feature requests through the [issue tracker](https:/
 If you want to contribute feel free to submit a pull request.
 
 ## Useful resources
-* https://etherscan.io
-* https://goethereumbook.org
-* https://solidity.readthedocs.io/en/v0.5.7 
+
+* [Etherscan](https://etherscan.io)
+* [Ethereum Development with Go](https://goethereumbook.org)
+* [Solidity documentation](https://solidity.readthedocs.io)
 
 ## Acknowledgement
 The development of this prototype was funded by [Pantos](https://pantos.io/) within the [TAST](https://dsg.tuwien.ac.at/projects/tast/) research project.
