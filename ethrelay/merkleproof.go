@@ -4,6 +4,7 @@ package ethrelay
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -12,10 +13,16 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 )
 
+type ByteString []byte
+
 type MerkleProof struct {
-	Value []byte
-	Path  []byte
-	Nodes []byte
+	Value ByteString
+	Path  ByteString
+	Nodes ByteString
+}
+
+func (s ByteString) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprint("0x", common.Bytes2Hex(s)))
 }
 
 func NewMerkleProof(list types.DerivableList, index uint) (*MerkleProof, error) {

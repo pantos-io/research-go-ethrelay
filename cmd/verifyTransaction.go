@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -69,13 +70,12 @@ func writeMerkleProofAsJson(fileName []byte, rlpHeader []byte, proof *ethrelay.M
 
 	defer f.Close()
 
-	_, err = fmt.Fprint(f, "{\n")
-	_, err = fmt.Fprintf(f, "  \"rlpHeader\": \"0x%s\",\n", common.Bytes2Hex(rlpHeader))
-	_, err = fmt.Fprintf(f, "  \"rlpEncodedTx\": \"0x%s\",\n", common.Bytes2Hex(proof.Value))
-	_, err = fmt.Fprintf(f, "  \"path\": \"0x%s\",\n", common.Bytes2Hex(proof.Path))
-	_, err = fmt.Fprintf(f, "  \"rlpEncodedNodes\": \"0x%s\"\n", common.Bytes2Hex(proof.Nodes))
-	_, err = fmt.Fprint(f, "\n}")
+	bytes, err := json.MarshalIndent(proof, "", "\t")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	_, err = f.Write(bytes)
 	if err != nil {
 		log.Fatal(err)
 	}
