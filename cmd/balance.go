@@ -9,6 +9,7 @@ import (
 	"math/big"
 
 	"github.com/pantos-io/go-ethrelay/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +35,7 @@ If not, it prints the total balance`,
 
 		if detailFlag {
 			totalBalance := big.NewInt(0)
-			for _, chainId := range client.Chains() {
+			for _, chainId := range client.Chains(ethrelay.ChainTypeAny) {
 				balance, err := client.Balance(chainId)
 				if err != nil {
 					log.Fatal(err)

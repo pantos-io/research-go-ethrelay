@@ -72,6 +72,13 @@ const (
 	PoWDifficulty	= 2
 )
 
+type ChainType int
+const (
+	ChainTypeAny ChainType = iota
+	ChainTypeSrc
+	ChainTypeDst
+)
+
 func (event EthrelayRemoveBranch) String() string {
 	return fmt.Sprintf("branch with root hash %s removed", common.BytesToHash(event.Root[:]))
 }
@@ -263,15 +270,28 @@ func (c Client) DstChain(id string) *DestinationChain {
 	return c.dstChains[id]
 } 
 
-func (c Client) Chains() []string {
-	keys := make([]string, len(c.chains))
+func (c Client) Chains(chainType ChainType) []string {
+	var ids []string
 
-	i := 0
-	for k := range c.chains {
-		keys[i] = k
-		i++
+	switch chainType {
+	case ChainTypeAny:
+		ids = make([]string, len(c.chains))
+		for id := range c.chains {
+			ids = append(ids, id)
+		}
+	case ChainTypeSrc:
+		ids = make([]string, len(c.srcChains))
+		for id := range c.srcChains {
+			ids = append(ids, id)
+		}
+	case ChainTypeDst:
+		ids = make([]string, len(c.dstChains))
+		for id := range c.dstChains {
+			ids = append(ids, id)
+		}
 	}
-	return keys
+	
+	return ids
 }
 
 func (c Client) BlockByHash(chainId string, blockHash common.Hash) (*types.Block, error) {
