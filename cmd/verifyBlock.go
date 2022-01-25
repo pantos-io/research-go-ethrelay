@@ -32,7 +32,7 @@ import (
 //  however, this would means that an "attacker" can produce blocks in a faster way than the source blockchain
 //  and is for that reason very unlikely
 var verifyBlockCmd = &cobra.Command{
-	Use:   "block [blockHash]",
+	Use:   "block blockHash",
 	Short: "Verifies a block",
 	Long:  `Gets sure a block with [blockHash] from a source blockchain is also present on a destination blockchain`,
 	Args:  cobra.ExactArgs(1),

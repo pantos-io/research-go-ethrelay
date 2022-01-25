@@ -18,7 +18,7 @@ var jsonFlag bool
 
 // submitEpochCmd represents the command for setting epoch data (Ethash contract)
 var submitEpochCmd = &cobra.Command{
-	Use:   "epoch [epoch]",
+	Use:   "epoch epochNumber",
 	Short: "Sets the epoch data for the specified epoch on a destination chain",
 	Long: "Sets the epoch data for the specified epoch on a destination chain",
 	Args: cobra.ExactArgs(1),

@@ -16,7 +16,7 @@ var receiptFlag bool
 
 // getTransactionCmd represents the transaction command
 var getTransactionCmd = &cobra.Command{
-	Use:   "transaction [txHash]",
+	Use:   "transaction txHash",
 	Short: "Retrieves a transaction",
 	Long: `Retrieves the transaction with the specified hash`,
 	Aliases: []string{"tx"},

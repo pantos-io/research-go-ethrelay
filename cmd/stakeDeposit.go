@@ -15,7 +15,7 @@ import (
 
 // stakeDepositCmd represents the command 'stake deposit <amount>'
 var stakeDepositCmd = &cobra.Command{
-	Use:   "deposit [amountInWei]",
+	Use:   "deposit amountInWei",
 	Short: "Deposits the specified amount of Wei.",
 	Long: `Deposits the specified amount of Wei, i.e., the client's stake is increased by the specified amount'`,
 	Run: func(cmd *cobra.Command, args []string) {

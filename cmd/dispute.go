@@ -12,7 +12,7 @@ var disputeFlagChain string
 
 // disputeCmd represents the dispute command
 var disputeCmd = &cobra.Command{
-	Use:   "dispute [blockHash]",
+	Use:   "dispute blockHash",
 	Short: "Disputes a submitted block header",
 	Long: `Disputes the submitted block header with the specified hash ('blockHash')`,
 	Args: cobra.ExactArgs(1),

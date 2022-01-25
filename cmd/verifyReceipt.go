@@ -13,7 +13,7 @@ import (
 
 // verifyReceiptCmd represents the receipt command
 var verifyReceiptCmd = &cobra.Command{
-	Use:   "receipt [txHash]",
+	Use:   "receipt txHash",
 	Short: "Verifies a receipt",
 	Long: `Verifies a receipt from a source chain on a destination chain
 

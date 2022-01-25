@@ -15,7 +15,7 @@ import (
 var headerFlag bool
 
 var getBlockCmd = &cobra.Command{
-	Use:   "block [blockHash]",
+	Use:   "block blockHash",
 	Short: "Retrieves a block",
 	Long: `Retrieves the block with the specified hash ('blockHash')`,
 	Args: cobra.ExactArgs(1),

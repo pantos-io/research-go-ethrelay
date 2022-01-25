@@ -16,7 +16,7 @@ var noOfConfirmations uint8
 
 // verifyTransactionCmd represents the transaction command
 var verifyTransactionCmd = &cobra.Command{
-	Use:   "transaction [txHash]",
+	Use:   "transaction txHash",
 	Short: "Verifies a transaction",
 	Long: `Verifies a transaction from a source chain on a destination chain
 

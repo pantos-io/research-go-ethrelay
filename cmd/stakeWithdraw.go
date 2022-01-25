@@ -15,7 +15,7 @@ import (
 
 // stakeDepositCmd represents the command 'stake deposit <amount>'
 var stakeWithdrawCmd = &cobra.Command{
-	Use:   "withdraw [amountInWei]",
+	Use:   "withdraw amountInWei",
 	Short: "Withdraws the specified amount of Wei.",
 	Long: `Withdraws the specified amount of Wei, i.e., the client's stake is decreased by the specified amount'`,
 	Run: func(cmd *cobra.Command, args []string) {
