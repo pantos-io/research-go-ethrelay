@@ -4,12 +4,7 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/spf13/cobra"
-
-	"github.com/pantos-io/go-ethrelay/ethereum/utils"
 )
 
 var stakeFlagChain string
@@ -17,17 +12,7 @@ var stakeFlagChain string
 // stakeCmd represents the stake command
 var stakeCmd = &cobra.Command{
 	Use:   "stake",
-	Short: "Shows the stake stored on the specified chain",
-	Args: cobra.ExactArgs(0),
-	Run: func(cmd *cobra.Command, args []string) {
-		ethrelayClient = createEthrelayClient()
-		stakeInWei, err := ethrelayClient.GetStake(stakeFlagChain)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("Stake balance: %f ETH\n", utils.WeiToEther(stakeInWei))
-	},
+	Short: "Retrieves, deposits or withdraws stake from a destination chain",
 }
 
 func init() {
