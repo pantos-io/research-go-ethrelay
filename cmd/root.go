@@ -18,7 +18,6 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "go-ethrelay",
 	Short: "The CLI to interact with the ETH Relay prototype",
-	Long: `The CLI to interact with the ETH Relay prototype.`,
 }
 
 var ethrelayClient *ethrelay.Client

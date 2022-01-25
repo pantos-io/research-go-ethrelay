@@ -27,7 +27,6 @@ var deployFlagDstChain string
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploys a smart contract (Ethash or ETH Relay) on the specified blockchain",
-	Long:  `Deploys a smart contract (Ethash or ETH Relay) on the specified blockchain`,
 }
 
 func init() {

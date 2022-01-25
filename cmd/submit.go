@@ -13,7 +13,6 @@ var submitFlagDstChain string
 var submitCmd = &cobra.Command{
 	Use:   "submit",
 	Short: "Submits a block or epoch data of a source chain to a destination chain",
-	Long: "Submits a block or epoch data of a source chain to a destination chain",
 }
 
 func init() {

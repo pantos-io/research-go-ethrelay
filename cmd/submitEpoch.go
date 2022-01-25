@@ -20,7 +20,6 @@ var jsonFlag bool
 var submitEpochCmd = &cobra.Command{
 	Use:   "epoch epochNumber",
 	Short: "Sets the epoch data for the specified epoch on a destination chain",
-	Long: "Sets the epoch data for the specified epoch on a destination chain",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var epoch *big.Int = nil

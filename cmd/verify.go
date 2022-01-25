@@ -14,7 +14,6 @@ var verifyFlagDstChain string
 var verifyCmd = &cobra.Command{
 	Use:   "verify",
 	Short: "Verifies a transaction or a block from a source chain on a destination chain",
-	Long:  "Verifies a transaction or a block from a source chain on a destination chain",
 }
 
 func init() {

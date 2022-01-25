@@ -17,7 +17,6 @@ var ethrelayContractChain string
 var getLongestChainEndpointCmd = &cobra.Command{
 	Use:   "longestchainendpoint",
 	Short: "Retrieves the blockhash of the longest chain on a destination blockchain",
-	Long: `Retrieves the blockhash of the longest chain on a destination blockchain`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		ethrelayClient = createEthrelayClient()
