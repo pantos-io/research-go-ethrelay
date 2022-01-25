@@ -18,7 +18,7 @@ var receiptFlag bool
 var getTransactionCmd = &cobra.Command{
 	Use:   "transaction txHash",
 	Short: "Retrieves a transaction",
-	Long: `Retrieves the transaction with the specified hash`,
+	Long:  "Retrieves the transaction with the specified transaction hash",
 	Aliases: []string{"tx"},
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

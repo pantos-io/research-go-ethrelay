@@ -19,10 +19,9 @@ var verifyTransactionCmd = &cobra.Command{
 	Use:   "transaction txHash",
 	Short: "Verifies a transaction",
 	Long: `Verifies a transaction from a source chain on a destination chain
-
-Behind the scene, the command queries the transaction with the specified hash ('txHash') from the source chain.
+Behind the scene, the command queries the transaction with the specified hash from the source chain.
 It then generates a Merkle Proof contesting the existence of the transaction within a specific block.
-This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified`,
+This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified.`,
 	Aliases: []string{"tx"},
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

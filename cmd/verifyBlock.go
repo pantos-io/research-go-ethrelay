@@ -34,7 +34,7 @@ import (
 var verifyBlockCmd = &cobra.Command{
 	Use:   "block blockHash",
 	Short: "Verifies a block",
-	Long:  `Gets sure a block with [blockHash] from a source blockchain is also present on a destination blockchain`,
+	Long:  "Gets sure the block with the given block hash from a source blockchain is also present on a destination blockchain",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])

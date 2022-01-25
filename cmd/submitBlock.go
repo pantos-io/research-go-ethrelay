@@ -22,9 +22,9 @@ var submitFlagLiveMode bool
 
 // submitCmd represents the submit command
 var submitBlockCmd = &cobra.Command{
-	Short: "Submits a block header from a source chain to a destination chain",
-	Long:  `Queries the given block from a source chain and submits it to a destination chain`,
 	Use:   "block {blockNumber | blockHash}",
+	Short: "Submits a block from a source chain to a destination chain",
+	Long:  "Queries the given block from a source chain and submits it to a destination chain",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 

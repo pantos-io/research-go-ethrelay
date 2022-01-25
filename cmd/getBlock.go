@@ -17,7 +17,7 @@ var headerFlag bool
 var getBlockCmd = &cobra.Command{
 	Use:   "block blockHash",
 	Short: "Retrieves a block",
-	Long: `Retrieves the block with the specified hash ('blockHash')`,
+	Long: "Retrieves the block with the specified hash",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])

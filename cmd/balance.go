@@ -18,9 +18,9 @@ var detailFlag bool
 var balanceCmd = &cobra.Command{
 	Use:   "balance [chain]",
 	Short: "Prints the balance of the current account",
-	Long: `Prints the balance of the current account.
-	If [chain] is set, it prints the balance of the current account on the specified chain.
-	If not, it prints the total balance`,
+	Long:  `Prints the balance of the current account.
+If a chain is set, it prints the balance of the current account on the specified chain.
+If not, it prints the total balance`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 

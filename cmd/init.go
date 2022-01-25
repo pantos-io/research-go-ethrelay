@@ -33,7 +33,7 @@ import (
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initializes the ETH Relay client",
-	Long: `This command initializes the ETH Relay client. 
+	Long:  `This command initializes the ETH Relay client.
 This command sets up the ethrelay.yml file in the current directory.
 The file contains connection configurations for the different blockchains, e.g.,
 private key, URL, port, etc.

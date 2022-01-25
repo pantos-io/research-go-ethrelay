@@ -13,7 +13,7 @@ var getFlagChain string
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get a block or transaction",
-	Long: `Retrieves a block or transaction from one of the chains.`,
+	Long: "Retrieves a block or transaction from one of the chains.",
 }
 
 func init() {

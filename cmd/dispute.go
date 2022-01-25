@@ -14,7 +14,7 @@ var disputeFlagChain string
 var disputeCmd = &cobra.Command{
 	Use:   "dispute blockHash",
 	Short: "Disputes a submitted block header",
-	Long: `Disputes the submitted block header with the specified hash ('blockHash')`,
+	Long: `Disputes the submitted block header with the specified hash`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])

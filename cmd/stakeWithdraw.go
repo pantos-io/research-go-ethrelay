@@ -17,7 +17,7 @@ import (
 var stakeWithdrawCmd = &cobra.Command{
 	Use:   "withdraw amountInWei",
 	Short: "Withdraws the specified amount of Wei.",
-	Long: `Withdraws the specified amount of Wei, i.e., the client's stake is decreased by the specified amount'`,
+	Long:  `Withdraws the specified amount of Wei, i.e., the client's stake is decreased by the specified amount`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ethrelayClient = createEthrelayClient()
 
