@@ -6,9 +6,9 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"math"
 	"math/big"
 
+	"github.com/pantos-io/go-ethrelay/ethereum/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ var balanceCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("%.4f ETH\n", getDecimal(balance, 18))
+			fmt.Printf("%f ETH\n", utils.WeiToEther(balance))
 			return
 		}
 
@@ -41,7 +41,7 @@ var balanceCmd = &cobra.Command{
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Printf("Chain '%s': %.4f ETH\n", chainId, getDecimal(balance, 18))
+				fmt.Printf("Chain '%s': %f ETH\n", chainId, utils.WeiToEther(balance))
 				totalBalance = totalBalance.Add(totalBalance, balance)
 			}
 			fmt.Printf("Total: ")
@@ -50,14 +50,8 @@ var balanceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%.4f ETH\n", getDecimal(balance, 18))
+		fmt.Printf("%f ETH\n", utils.WeiToEther(balance))
 	},
-}
-
-func getDecimal(absolute *big.Int, decimals int) *big.Float {
-	decimal := new(big.Float)
-	decimal.SetString(absolute.String())
-	return new(big.Float).Quo(decimal, big.NewFloat(math.Pow10(decimals)))
 }
 
 func init() {

@@ -26,7 +26,7 @@ var stakeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Stake balance: %s ETH\n", utils.WeiToEther(stakeInWei))
+		fmt.Printf("Stake balance: %f ETH\n", utils.WeiToEther(stakeInWei))
 	},
 }
 

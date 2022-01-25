@@ -32,7 +32,7 @@ var stakeDepositCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Successfully deposited stake: %s ETH\n", utils.WeiToEther(amountInWei))
+		fmt.Printf("Successfully deposited stake: %f ETH\n", utils.WeiToEther(amountInWei))
 	},
 }
 

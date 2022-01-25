@@ -32,7 +32,7 @@ var stakeWithdrawCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Successfully withdrew stake: %s ETH\n", utils.WeiToEther(amountInWei))
+		fmt.Printf("Successfully withdrew stake: %f ETH\n", utils.WeiToEther(amountInWei))
 	},
 }
 
