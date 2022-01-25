@@ -46,15 +46,6 @@ var getTransactionCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getTransactionCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getTransactionCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getTransactionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	getTransactionCmd.Flags().BoolVarP(&receiptFlag, "receipt", "r", false, "Get the receipt of the transaction")
 }
 

@@ -87,14 +87,6 @@ var submitBlockCmd = &cobra.Command{
 func init() {
 	submitCmd.AddCommand(submitBlockCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// submitCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	submitBlockCmd.Flags().BoolVarP(&submitFlagLiveMode, "live", "l", false, "live mode (continuously submits most recent block headers)")
 	submitBlockCmd.Flags().StringVar(&submitFlagSrcChain, "source", "mainnet", "source chain")
 	submitBlockCmd.Flags().BoolVarP(&submitFlagRandomize, "randomize", "r", false, "randomize block")

@@ -25,8 +25,6 @@ var getBlockCmd = &cobra.Command{
 		ethrelayClient = createEthrelayClient()
 
 		if headerFlag {
-			// if only the header should be printed
-
 			header, err := ethrelayClient.HeaderByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
@@ -34,8 +32,6 @@ var getBlockCmd = &cobra.Command{
 
 			printHeader(header)
 		} else {
-			// else the full header will be printed
-
 			block, err := ethrelayClient.BlockByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve block: " + err.Error())
@@ -53,14 +49,6 @@ var getBlockCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getBlockCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getBlockCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	getBlockCmd.Flags().BoolVar(&headerFlag, "header", false, "Get the header of the block")
 	getBlockCmd.Flags().BoolVarP(&detailFlag, "detail", "d", false, "Show transaction details of block")
 }

@@ -37,15 +37,6 @@ var ethrelayCmd = &cobra.Command{
 func init() {
 	deployCmd.AddCommand(ethrelayCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// ethrelayCmd.PersistentFlags().String("foo", "", "A help for foo")
 	ethrelayCmd.Flags().StringVarP(&deployFlagSourceChain, "source", "s", "mainnet", "The source chain containing the specified genesis block")
 	ethrelayCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the source chain) that should be used as genesis block")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// ethrelayCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

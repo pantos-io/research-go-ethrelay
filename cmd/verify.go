@@ -20,16 +20,6 @@ var verifyCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(verifyCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// verifyCmd.PersistentFlags().String("foo", "", "A help for foo")
-
 	verifyCmd.PersistentFlags().StringVarP(&verifyFlagSrcChain, "source", "s", "mainnet", "a source chain from which to read data for verification")
 	verifyCmd.PersistentFlags().StringVarP(&verifyFlagDstChain, "destination", "d", "local", "a destination chain whose data needs to be verified")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// verifyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
