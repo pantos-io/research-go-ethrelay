@@ -23,10 +23,8 @@ If a chain is set, it prints the balance of the current account on the specified
 If not, it prints the total balance`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-
-		ethrelayClient = createEthrelayClient()
 		if len(args) > 0 {
-			balance, err := ethrelayClient.Balance(args[0])
+			balance, err := client.Balance(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -36,8 +34,8 @@ If not, it prints the total balance`,
 
 		if detailFlag {
 			totalBalance := big.NewInt(0)
-			for _, chainId := range ethrelayClient.Chains() {
-				balance, err := ethrelayClient.Balance(chainId)
+			for _, chainId := range client.Chains() {
+				balance, err := client.Balance(chainId)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -46,7 +44,7 @@ If not, it prints the total balance`,
 			}
 			fmt.Printf("Total: ")
 		}
-		balance, err := ethrelayClient.TotalBalance()
+		balance, err := client.TotalBalance()
 		if err != nil {
 			log.Fatal(err)
 		}

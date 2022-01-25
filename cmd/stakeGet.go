@@ -16,7 +16,7 @@ var stakeRetrieveCmd = &cobra.Command{
 	Short: "Retrieves the stake stored on the specified destination chain",
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		stakeInWei, err := createEthrelayClient().GetStake(stakeFlagChain)
+		stakeInWei, err := client.GetStake(stakeFlagChain)
 		if err != nil {
 			log.Fatal(err)
 		}

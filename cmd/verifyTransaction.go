@@ -27,9 +27,7 @@ This information gets sent to the destination chain, where not only the existenc
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
 
-		ethrelayClient = createEthrelayClient()
-
-		rlpHeader, proof, err := ethrelayClient.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
+		rlpHeader, proof, err := client.GenerateMerkleProofForTx(verifyFlagSrcChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
 		}
@@ -43,12 +41,12 @@ This information gets sent to the destination chain, where not only the existenc
 			return
 		}
 
-		feesInWei, err := ethrelayClient.GetRequiredVerificationFee(verifyFlagDstChain)
+		feesInWei, err := client.GetRequiredVerificationFee(verifyFlagDstChain)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		ethrelayClient.VerifyMerkleProof(verifyFlagDstChain, feesInWei, rlpHeader, ethrelay.ValueTypeTransaction, proof, noOfConfirmations)
+		client.VerifyMerkleProof(verifyFlagDstChain, feesInWei, rlpHeader, ethrelay.ValueTypeTransaction, proof, noOfConfirmations)
 	},
 }
 

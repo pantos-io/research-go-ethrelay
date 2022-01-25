@@ -39,9 +39,7 @@ var verifyBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
-		ethrelayClient = createEthrelayClient()
-
-		headerExists, err := ethrelayClient.BlockHeaderExists(verifyFlagDstChain, blockHash)
+		headerExists, err := client.BlockHeaderExists(verifyFlagDstChain, blockHash)
 		if err != nil {
 			log.Fatal("Could not verify block header on destination chain: " + err.Error())
 		}
@@ -51,7 +49,7 @@ var verifyBlockCmd = &cobra.Command{
 			return
 		}
 
-		_, err = ethrelayClient.GetOriginalBlockHeader(verifyFlagSrcChain, blockHash)
+		_, err = client.GetOriginalBlockHeader(verifyFlagSrcChain, blockHash)
 		if err != nil {
 			log.Fatal("Could not get original block on source chain: " + err.Error())
 		}

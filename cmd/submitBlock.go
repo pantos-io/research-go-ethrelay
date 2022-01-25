@@ -29,9 +29,8 @@ var submitBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if submitFlagLiveMode {
-			ethrelayClient = createEthrelayClient()
 			// TODO: live mode should be variable, outsource this to terminal
-			ethrelayClient.SubmitHeaderLive(submitFlagDstChain, submitFlagSrcChain, 5*time.Minute)
+			client.SubmitHeaderLive(submitFlagDstChain, submitFlagSrcChain, 5*time.Minute)
 
 			return
 		}
@@ -39,12 +38,10 @@ var submitBlockCmd = &cobra.Command{
 		var header *types.Header = nil
 		var err error
 
-		ethrelayClient = createEthrelayClient()
-
 		if len(args) > 0 {
 			if strings.HasPrefix(args[0], "0x") {
 				blockHash := common.HexToHash(args[0])
-				header, err = ethrelayClient.HeaderByHash(getFlagChain, blockHash)
+				header, err = client.HeaderByHash(getFlagChain, blockHash)
 			} else {
 				var ok bool
 				var blockNumber *big.Int = nil
@@ -55,7 +52,7 @@ var submitBlockCmd = &cobra.Command{
 					log.Fatalf("Illegal block number '%s'", args[0])
 				}
 
-				header, err = ethrelayClient.HeaderByNumber(submitFlagSrcChain, blockNumber)
+				header, err = client.HeaderByNumber(submitFlagSrcChain, blockNumber)
 			}
 		}
 
@@ -70,14 +67,14 @@ var submitBlockCmd = &cobra.Command{
 
 		if submitFlagRandomize {
 			fmt.Printf("Randomizing header...\n")
-			header = ethrelayClient.RandomizeHeader(submitFlagSrcChain, header)
+			header = client.RandomizeHeader(submitFlagSrcChain, header)
 		}
 
 		fmt.Printf("Submitting block %s of chain '%s' to chain '%s'...\n", header.Number, submitFlagSrcChain, submitFlagDstChain)
 
 		//header.Nonce = types.EncodeNonce(header.Nonce.Uint64() + 1)  // can be used for testing PoW validation
 
-		err = ethrelayClient.SubmitHeader(submitFlagDstChain, header)
+		err = client.SubmitHeader(submitFlagDstChain, header)
 		if err != nil {
 			log.Fatal("Failed to submit header: " + err.Error())
 		}

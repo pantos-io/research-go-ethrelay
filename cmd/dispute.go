@@ -24,8 +24,7 @@ var disputeCmd = &cobra.Command{
 		blockHashBytes := blockHash.Bytes()
 		copy(blockHashBytes32[:], blockHashBytes)
 
-		ethrelayClient = createEthrelayClient()
-		ethrelayClient.DisputeBlock(disputeFlagChain, blockHash)
+		client.DisputeBlock(disputeFlagChain, blockHash)
 	},
 }
 

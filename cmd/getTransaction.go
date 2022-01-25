@@ -23,11 +23,9 @@ var getTransactionCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
-
-		ethrelayClient = createEthrelayClient()
-
+		
 		if receiptFlag {
-			txReceipt, err := ethrelayClient.TransactionReceipt(getFlagChain, txHash)
+			txReceipt, err := client.TransactionReceipt(getFlagChain, txHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve transaction receipt: " + err.Error())
 			}
@@ -35,7 +33,7 @@ var getTransactionCmd = &cobra.Command{
 			return
 		}
 
-		tx, _, err := ethrelayClient.Transaction(getFlagChain, txHash)
+		tx, _, err := client.Transaction(getFlagChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to retrieve transaction: " + err.Error())
 		}

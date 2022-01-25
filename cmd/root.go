@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/pantos-io/go-ethrelay/ethrelay"
@@ -13,14 +14,13 @@ import (
 )
 
 var cfgFile string
+var client *ethrelay.Client
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go-ethrelay",
 	Short: "The CLI to interact with the ETH Relay prototype",
 }
-
-var ethrelayClient *ethrelay.Client
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -32,36 +32,24 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(readConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/ethrelay.yml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./ethrelay.yml", "YAML config file")
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Search config in current directory with name "ethrelay" (without extension).
-		viper.AddConfigPath(".")
-		viper.SetConfigName("ethrelay")
-		viper.SetConfigType("yml")
-	}
+func readConfig() {
+	viper.SetConfigFile(cfgFile)
+	viper.AutomaticEnv()
 
-	viper.AutomaticEnv() // read in environment variables that match
-}
-
-func createEthrelayClient() (*ethrelay.Client) {
-	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Can't read config file:", err)
+		log.Println("Can't read config file:", err)
+		return
 	}
 
 	chainsConfig := viper.Get("chains").(map[string]interface{})
 	privateKey := viper.Get("privateKey").(string)
 
-	return ethrelay.NewClient(privateKey, chainsConfig)
+	client = ethrelay.NewClient(privateKey, chainsConfig)
 }

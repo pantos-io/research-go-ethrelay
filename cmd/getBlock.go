@@ -22,17 +22,15 @@ var getBlockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
-		ethrelayClient = createEthrelayClient()
-
 		if headerFlag {
-			header, err := ethrelayClient.HeaderByHash(getFlagChain, blockHash)
+			header, err := client.HeaderByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
 			}
 
 			printHeader(header)
 		} else {
-			block, err := ethrelayClient.BlockByHash(getFlagChain, blockHash)
+			block, err := client.BlockByHash(getFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve block: " + err.Error())
 			}

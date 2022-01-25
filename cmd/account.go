@@ -15,7 +15,7 @@ var accountCmd = &cobra.Command{
 	Short: "Prints the address of the current account",
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(createEthrelayClient().Account())
+		fmt.Println(client.Account())
 	},
 }
 

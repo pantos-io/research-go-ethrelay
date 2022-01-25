@@ -37,8 +37,7 @@ var submitEpochCmd = &cobra.Command{
 			fmt.Println("Wrote epoch data to", fileName)
 			return
 		}
-		ethrelayClient = createEthrelayClient()
-		ethrelayClient.SetEpochData(submitFlagDstChain, epochData)
+		client.SetEpochData(submitFlagDstChain, epochData)
 	},
 }
 
