@@ -55,6 +55,7 @@ privatekey: 0x0
 Websocket-Connection is required for submitting blocks in live mode.
 Chains under "sources" contain connection configurations for the source chains, defaulting to the main Ethereum chain (via Infura).
 Chains under "destinations" contain connection configurations for the destination chains, defaulting to a local chain (e.g. via Ganache).`,
+	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Setting up ethrelay.yml...")
 		reader := bufio.NewReader(os.Stdin)

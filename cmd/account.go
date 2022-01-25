@@ -13,6 +13,7 @@ import (
 var accountCmd = &cobra.Command{
 	Use:   "account",
 	Short: "Prints the address of the current account",
+	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(createEthrelayClient().Account())
 	},

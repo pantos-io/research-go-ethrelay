@@ -18,6 +18,7 @@ var stakeFlagChain string
 var stakeCmd = &cobra.Command{
 	Use:   "stake",
 	Short: "Shows the stake stored on the specified chain",
+	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		ethrelayClient = createEthrelayClient()
 		stakeInWei, err := ethrelayClient.GetStake(stakeFlagChain)
