@@ -4,11 +4,8 @@
 package cmd
 
 import (
-	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
-
-var getFlagChain string
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
@@ -19,7 +16,4 @@ var getCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getCmd)
-
-	getCmd.PersistentFlags().StringVar(&getFlagChain, "chain", "mainnet", "chain")
-	getCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeAny))
 }

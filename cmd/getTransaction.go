@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var getTransactionFlagChain string
 var receiptFlag bool
 
 // getTransactionCmd represents the transaction command
@@ -25,7 +26,7 @@ var getTransactionCmd = &cobra.Command{
 		txHash := common.HexToHash(args[0])
 		
 		if receiptFlag {
-			txReceipt, err := client.TransactionReceipt(getFlagChain, txHash)
+			txReceipt, err := client.TransactionReceipt(getTransactionFlagChain, txHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve transaction receipt: " + err.Error())
 			}
@@ -33,7 +34,7 @@ var getTransactionCmd = &cobra.Command{
 			return
 		}
 
-		tx, _, err := client.Transaction(getFlagChain, txHash)
+		tx, _, err := client.Transaction(getTransactionFlagChain, txHash)
 		if err != nil {
 			log.Fatal("Failed to retrieve transaction: " + err.Error())
 		}
@@ -44,6 +45,7 @@ var getTransactionCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getTransactionCmd)
 
+	addCommonFlag(getTransactionCmd, "chain", &getTransactionFlagChain)
 	getTransactionCmd.Flags().BoolVarP(&receiptFlag, "receipt", "r", false, "Get the receipt of the transaction")
 }
 

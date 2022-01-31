@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var getBlockFlagChain string
 var headerFlag bool
 
 var getBlockCmd = &cobra.Command{
@@ -23,14 +24,14 @@ var getBlockCmd = &cobra.Command{
 		blockHash := common.HexToHash(args[0])
 
 		if headerFlag {
-			header, err := client.HeaderByHash(getFlagChain, blockHash)
+			header, err := client.HeaderByHash(getBlockFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve header: " + err.Error())
 			}
 
 			printHeader(header)
 		} else {
-			block, err := client.BlockByHash(getFlagChain, blockHash)
+			block, err := client.BlockByHash(getBlockFlagChain, blockHash)
 			if err != nil {
 				log.Fatal("Failed to retrieve block: " + err.Error())
 			}
@@ -47,6 +48,7 @@ var getBlockCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getBlockCmd)
 
+	addCommonFlag(getBlockCmd, "chain", &getBlockFlagChain)
 	getBlockCmd.Flags().BoolVar(&headerFlag, "header", false, "Get the header of the block")
 	getBlockCmd.Flags().BoolVarP(&detailFlag, "detail", "d", false, "Show transaction details of block")
 }

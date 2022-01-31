@@ -56,6 +56,10 @@ var flagsMap = map[string]func(*cobra.Command, *string){
 		cmd.Flags().StringVarP(ptr, "destination", "d", "local", "The identifier of a destination blockchain, as set up in the config file")
 		cmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
 	},
+	"chain": func(cmd *cobra.Command, ptr *string) {
+		cmd.Flags().StringVar(ptr, "chain", "mainnet", "The identifier of a (source or destination) blockchain, as set up in the config file")
+		cmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeAny))
+	},
 
 }
 

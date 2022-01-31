@@ -41,7 +41,7 @@ var submitBlockCmd = &cobra.Command{
 		if len(args) > 0 {
 			if strings.HasPrefix(args[0], "0x") {
 				blockHash := common.HexToHash(args[0])
-				header, err = client.HeaderByHash(getFlagChain, blockHash)
+				header, err = client.HeaderByHash(submitFlagSrcChain, blockHash)
 			} else {
 				var ok bool
 				var blockNumber *big.Int = nil
