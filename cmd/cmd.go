@@ -31,7 +31,7 @@ func checkError(err error) {
 	}
 }
 
-func chainFlagCompletionFn(chainType ethrelay.ChainType) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func chainCompletionFn(chainType ethrelay.ChainType) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		readConfig()
 		ids := client.Chains(chainType)

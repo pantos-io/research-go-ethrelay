@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -19,11 +20,6 @@ var disputeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		blockHash := common.HexToHash(args[0])
 
-		// copy dynamic byte array to fixed length byte array
-		var blockHashBytes32 common.Hash
-		blockHashBytes := blockHash.Bytes()
-		copy(blockHashBytes32[:], blockHashBytes)
-
 		client.DisputeBlock(disputeFlagChain, blockHash)
 	},
 }
@@ -32,4 +28,5 @@ func init() {
 	rootCmd.AddCommand(disputeCmd)
 
 	disputeCmd.Flags().StringVarP(&disputeFlagChain, "chain", "c", "local", "the disputed chain ID")
+	disputeCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeDst))
 }

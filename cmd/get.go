@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -20,4 +21,5 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 
 	getCmd.PersistentFlags().StringVarP(&getFlagChain, "chain", "c", "mainnet", "chain")
+	getCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeAny))
 }

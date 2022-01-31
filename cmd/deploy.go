@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ func init() {
 	rootCmd.AddCommand(deployCmd)
 
 	deployCmd.PersistentFlags().StringVarP(&deployFlagDstChain, "destination", "d", "local", "A destination blockchain to which the smart contract should be deployed")
+	deployCmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
 }
 
 func updateChainsConfig(deployedAddress common.Address, chainId string, key string) {

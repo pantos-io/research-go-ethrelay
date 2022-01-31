@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -19,4 +20,5 @@ func init() {
 	rootCmd.AddCommand(submitCmd)
 
 	submitCmd.PersistentFlags().StringVarP(&submitFlagDstChain, "destination", "d", "local", "a destination chain to which to submit data to")
+	submitCmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
 }

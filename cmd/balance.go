@@ -51,6 +51,7 @@ If not, it prints the total balance`,
 		}
 		fmt.Printf("%f ETH\n", utils.WeiToEther(balance))
 	},
+	ValidArgsFunction: chainCompletionFn(ethrelay.ChainTypeAny),
 }
 
 func init() {
