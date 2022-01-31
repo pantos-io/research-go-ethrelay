@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/pantos-io/go-ethrelay/ethrelay"
+	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

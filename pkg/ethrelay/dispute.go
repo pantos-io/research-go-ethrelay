@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethash"
 )
 
 func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte, error) {

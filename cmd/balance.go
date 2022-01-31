@@ -8,8 +8,8 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/pantos-io/go-ethrelay/ethereum/utils"
-	"github.com/pantos-io/go-ethrelay/ethrelay"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 )
 

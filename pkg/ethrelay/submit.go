@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/pantos-io/go-ethrelay/typedefs"
+	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
 )
 
 func (c Client) SubmitHeader(chainId string, header *types.Header) error {

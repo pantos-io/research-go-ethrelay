@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethashsol"
 )
 
 func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBlockNumber uint64) common.Address {

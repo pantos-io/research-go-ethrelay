@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/pantos-io/go-ethrelay/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethash"
 
 	"log"
 

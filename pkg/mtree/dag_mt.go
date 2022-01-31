@@ -4,9 +4,10 @@ package mtree
 
 import (
 	"container/list"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pantos-io/go-ethrelay/typedefs"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
 )
 
 type DagData typedefs.SPHash

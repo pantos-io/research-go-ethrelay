@@ -20,9 +20,6 @@ package ethash
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/pantos-io/go-ethrelay/mtree"
-	"github.com/pantos-io/go-ethrelay/typedefs"
 	"math"
 	"math/big"
 	"math/rand"
@@ -33,6 +30,10 @@ import (
 	"sync"
 	"time"
 	"unsafe"
+
+	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/pantos-io/go-ethrelay/pkg/mtree"
+	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/ethereum/go-ethereum/consensus"

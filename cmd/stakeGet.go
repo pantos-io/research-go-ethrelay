@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/pantos-io/go-ethrelay/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/utils"
 )
 
 // stakeRetrieveCmd represents the stake retrieve command

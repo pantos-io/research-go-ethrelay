@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/ethrelay"
+	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 )
 

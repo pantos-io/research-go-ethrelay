@@ -24,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/pantos-io/go-ethrelay/ethereum/ethashsol"
+	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethashsol"
 )
 
 type Chain struct {
