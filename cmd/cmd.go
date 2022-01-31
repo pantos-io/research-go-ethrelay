@@ -46,3 +46,19 @@ func chainCompletionFn(chainType ethrelay.ChainType) func(cmd *cobra.Command, ar
 		return filteredIds, cobra.ShellCompDirectiveNoFileComp
 	}
 }
+
+var flagsMap = map[string]func(*cobra.Command, *string){
+	"source": func(cmd *cobra.Command, ptr *string) {
+		cmd.Flags().StringVarP(ptr, "source", "s", "mainnet", "The identifier of a source blockchain, as set up in the config file")
+		cmd.RegisterFlagCompletionFunc("source", chainCompletionFn(ethrelay.ChainTypeSrc))
+	},
+	"destination": func(cmd *cobra.Command, ptr *string) {
+		cmd.Flags().StringVarP(ptr, "destination", "d", "local", "The identifier of a destination blockchain, as set up in the config file")
+		cmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
+	},
+
+}
+
+func addCommonFlag(cmd *cobra.Command, flagName string, ptr *string) {
+	flagsMap[flagName](cmd, ptr)
+}

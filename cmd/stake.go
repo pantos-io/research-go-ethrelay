@@ -4,7 +4,6 @@
 package cmd
 
 import (
-	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +18,5 @@ var stakeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(stakeCmd)
 
-	stakeCmd.PersistentFlags().StringVar(&stakeFlagChain, "chain", "local", "chain")
-	stakeCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeDst))
+	addCommonFlag(stakeCmd, "destination", &stakeFlagChain)
 }

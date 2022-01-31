@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +31,5 @@ var getLongestChainEndpointCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getLongestChainEndpointCmd)
 
-	getLongestChainEndpointCmd.PersistentFlags().StringVarP(&ethrelayContractChain, "destination", "d", "local", "A blockchain where ETH Relay is deployed")
-	getLongestChainEndpointCmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
+	addCommonFlag(getLongestChainEndpointCmd, "destination", &ethrelayContractChain)
 }

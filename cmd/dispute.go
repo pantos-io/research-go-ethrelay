@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +26,5 @@ var disputeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(disputeCmd)
 
-	disputeCmd.Flags().StringVarP(&disputeFlagChain, "chain", "c", "local", "the disputed chain ID")
-	disputeCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeDst))
+	addCommonFlag(disputeCmd, "destination", &disputeFlagChain)
 }

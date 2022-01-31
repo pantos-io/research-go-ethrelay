@@ -36,6 +36,6 @@ var ethrelayCmd = &cobra.Command{
 func init() {
 	deployCmd.AddCommand(ethrelayCmd)
 
-	ethrelayCmd.Flags().StringVarP(&deployFlagSourceChain, "source", "s", "mainnet", "The source chain containing the specified genesis block")
+	addCommonFlag(ethrelayCmd, "source", &deployFlagSourceChain)
 	ethrelayCmd.Flags().Uint64VarP(&deployFlagGenesisNumber, "genesis", "g", 1, "The number of the block (of the source chain) that should be used as genesis block")
 }

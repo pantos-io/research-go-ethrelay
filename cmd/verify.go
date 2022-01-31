@@ -4,7 +4,6 @@
 package cmd
 
 import (
-	"github.com/pantos-io/go-ethrelay/ethrelay"
 	"github.com/spf13/cobra"
 )
 
@@ -20,8 +19,6 @@ var verifyCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(verifyCmd)
 
-	verifyCmd.PersistentFlags().StringVarP(&verifyFlagSrcChain, "source", "s", "mainnet", "a source chain from which to read data for verification")
-	verifyCmd.RegisterFlagCompletionFunc("source", chainCompletionFn(ethrelay.ChainTypeSrc))
-	verifyCmd.PersistentFlags().StringVarP(&verifyFlagDstChain, "destination", "d", "local", "a destination chain whose data needs to be verified")
-	verifyCmd.RegisterFlagCompletionFunc("destination", chainCompletionFn(ethrelay.ChainTypeDst))
+	addCommonFlag(verifyCmd, "source", &verifyFlagSrcChain)
+	addCommonFlag(verifyCmd, "destination", &verifyFlagDstChain)
 }

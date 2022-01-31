@@ -53,6 +53,6 @@ This information gets sent to the destination chain, where not only the existenc
 func init() {
 	verifyCmd.AddCommand(verifyTransactionCmd)
 
-	verifyTransactionCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
+	verifyTransactionCmd.Flags().Uint8Var(&noOfConfirmations, "confirmations", 4, "Number of block confirmations")
 	verifyTransactionCmd.Flags().BoolVar(&jsonFlag, "json", false, "save merkle proof to a json file")
 }

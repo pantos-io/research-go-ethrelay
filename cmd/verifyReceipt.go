@@ -40,5 +40,5 @@ This information gets sent to the destination chain, where not only the existenc
 func init() {
 	verifyCmd.AddCommand(verifyReceiptCmd)
 
-	verifyReceiptCmd.Flags().Uint8VarP(&noOfConfirmations, "confirmations", "c", 4, "Number of block confirmations")
+	verifyReceiptCmd.Flags().Uint8Var(&noOfConfirmations, "confirmations", 4, "Number of block confirmations")
 }

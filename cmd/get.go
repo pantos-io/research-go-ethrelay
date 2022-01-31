@@ -20,6 +20,6 @@ var getCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(getCmd)
 
-	getCmd.PersistentFlags().StringVarP(&getFlagChain, "chain", "c", "mainnet", "chain")
+	getCmd.PersistentFlags().StringVar(&getFlagChain, "chain", "mainnet", "chain")
 	getCmd.RegisterFlagCompletionFunc("chain", chainCompletionFn(ethrelay.ChainTypeAny))
 }
