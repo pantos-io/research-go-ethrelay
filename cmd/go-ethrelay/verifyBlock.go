@@ -14,7 +14,7 @@
 // This file contains logic executed if the command "verify block" is typed in.
 // Authors: Marten Sigwart, Philipp Frauenthaler
 
-package cmd
+package main
 
 import (
 	"fmt"

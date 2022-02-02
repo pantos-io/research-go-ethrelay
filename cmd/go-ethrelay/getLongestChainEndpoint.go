@@ -1,7 +1,7 @@
 // This file contains logic executed if the command "get longestchainendpoint" is typed in.
 // Authors: Leonhard Esterbauer
 
-package cmd
+package main
 
 import (
 	"fmt"

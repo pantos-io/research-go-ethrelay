@@ -1,7 +1,7 @@
 // All commands are child commands of the root command.
 // Authors: Marten Sigwart, Philipp Frauenthaler
 
-package cmd
+package main
 
 import (
 	"fmt"
@@ -22,9 +22,8 @@ var rootCmd = &cobra.Command{
 	Short: "The CLI to interact with the ETH Relay prototype",
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+// Adds all child commands to the root command and sets flags appropriately.
+func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

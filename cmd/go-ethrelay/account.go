@@ -1,7 +1,7 @@
 // This file contains logic executed if the command "account" is typed in.
 // Authors: Marten Sigwart, Philipp Frauenthaler
 
-package cmd
+package main
 
 import (
 	"fmt"

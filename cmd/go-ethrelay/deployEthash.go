@@ -15,9 +15,21 @@
 package main
 
 import (
-	"github.com/pantos-io/go-ethrelay/cmd"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	cmd.Execute()
+// ethashCmd represents the ethash command
+var ethashCmd = &cobra.Command{
+	Use:   "ethash",
+	Short: "Deploys the Ethash smart contract on the specified blockchain",
+	Args: cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		deployedAddress := client.DeployEthash(deployFlagDstChain)
+
+		updateChainsConfig(deployedAddress, deployFlagDstChain, "ethashAddress")
+	},
+}
+
+func init() {
+	deployCmd.AddCommand(ethashCmd)
 }

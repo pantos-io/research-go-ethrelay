@@ -1,6 +1,6 @@
 # Go-ETH Relay
 
-This project contains a Go-library and a command-line interface (CLI) to interact with the [ETH Relay](https://github.com/pantos-io/ethrelay) prototype.
+This project contains a Go library and a command-line interface (CLI) to interact with the [ETH Relay](https://github.com/pantos-io/ethrelay) prototype.
 
 ETH Relay enables the cross-blockchain verification of transactions.
 This makes it possible that a destination blockchain can verify if a certain transaction (or receipt, or state) is included
@@ -22,9 +22,9 @@ _The following setup will take you through the deployment of ETH Relay with a lo
 as the destination chain and the main Ethereum chain as the source chain.
 Information on how to connect to other blockchains can be found [here](#Configuration)._
 
-1. Run `git clone https://github.com/pantos-io/go-ethrelay.git` to clone the repository on your local machine and then run `go get` in the go-ethrelay folder to install the library and the CLI.
-Check that the CLI was installed correctly by running `go-ethrelay --help`. In case `go-ethrelay` command is not found, have a look at the [Troubleshooting](#Troubleshooting) section.
-If you want to install the library manually, you can simply clone this repository and run any command in the cloned directory with `go run main.go [command]`.
+1. Run `git clone https://github.com/pantos-io/go-ethrelay.git` to clone the repository on your local machine and then run `go get ./cmd/go-ethrelay` in the go-ethrelay folder to install the library and the CLI.
+Check that the CLI was installed correctly by running `go-ethrelay`. In case `go-ethrelay` command is not found, have a look at the [Troubleshooting](#Troubleshooting) section.
+If you want to install the library manually, you can simply clone this repository and run any command in the cloned directory with `go run ./cmd/go-ethrelay [command]`.
 
 2. Run `go-ethrelay init` to initialize the client.
 If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the ethrelay.yml config file in the current folder.
@@ -56,7 +56,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 ---
 
-`init`: Initializes the client by creating a ethrelay.yml file in the current directory that acts as config file for all command calls.
+`init`: Initializes the client by creating an ethrelay.yml file in the current directory that acts as config file for all command calls.
 
 `account`: Prints the address of the current account
 
@@ -74,7 +74,7 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `get longestchainendpoint`: Retrieves the most recent block hash of the longest chain in the ETH Relay contract on a destination chain
 
-`stake`: Retrieves the amount of stake deposited in the relay-contract on a destination chain
+`stake get`: Retrieves the amount of stake deposited in the relay-contract on a destination chain
 
 `stake deposit [amountInWei]`: Deposits amountInWei stake of the account balance in the contract
 
