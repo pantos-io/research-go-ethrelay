@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
 	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethashsol"
+	contract "github.com/pantos-io/go-ethrelay/internal/ethrelay"
 )
 
 func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBlockNumber uint64) common.Address {
@@ -33,7 +34,7 @@ func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBloc
 	dstChain := c.DstChain(dstChainId)
 	auth := prepareTransaction(c.account, c.privateKey, &dstChain.Chain, big.NewInt(0))
 
-	addr, tx, _, err := DeployEthrelay(auth, dstChain.client, rlpHeader, totalDifficulty, dstChain.ethashAddress)
+	addr, tx, _, err := contract.DeployEthrelay(auth, dstChain.client, rlpHeader, totalDifficulty, dstChain.ethashAddress)
 	if err != nil {
 		log.Fatal(err)
 	}

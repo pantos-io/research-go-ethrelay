@@ -23,6 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethashsol"
+	contract "github.com/pantos-io/go-ethrelay/internal/ethrelay"
 )
 
 type Chain struct {
@@ -36,7 +37,7 @@ type SourceChain struct {
 
 type DestinationChain struct {
 	Chain
-	ethrelay        	*Ethrelay
+	ethrelay        	*contract.Ethrelay
 	ethrelayAddress	common.Address
 	ethash             	*ethashsol.Ethashsol
 	ethashAddress		common.Address
@@ -63,36 +64,12 @@ const (
 	ValueTypeState
 )
 
-type PoWValidationResult int
-const (
-	PoWValid		= 0
-	PoWEpoch		= 1
-	PoWDifficulty	= 2
-)
-
 type ChainType int
 const (
 	ChainTypeAny ChainType = iota
 	ChainTypeSrc
 	ChainTypeDst
 )
-
-func (event EthrelayRemoveBranch) String() string {
-	return fmt.Sprintf("branch with root hash %s removed", common.BytesToHash(event.Root[:]))
-}
-
-func (event EthrelayPoWValidationResult) String() string {
-	switch event.ReturnCode.Int64() {
-	case PoWValid:
-		return "PoW was successfully validated"
-	case PoWEpoch:
-		return fmt.Sprintf("epoch data for epoch %d not set", event.ErrorInfo)
-	case PoWDifficulty:
-		return fmt.Sprintf("calculated difficulty of %d too low", event.ErrorInfo)
-	default:
-		return fmt.Sprintf("PoWValidationResultEvent: { returnCode: %d, errorInfo: %d }", event.ReturnCode, event.ErrorInfo)
-	}
-}
 
 func CreateChainConfig(connectionType string, connectionUrl string, connectionPort uint64) map[string]interface{} {
 	chainConfig := make(map[string]interface{})
@@ -164,7 +141,7 @@ func NewClient(privateKey string, chainsConfig map[string]interface{}) *Client {
 			fmt.Printf("WARNING: Address for ETH Relay instance for chain '%s' not configured\n", chainId)
 		} else {
 			ethrelayAddress := common.HexToAddress(addressHex.(string))
-			ethrelayContract, err := NewEthrelay(ethrelayAddress, dstChain.client)
+			ethrelayContract, err := contract.NewEthrelay(ethrelayAddress, dstChain.client)
 			if err == nil {
 				dstChain.ethrelay = ethrelayContract
 				dstChain.ethrelayAddress = ethrelayAddress

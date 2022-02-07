@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
 	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethash"
+	contract "github.com/pantos-io/go-ethrelay/internal/ethrelay"
 )
 
 func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte, error) {
@@ -49,7 +50,7 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte
 			txData := tx.Data()
 
 			// load contract ABI
-			ethrelayAbi, err := abi.JSON(strings.NewReader(EthrelayABI))
+			ethrelayAbi, err := abi.JSON(strings.NewReader(contract.EthrelayABI))
 			if err != nil {
 				return nil, err
 			}
@@ -62,7 +63,7 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte
 				method = &ethrelayAbi.Constructor
 
 				// Constructor arguments are appended to the bytecode of the contract
-				inputs = txData[len(common.FromHex(EthrelayMetaData.Bin)):]
+				inputs = txData[len(common.FromHex(contract.EthrelayMetaData.Bin)):]
 			} else {
 				// parse method-id, the first 4 bytes are always the first 4 bytes of the encoded message signature
 				id := txData[0:4]
