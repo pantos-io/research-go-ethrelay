@@ -294,6 +294,10 @@ func (c Client) Chains(chainType ChainType) []string {
 	return ids
 }
 
+func (c Client) BlockByNumber(chainId string, blockNumber *big.Int) (*types.Block, error) {
+	return c.Chain(chainId).client.BlockByNumber(context.Background(), blockNumber)
+}
+
 func (c Client) BlockByHash(chainId string, blockHash common.Hash) (*types.Block, error) {
 	return c.Chain(chainId).client.BlockByHash(context.Background(), blockHash)
 }
@@ -373,7 +377,7 @@ func decodeHeaderFromRLP(bytes []byte) (*types.Header, error) {
 	return header, err
 }
 
-func encodeHeaderWithoutNonceToRLP(header *types.Header) ([]byte, error) {
+func EncodeHeaderWithoutNonceToRLP(header *types.Header) ([]byte, error) {
 	buffer := new(bytes.Buffer)
 
 	err := rlp.Encode(buffer, []interface{}{

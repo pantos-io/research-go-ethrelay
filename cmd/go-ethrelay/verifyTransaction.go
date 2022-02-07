@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pantos-io/go-ethrelay/internal/io"
 	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +37,7 @@ This information gets sent to the destination chain, where not only the existenc
 		//  maybe it is better to introduce a new command for this behaviour as it is quite confusing to
 		//  call verifyTransaction and no transaction is verified
 		if jsonFlag {
-			fileName := writeToJson(fmt.Sprint("tx_", txHash), proof)
+			fileName := io.WriteToJson(fmt.Sprint("tx_", txHash), proof)
 			fmt.Println("Wrote merkle proof to", fileName)
 			return
 		}

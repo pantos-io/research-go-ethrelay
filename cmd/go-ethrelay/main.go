@@ -8,9 +8,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/pantos-io/go-ethrelay/internal/io"
 	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -39,16 +39,8 @@ func init() {
 }
 
 func readConfig() {
-	viper.SetConfigFile(cfgFile)
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err != nil {
-		log.Println("Can't read config file:", err)
-		return
+	var err error
+	if client, err = io.ReadConfig(cfgFile); err != nil {
+		log.Fatalln("Failed to read in config:", err)
 	}
-
-	chainsConfig := viper.Get("chains").(map[string]interface{})
-	privateKey := viper.Get("privateKey").(string)
-
-	client = ethrelay.NewClient(privateKey, chainsConfig)
 }

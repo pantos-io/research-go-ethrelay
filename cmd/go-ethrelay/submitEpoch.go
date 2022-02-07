@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/pantos-io/go-ethrelay/internal/io"
 	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethash"
 
 	"log"
@@ -33,7 +34,7 @@ var submitEpochCmd = &cobra.Command{
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
 
 		if jsonFlag {
-			fileName := writeToJson(epoch.String(), epochData)
+			fileName := io.WriteToJson(epoch.String(), epochData)
 			fmt.Println("Wrote epoch data to", fileName)
 			return
 		}

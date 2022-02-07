@@ -68,6 +68,8 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 `dispute [blockHash]`: Disputes the submitted block header with the specified hash
 
+`generate [blockNumber]`: Generates and exports test data for the Ethrelay project
+
 `get block [blockHash]`: Retrieves the block with the specified hash
 
 `get transaction [txHash]`: Retrieves the transaction with the specified hash

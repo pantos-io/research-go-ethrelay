@@ -114,7 +114,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, big.NewInt(0))
 
 	// take the encoded block header and encode it without the nonce and the mixed hash
-	blockHeaderWithoutNonce, err := encodeHeaderWithoutNonceToRLP(blockHeader)
+	blockHeaderWithoutNonce, err := EncodeHeaderWithoutNonceToRLP(blockHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
