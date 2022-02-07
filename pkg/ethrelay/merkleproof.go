@@ -57,5 +57,6 @@ func LeafProofByKey(mtrie *trie.Trie, key []byte) ([]byte, error) {
 			return enc, nil
 		}
 	}
+	//lint:ignore ST1005 Merkle is a proper noun
 	return nil, fmt.Errorf("Merkle Tree does not contain key %s", common.Bytes2Hex(key))
 }

@@ -43,7 +43,7 @@ func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte
 
 			// if the transaction is pending, we don't know if it will be included
 			if isPending {
-				return nil, fmt.Errorf("transaction where block was submitted is currently pending...")
+				return nil, fmt.Errorf("transaction where block was submitted is currently pending")
 			}
 
 			// get raw abi-encoded bytes of transaction data

@@ -304,7 +304,7 @@ func getFailureReason(client *ethclient.Client, from common.Address, tx *types.T
 		log.Fatal(err)
 	}
 
-	return fmt.Sprintf(string(code[67:]))
+	return fmt.Sprint(string(code[67:]))
 }
 
 func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) ethereum.CallMsg {
@@ -329,7 +329,16 @@ func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain
 		log.Fatal(err)
 	}
 
-	auth := bind.NewKeyedTransactor(privateKey)
+	chainID, err := chain.client.ChainID(context.Background())
+	if err != nil {
+		log.Fatalln("Failed to retrieve chain ID:", err)
+	}
+
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		log.Fatalln("Failed to create transaction signer:", err)
+	}
+
 	auth.From = from
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = valueInWei // in wei

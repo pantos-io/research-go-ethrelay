@@ -137,7 +137,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 		for {
 			if len(queue) >= int(maxBlocksWithStake.Uint64()) {
 				timeUntilNextBlockIsUnlocked := queue[0].Add(lockTime)
-				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
+				waitingTime := time.Until(timeUntilNextBlockIsUnlocked)
 
 				if waitingTime > 0 {
 					fmt.Printf("All stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
@@ -195,7 +195,7 @@ func (c Client) SubmitHeaderLive(dstChainId string, srcChainId string, lockTime 
 		case header := <-headers:
 			if len(queue) >= int(maxBlocksWithStake.Uint64()) {
 				timeUntilNextBlockIsUnlocked := queue[0].Add(lockTime)
-				waitingTime := timeUntilNextBlockIsUnlocked.Sub(time.Now())
+				waitingTime := time.Until(timeUntilNextBlockIsUnlocked)
 
 				if waitingTime > 0 {
 					fmt.Printf("All stake is locked, waiting for %fs to continue\n", waitingTime.Seconds())
