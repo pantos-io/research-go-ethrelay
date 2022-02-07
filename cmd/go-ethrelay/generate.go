@@ -3,9 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"math/big"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,6 +23,11 @@ import (
 
 var generateFlagChain string
 var genesisBlockNumber = new(big.Int)
+
+const BASE_DIR = "data"
+var TX_DIR = filepath.Join(BASE_DIR, "transactions")
+var RCP_DIR = filepath.Join(BASE_DIR, "receipts")
+var POW_DIR = filepath.Join(BASE_DIR, "pows")
 
 var generateCmd = &cobra.Command{
 	Use: 	"generate [genesisBlock]",
@@ -56,6 +64,12 @@ func init() {
 func run() {
 	rand.Seed(time.Now().Unix())
 
+	err := os.MkdirAll(BASE_DIR, fs.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create directory for test data:", err)
+		return
+	}
+
 	writeEpoch()
 
 	genesisBlock, err := client.BlockByNumber(generateFlagChain, genesisBlockNumber)
@@ -82,21 +96,34 @@ func blockErrorCheck(err error) {
 }
 
 func writeEpoch() {
-	const EPOCH_FILE = "./epoch.json"
+	const EPOCH_FILE = "epoch.json"
 
 	epoch := new(big.Int).Div(genesisBlockNumber, big.NewInt(30000)).Uint64()
 
 	fmt.Printf("Fetching and writing epoch data for epoch %d...\n", epoch)
 	epochData := ethash.GenerateEpochData(epoch)
 	
-	if err := io.WriteToJson(EPOCH_FILE, epochData); err != nil {
+	path := filepath.Join(BASE_DIR, EPOCH_FILE)
+	if err := io.WriteToJson(path, epochData); err != nil {
 		fmt.Println("Failed to write epoch data:", err)
 	} else {
-		fmt.Println("Wrote epoch data to", EPOCH_FILE)
+		fmt.Println("Wrote epoch data to", path)
 	}
 }
 
 func writeTransactionsAndReceipts(genesis, genesisPlus1, genesisPlus6 *types.Block) {
+	err := os.MkdirAll(TX_DIR, fs.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create directory for transactions:", err)
+		return
+	}
+
+	err = os.MkdirAll(RCP_DIR, fs.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create directory for receipts:", err)
+		return
+	}
+
 	writeTransactionAndReceipt(genesis, 		"genesis")
 	writeTransactionAndReceipt(genesisPlus1, 	"genesisPlus1")
 	writeTransactionAndReceipt(genesisPlus6, 	"genesisPlus6")
@@ -112,8 +139,8 @@ func writeTransactionAndReceipt(block *types.Block, fileName string) {
 	txProof 	:= proof[0]
 	rcpProof 	:= proof[1]
 
-	txPath		:= fmt.Sprint("./transactions/", fileName, ".json")
-	rcpPath		:= fmt.Sprint("./receipts/", fileName, ".json")
+	txPath		:= filepath.Join(TX_DIR, fmt.Sprint(fileName, ".json"))
+	rcpPath		:= filepath.Join(RCP_DIR, fmt.Sprint(fileName, ".json"))
 	
 
 	err = io.WriteToJson(txPath, txProof)
@@ -159,6 +186,12 @@ type powJson struct {
 }
 
 func writePoWs(genesisPlus2 *types.Block) {
+	err := os.MkdirAll(POW_DIR, fs.ModePerm)
+	if err != nil {
+		fmt.Println("Failed to create directory for PoWs:", err)
+		return
+	}
+
 	writePoW(genesisPlus2, "genesisPlus2")
 }
 
@@ -174,7 +207,7 @@ func writePoW(block *types.Block, fileName string) {
 
 	fmt.Printf("Generating PoW for block %s...\n", block.Number())
 	
-	path := fmt.Sprint("./pows/", fileName, ".json")
+	path := filepath.Join(POW_DIR, fmt.Sprint(fileName, ".json"))
 	err = io.WriteToJson(path, powJson{blockMetaData.DAGElementArray(), blockMetaData.DAGProofArray()})
 	if err == nil {
 		fmt.Println("Wrote PoW for block", block.Number(), "to", path)
