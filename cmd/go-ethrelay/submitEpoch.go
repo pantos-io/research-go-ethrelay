@@ -34,8 +34,13 @@ var submitEpochCmd = &cobra.Command{
 		epochData := ethash.GenerateEpochData(epoch.Uint64())
 
 		if jsonFlag {
-			fileName := io.WriteToJson(epoch.String(), epochData)
-			fmt.Println("Wrote epoch data to", fileName)
+			fileName := fmt.Sprint("epoch_", epoch)
+			err := io.WriteToJson(fileName, epochData)
+			if err == nil {
+				fmt.Println("Wrote epoch data to", fileName)
+			} else {
+				fmt.Printf("Failed to write epoch data to %s: %s", fileName, err)
+			}
 			return
 		}
 		client.SetEpochData(submitFlagDstChain, epochData)

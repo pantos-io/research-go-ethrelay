@@ -37,8 +37,13 @@ This information gets sent to the destination chain, where not only the existenc
 		//  maybe it is better to introduce a new command for this behaviour as it is quite confusing to
 		//  call verifyTransaction and no transaction is verified
 		if jsonFlag {
-			fileName := io.WriteToJson(fmt.Sprint("tx_", txHash), proof)
-			fmt.Println("Wrote merkle proof to", fileName)
+			fileName := fmt.Sprint("tx_", txHash)
+			err := io.WriteToJson(fileName, proof)
+			if err == nil {
+				fmt.Println("Wrote Merkle Proof to", fileName)
+			} else {
+				fmt.Printf("Failed to write Merkle Proof to %s: %s", fileName, err)
+			}
 			return
 		}
 
