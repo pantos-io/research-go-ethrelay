@@ -3,7 +3,7 @@
 package mtree
 
 import (
-	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/typedefs"
 )
 
 func conventionalWord(data typedefs.Word) ([]byte, []byte) {

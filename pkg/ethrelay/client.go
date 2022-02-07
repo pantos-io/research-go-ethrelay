@@ -5,7 +5,6 @@
 package ethrelay
 
 import (
-	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"fmt"
@@ -22,9 +21,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethashsol"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethashsol"
 )
 
 type Chain struct {
@@ -341,63 +339,6 @@ func createCallMsgFromTransaction(from common.Address, tx *types.Transaction) et
 		Value:    tx.Value(),
 		Data:     tx.Data(),
 	}
-}
-
-func encodeHeaderToRLP(header *types.Header) ([]byte, error) {
-	buffer := new(bytes.Buffer)
-
-	err := rlp.Encode(buffer, []interface{}{
-		header.ParentHash,
-		header.UncleHash,
-		header.Coinbase,
-		header.Root,
-		header.TxHash,
-		header.ReceiptHash,
-		header.Bloom,
-		header.Difficulty,
-		header.Number,
-		header.GasLimit,
-		header.GasUsed,
-		header.Time,
-		header.Extra,
-		header.MixDigest,
-		header.Nonce,
-		header.BaseFee,
-	})
-
-	// be careful when passing byte-array as buffer, the pointer can change if the buffer is used again
-	return buffer.Bytes(), err
-}
-
-func decodeHeaderFromRLP(bytes []byte) (*types.Header, error) {
-	header := new(types.Header)
-
-	err := rlp.DecodeBytes(bytes, header)
-
-	return header, err
-}
-
-func EncodeHeaderWithoutNonceToRLP(header *types.Header) ([]byte, error) {
-	buffer := new(bytes.Buffer)
-
-	err := rlp.Encode(buffer, []interface{}{
-		header.ParentHash,
-		header.UncleHash,
-		header.Coinbase,
-		header.Root,
-		header.TxHash,
-		header.ReceiptHash,
-		header.Bloom,
-		header.Difficulty,
-		header.Number,
-		header.GasLimit,
-		header.GasUsed,
-		header.Time,
-		header.Extra,
-		header.BaseFee,
-	})
-
-	return buffer.Bytes(), err
 }
 
 func prepareTransaction(from common.Address, privateKey *ecdsa.PrivateKey, chain *Chain, valueInWei *big.Int) *bind.TransactOpts {

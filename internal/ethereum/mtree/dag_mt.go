@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/typedefs"
 )
 
 type DagData typedefs.SPHash

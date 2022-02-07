@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pantos-io/go-ethrelay/pkg/mtree"
-	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/mtree"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/typedefs"
 )
 
 type BlockMetaData struct {

@@ -8,7 +8,7 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/conversions"
 	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ If not, it prints the total balance`,
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("%f ETH\n", utils.WeiToEther(balance))
+			fmt.Printf("%f ETH\n", conversions.WeiToEther(balance))
 			return
 		}
 
@@ -40,7 +40,7 @@ If not, it prints the total balance`,
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Printf("Chain '%s': %f ETH\n", chainId, utils.WeiToEther(balance))
+				fmt.Printf("Chain '%s': %f ETH\n", chainId, conversions.WeiToEther(balance))
 				totalBalance = totalBalance.Add(totalBalance, balance)
 			}
 			fmt.Printf("Total: ")
@@ -49,7 +49,7 @@ If not, it prints the total balance`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%f ETH\n", utils.WeiToEther(balance))
+		fmt.Printf("%f ETH\n", conversions.WeiToEther(balance))
 	},
 	ValidArgsFunction: chainCompletionFn(ethrelay.ChainTypeAny),
 }

@@ -11,13 +11,14 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/typedefs"
 )
 
 func (c Client) SubmitHeader(chainId string, header *types.Header) error {
 	fmt.Printf("Submitting block: \nNo: %s\nHash: %s\n", header.Number, header.Hash())
 
-	rlpHeader, err := encodeHeaderToRLP(header)
+	rlpHeader, err := encoding.EncodeHeaderToRLP(header)
 	if err != nil {
 		return fmt.Errorf("failed to encode header to RLP: %s", err)
 	}

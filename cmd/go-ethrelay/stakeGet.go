@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/conversions"
 )
 
 // stakeRetrieveCmd represents the stake retrieve command
@@ -21,7 +21,7 @@ var stakeRetrieveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Stake balance: %f ETH\n", utils.WeiToEther(stakeInWei))
+		fmt.Printf("Stake balance: %f ETH\n", conversions.WeiToEther(stakeInWei))
 	},
 }
 

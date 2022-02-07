@@ -10,7 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethashsol"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethashsol"
 )
 
 func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBlockNumber uint64) common.Address {
@@ -24,7 +25,7 @@ func (c Client) DeployEthrelay(dstChainId string, srcChainId string, genesisBloc
 		log.Fatalf("Failed to retrieve total difficulty of block %d: %s", genesisBlockNumber, err)
 	}
 
-	rlpHeader, err := encodeHeaderToRLP(header)
+	rlpHeader, err := encoding.EncodeHeaderToRLP(header)
 	if err != nil {
 		log.Fatal("Failed to encode header to RLP: " + err.Error())
 	}

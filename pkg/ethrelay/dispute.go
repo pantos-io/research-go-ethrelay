@@ -12,7 +12,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethash"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethash"
 )
 
 func getRlpHeaderByEvent(chain *DestinationChain, blockHash common.Hash) ([]byte, error) {
@@ -100,7 +101,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	}
 
 	// decode block header from rlp encoded block header
-	blockHeader, err := decodeHeaderFromRLP(rlpEncodedBlockHeader)
+	blockHeader, err := encoding.DecodeHeaderFromRLP(rlpEncodedBlockHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func (c Client) DisputeBlock(chainId string, blockHash common.Hash) {
 	auth := prepareTransaction(c.account, c.privateKey, &chain.Chain, big.NewInt(0))
 
 	// take the encoded block header and encode it without the nonce and the mixed hash
-	blockHeaderWithoutNonce, err := EncodeHeaderWithoutNonceToRLP(blockHeader)
+	blockHeaderWithoutNonce, err := encoding.EncodeHeaderWithoutNonceToRLP(blockHeader)
 	if err != nil {
 		log.Fatal(err)
 	}

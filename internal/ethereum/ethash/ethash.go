@@ -32,8 +32,8 @@ import (
 	"unsafe"
 
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/pantos-io/go-ethrelay/pkg/mtree"
-	"github.com/pantos-io/go-ethrelay/pkg/typedefs"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/mtree"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/typedefs"
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/ethereum/go-ethereum/consensus"

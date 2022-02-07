@@ -10,7 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/utils"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/conversions"
 )
 
 // stakeDepositCmd represents the command 'stake deposit <amount>'
@@ -31,7 +31,7 @@ var stakeDepositCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Successfully deposited stake: %f ETH\n", utils.WeiToEther(amountInWei))
+		fmt.Printf("Successfully deposited stake: %f ETH\n", conversions.WeiToEther(amountInWei))
 	},
 }
 

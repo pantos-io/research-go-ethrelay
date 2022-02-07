@@ -11,8 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/encoding"
+	"github.com/pantos-io/go-ethrelay/internal/ethereum/ethash"
 	"github.com/pantos-io/go-ethrelay/internal/io"
-	"github.com/pantos-io/go-ethrelay/pkg/ethereum/ethash"
 	"github.com/pantos-io/go-ethrelay/pkg/ethrelay"
 	"github.com/spf13/cobra"
 )
@@ -163,7 +164,7 @@ func writePoWs(genesisPlus2 *types.Block) {
 
 func writePoW(block *types.Block, fileName string) {
 	blockHeader := block.Header()
-	rlpHeader, err := ethrelay.EncodeHeaderWithoutNonceToRLP(blockHeader)
+	rlpHeader, err := encoding.EncodeHeaderWithoutNonceToRLP(blockHeader)
 	if (err != nil) {
 		fmt.Println("Failed to encode header of block", block.Number(), "to RLP:", err)
 		return
