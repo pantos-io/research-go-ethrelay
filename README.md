@@ -28,7 +28,7 @@ If you want to install the library manually, you can simply clone this repositor
 
 2. Run `go-ethrelay init` to initialize the client.
 If you encounter any problems calling this command, get sure the rights are properly adjusted so Go can create the ethrelay.yml config file in the current folder.
-It is also possible to generate the file by hand or change the example config file named ethrelay.example.yml contained in this repo.
+It is also possible to generate the file by hand or change the example config file under configs/ethrelay.example.yml contained in this repo.
 
 3. Start Ganache (should start on the default port 7545, if not, change this in the config file).
 
@@ -96,15 +96,15 @@ Use `go-ethrelay [command] --help` for more information about a command.
 
 ## Quick Setup
 
-There is also a shell script in this repository named `setup-relay.sh`. This script helps researchers and developers to quickly setup
+There is also a shell script in this repository, `scripts/setup-relay.sh`. This script helps researchers and developers to quickly setup
 a working version of the relay with default-values and assuming a local Ganache instance. The call to this script is:
 
-`sh setup-relay.sh [ganacheAccountPrivateKey] [genesisBlock] [stakeInETH]`
+`./scripts/setup-relay.sh [ganacheAccountPrivateKey] [genesisBlock] [stakeInETH]`
 
 Example call:
 
 ```shell
-sh setup-relay.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649dfc3b 11367417 25
+./scripts/setup-relay.sh 0x45b5ffd7266ec7131f31f94da843b99fd270b46d94bf01368ceeb936649dfc3b 11367417 25
 ```
 
 ## Configuration
