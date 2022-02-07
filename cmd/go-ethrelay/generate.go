@@ -37,19 +37,32 @@ The data are intended to be used for the tests residing in the Ethrelay project.
 
 If no genesis block is given, a recent block is chosen by the application.`,
 	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) > 1 {
+
+		if (len(args) > 1) {
 			return errors.New("too many arguments")
 		}
 
+		minimumBlocksBeforeLatest := big.NewInt(6)
+
+		latestBlock, err := client.BlockByNumber(generateFlagChain, nil)
+		if err != nil {
+			return errors.New("failed to fetch latest block")
+		}
+		latestBlockNumber := latestBlock.Number()
+
 		if (len(args) == 0) {
+			genesisBlockNumber.Sub(latestBlockNumber, minimumBlocksBeforeLatest)
 			return nil
 		}
 
 		if _, success := genesisBlockNumber.SetString(args[0], 10); !success {
 			return errors.New("failed to parse genesis block")
 		}
-		
-		// TODO Read in latest block number
+
+		if genesisBlockNumber.Cmp(new(big.Int).Sub(latestBlockNumber, minimumBlocksBeforeLatest)) == 1 {
+			return fmt.Errorf("the genesis block has to be confirmed by at least %s blocks", minimumBlocksBeforeLatest)
+		}
+
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) { run() },
