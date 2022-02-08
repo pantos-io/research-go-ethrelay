@@ -32,7 +32,7 @@ var POW_DIR = filepath.Join(BASE_DIR, "pows")
 var generateCmd = &cobra.Command{
 	Use: 	"generate [genesisBlock]",
 	Short: 	"Generates and exports test data for the Ethrelay project",
-	Long:	`Generates Merkle Proofs and PoWs for specific transactions / blocks and exports them in JSON format.
+	Long:	`Generates Merkle proofs and PoWs for specific transactions / blocks and exports them in JSON format.
 The data are intended to be used for the tests residing in the Ethrelay project.
 
 If no genesis block is given, a recent block is chosen by the application.`,
@@ -145,7 +145,7 @@ func writeTransactionsAndReceipts(genesis, genesisPlus1, genesisPlus6 *types.Blo
 func writeTransactionAndReceipt(block *types.Block, fileName string) {
 	txHash, proof, err := getRandomTransactionAndReceiptProof(block)
 	if (err != nil) {
-		fmt.Printf("Failed to generate Merkle Proof for block %s: %s", block.Number(), err)
+		fmt.Printf("Failed to generate Merkle proof for block %s: %s", block.Number(), err)
 		return
 	}
 
@@ -158,16 +158,16 @@ func writeTransactionAndReceipt(block *types.Block, fileName string) {
 
 	err = io.WriteToJson(txPath, txProof)
 	if err == nil {
-		fmt.Println("Wrote Merkle Proof for transaction", txHash, "to", txPath)
+		fmt.Println("Wrote Merkle proof for transaction", txHash, "to", txPath)
 	} else {
-		fmt.Printf("Failed to write Merkle Proof for transaction %s to file %s: %s\n", txHash, txPath, err)
+		fmt.Printf("Failed to write Merkle proof for transaction %s to file %s: %s\n", txHash, txPath, err)
 	}
 
 	err = io.WriteToJson(rcpPath, rcpProof)
 	if err == nil {
-		fmt.Println("Wrote Merkle Proof for receipt of transaction", txHash, "to", rcpPath)
+		fmt.Println("Wrote Merkle proof for receipt of transaction", txHash, "to", rcpPath)
 	} else {
-		fmt.Printf("Failed to write Merkle Proof for receipt of transaction %s to file %s: %s\n", txHash, rcpPath, err)
+		fmt.Printf("Failed to write Merkle proof for receipt of transaction %s to file %s: %s\n", txHash, rcpPath, err)
 	}
 }
 
@@ -177,12 +177,12 @@ func getRandomTransactionAndReceiptProof(block *types.Block) (common.Hash, [2]*e
 	_, txProof, err := client.GenerateMerkleProofForTx(generateFlagChain, txHash)
 	if err != nil {
 		fmt.Println()
-		return common.Hash{}, [2]*ethrelay.MerkleProof{}, fmt.Errorf("failed to generate Merkle Proof for transaction %s: %s", txHash, err)
+		return common.Hash{}, [2]*ethrelay.MerkleProof{}, fmt.Errorf("failed to generate Merkle proof for transaction %s: %s", txHash, err)
 	}
 	_, rcpProof, err := client.GenerateMerkleProofForTx(generateFlagChain, txHash)
 	if err != nil {
 		fmt.Println()
-		return common.Hash{}, [2]*ethrelay.MerkleProof{}, fmt.Errorf("failed to generate Merkle Proof for receipt of transaction %s: %s", txHash, err)
+		return common.Hash{}, [2]*ethrelay.MerkleProof{}, fmt.Errorf("failed to generate Merkle proof for receipt of transaction %s: %s", txHash, err)
 	}
 
 	return txHash, [2]*ethrelay.MerkleProof{txProof, rcpProof}, nil

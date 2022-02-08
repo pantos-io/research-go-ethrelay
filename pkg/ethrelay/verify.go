@@ -20,9 +20,9 @@ type VerificationResult struct {
 func (result VerificationResult) String() string {
 	switch result.returnCode {
 	case 0:
-		return "Merkle Proof verified"
+		return "Merkle proof verified"
 	case 1:
-		return "failed to verify Merkle Proof"
+		return "failed to verify Merkle proof"
 	default:
 		return fmt.Sprintf("VerificationResult: { returnCode: %d }", result.returnCode)
 	}

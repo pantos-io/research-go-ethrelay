@@ -17,15 +17,15 @@ var verifyReceiptCmd = &cobra.Command{
 	Short: "Verifies a receipt",
 	Long:  `Verifies a receipt from a source chain on a destination chain.
 Behind the scene, the command queries the receipt with the specified hash from the source chain.
-It then generates a Merkle Proof contesting the existence of the receipt within a specific block.
-This information gets sent to the destination chain, where not only the existence of the block but also the Merkle Proof are verified.`,
+It then generates a Merkle proof contesting the existence of the receipt within a specific block.
+This information gets sent to the destination chain, where not only the existence of the block but also the Merkle proof are verified.`,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
 
 		rlpHeader, proof, err := client.GenerateMerkleProofForReceipt(verifyFlagSrcChain, txHash)
 		if err != nil {
-			log.Fatal("Failed to generate Merkle Proof: " + err.Error())
+			log.Fatal("Failed to generate Merkle proof: " + err.Error())
 		}
 
 		feesInWei, err := client.GetRequiredVerificationFee(verifyFlagDstChain)
